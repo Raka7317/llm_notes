@@ -108,17 +108,22 @@
             display: grid;
             grid-template-columns: repeat(3, 1fr);
             gap: 18px;
+            /* Safety net: never let one tall card stretch its row-mates.
+               Each card sizes to its own content, top-aligned. */
+            align-items: start;
         }
 
         /* ================= CARD ================= */
 
         .page-card {
             position: relative;
-            display: block;
+            display: flex;
+            flex-direction: column;
             text-decoration: none;
             color: inherit;
 
             padding: 25px;
+            padding-bottom: 50px; /* room for the "Open →" tag, no absolute overlap */
 
             min-height: 190px;
 
@@ -162,6 +167,7 @@
             font-size: 14px;
 
             margin-bottom: 22px;
+            flex-shrink: 0;
         }
 
         .page-card h2 {
@@ -174,6 +180,7 @@
             color: #94a3b8;
             font-size: 13px;
             line-height: 1.6;
+            flex-grow: 1;
         }
 
         .open {
@@ -255,7 +262,7 @@
 <main>
 
     <div class="section-title">
-        12 Lecture Notes
+        13 Lecture Notes
     </div>
 
 
@@ -277,7 +284,7 @@
             </h2>
 
             <p>
-               
+                Why LLM evals exist, how they differ from software testing, and the core definition every engineer should know.
             </p>
 
             <div class="open">
@@ -298,12 +305,11 @@
             <div class="number">02</div>
 
             <h2>
-               
-Introduction to LLM Evaluations  Model Evals vs Application Evals
+                Introduction to LLM Evaluations: Model Evals vs Application Evals
+            </h2>
 
             <p>
-                
-
+                The core split every eval strategy is built on — evaluating the raw model vs. evaluating the full application around it.
             </p>
 
             <div class="open">
@@ -324,12 +330,11 @@ Introduction to LLM Evaluations  Model Evals vs Application Evals
             <div class="number">03</div>
 
             <h2>
-              
-How to Evaluate LLM Applications: The Complete Workflow
+                How to Evaluate LLM Applications: The Complete Workflow
             </h2>
 
             <p>
-                
+                A step-by-step, repeatable workflow — from defining success criteria to deployment and monitoring.
             </p>
 
             <div class="open">
@@ -350,12 +355,11 @@ How to Evaluate LLM Applications: The Complete Workflow
             <div class="number">04</div>
 
             <h2>
-               
-Why Your AI Application Needs Multiple Eval Pipelines?
+                Why Your AI Application Needs Multiple Eval Pipelines?
             </h2>
 
             <p>
-                
+                One application, many evals — why component-level and system-level testing both matter.
             </p>
 
             <div class="open">
@@ -376,12 +380,11 @@ Why Your AI Application Needs Multiple Eval Pipelines?
             <div class="number">05</div>
 
             <h2>
-               
-LLM Eval Methods | LLM-as-a-Judge | Reference Based Evals Vs Reference Free Evals
+                LLM Eval Methods | LLM-as-a-Judge | Reference Based Evals Vs Reference Free Evals
             </h2>
 
             <p>
-               
+                Choosing between automated scoring, human review, and LLM-as-judge for your evaluation pipeline.
             </p>
 
             <div class="open">
@@ -402,12 +405,11 @@ LLM Eval Methods | LLM-as-a-Judge | Reference Based Evals Vs Reference Free Eval
             <div class="number">06</div>
 
             <h2>
-                
-Offline Evals Vs Online Evals
+                Offline Evals Vs Online Evals
             </h2>
 
             <p>
-               
+                When to test before deployment vs. continuously in production, and why you need both.
             </p>
 
             <div class="open">
@@ -428,12 +430,11 @@ Offline Evals Vs Online Evals
             <div class="number">07</div>
 
             <h2>
-               
-LLM Model Evals & Capabilities
+                LLM Model Evals & Capabilities
             </h2>
 
             <p>
-                
+                The eight capability areas frontier labs test — reasoning, knowledge, coding, tool use, and more.
             </p>
 
             <div class="open">
@@ -454,12 +455,11 @@ LLM Model Evals & Capabilities
             <div class="number">08</div>
 
             <h2>
-                
-Whats is LLM Benchmarking | Benchmark Saturation vs. Contamination
+                What is LLM Benchmarking | Benchmark Saturation vs. Contamination
             </h2>
 
             <p>
-              
+                Why benchmarks stop being useful over time, and how to spot when a score can't be trusted.
             </p>
 
             <div class="open">
@@ -480,12 +480,11 @@ Whats is LLM Benchmarking | Benchmark Saturation vs. Contamination
             <div class="number">09</div>
 
             <h2>
-               
-What are LLM Benchmarks | The Evolution of AI Knowledge Benchmarks
+                What are LLM Benchmarks | The Evolution of AI Knowledge Benchmarks
             </h2>
 
             <p>
-                
+                A tour of how knowledge benchmarks have evolved as models have gotten more capable.
             </p>
 
             <div class="open">
@@ -506,14 +505,11 @@ What are LLM Benchmarks | The Evolution of AI Knowledge Benchmarks
             <div class="number">10</div>
 
             <h2>
-               
-
-
-How to Use LLM Leaderboards
+                How to Use LLM Leaderboards
             </h2>
 
             <p>
-              
+                Reading leaderboards critically to pick the right model for your use case.
             </p>
 
             <div class="open">
@@ -534,11 +530,11 @@ How to Use LLM Leaderboards
             <div class="number">11</div>
 
             <h2>
-Selecting the Right LLM for Your AI App: Running Custom Model Evals 
+                Selecting the Right LLM for Your AI App: Running Custom Model Evals
             </h2>
 
             <p>
-               
+                Building your own targeted model evals when public benchmarks don't match your real use case.
             </p>
 
             <div class="open">
@@ -559,12 +555,11 @@ Selecting the Right LLM for Your AI App: Running Custom Model Evals
             <div class="number">12</div>
 
             <h2>
-                
-How to Answer "How Do You Evaluate Your RAG App?" in GenAI Interviews
+                How to Answer "How Do You Evaluate Your RAG App?" in GenAI Interviews
             </h2>
 
             <p>
-                
+                A structured, interview-ready framework for explaining RAG evaluation end to end.
             </p>
 
             <div class="open">
@@ -574,8 +569,9 @@ How to Answer "How Do You Evaluate Your RAG App?" in GenAI Interviews
         </a>
 
 
+        <!-- ================= PAGE 13 ================= -->
 
-             <a
+        <a
             href="THIRTEEN.html"
             class="page-card"
             data-title="Complete RAG Evaluation Strategy"
@@ -584,13 +580,11 @@ How to Answer "How Do You Evaluate Your RAG App?" in GenAI Interviews
             <div class="number">13</div>
 
             <h2>
-              
-
-How to Test RAG Retrievers(Hands-On)
+                How to Test RAG Retrievers (Hands-On)
             </h2>
 
             <p>
-             
+                A practical, hands-on walkthrough of testing and scoring a retriever's performance.
             </p>
 
             <div class="open">
@@ -607,7 +601,7 @@ How to Test RAG Retrievers(Hands-On)
 
 <footer>
 
-    LLM Evaluation Study Hub • 12 HTML Study Pages
+    LLM Evaluation Study Hub • 13 HTML Study Pages
 
 </footer>
 
@@ -642,7 +636,7 @@ function searchPages() {
             text.includes(search)
         ) {
 
-            card.style.display = "block";
+            card.style.display = "flex";
 
         } else {
 
