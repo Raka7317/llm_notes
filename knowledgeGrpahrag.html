@@ -1,0 +1,755 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Knowledge Graph RAG — Storage, Retrieval & Tools</title>
+<style>
+:root{
+  --bg:#08101f;--panel:#101a2d;--panel2:#16233b;--text:#eaf0fb;
+  --muted:#a9b7cf;--cyan:#67e8f9;--purple:#a78bfa;--green:#86efac;
+  --yellow:#fcd34d;--border:#2a3a58;--code:#070c16
+}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{margin:0;background:linear-gradient(135deg,#070c17,#0c1628 55%,#09101e);
+color:var(--text);font-family:Inter,Segoe UI,Arial,sans-serif;line-height:1.7}
+header{padding:75px 20px 60px;text-align:center;border-bottom:1px solid var(--border);
+background:radial-gradient(circle at top,#263b68,transparent 68%)}
+.badge{display:inline-block;border:1px solid var(--border);border-radius:999px;
+padding:6px 13px;color:var(--cyan);font-size:.85rem;margin-bottom:18px}
+h1{font-size:clamp(2.2rem,6vw,4.4rem);margin:0 0 12px}
+header p{max-width:900px;margin:auto;color:var(--muted);font-size:1.08rem}
+nav{position:sticky;top:0;z-index:10;background:rgba(8,16,31,.94);
+backdrop-filter:blur(12px);border-bottom:1px solid var(--border)}
+.nav{max-width:1150px;margin:auto;padding:11px 18px;display:flex;gap:7px;overflow:auto}
+nav a{color:var(--muted);text-decoration:none;padding:7px 10px;border-radius:8px;white-space:nowrap}
+nav a:hover{background:var(--panel2);color:var(--text)}
+main{max-width:1150px;margin:auto;padding:35px 18px 80px}
+section{background:rgba(16,26,45,.9);border:1px solid var(--border);
+border-radius:18px;padding:30px;margin:24px 0;box-shadow:0 14px 40px rgba(0,0,0,.18)}
+.kicker{color:var(--purple);font-weight:700;letter-spacing:.07em;font-size:.83rem}
+h2{font-size:2rem;color:var(--cyan);margin:5px 0 18px}
+h3{color:#dce5f8;margin-top:28px}
+.callout{padding:18px 20px;background:#0d182b;border-left:4px solid var(--cyan);
+border-radius:10px;margin:18px 0}
+.callout.green{border-left-color:var(--green)}
+.callout.yellow{border-left-color:var(--yellow)}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(235px,1fr));gap:16px}
+.card{background:var(--panel2);border:1px solid var(--border);border-radius:14px;padding:19px}
+.card h3{margin-top:0}
+pre{background:var(--code);border:1px solid var(--border);border-radius:12px;
+padding:18px;overflow:auto;color:#dce8ff}
+code{font-family:Consolas,Monaco,monospace}
+.flow{display:flex;align-items:center;justify-content:center;flex-wrap:wrap;gap:9px;margin:24px 0}
+.flowbox{padding:14px 17px;background:var(--panel2);border:1px solid var(--border);
+border-radius:10px;text-align:center;min-width:125px}
+.arrow{font-size:1.4rem;color:var(--cyan)}
+.diagram{background:#070d18;border:1px solid var(--border);border-radius:14px;
+padding:24px;overflow:auto;text-align:center}
+.node{display:inline-block;padding:12px 18px;background:#182844;border:1px solid #536b91;
+border-radius:11px;font-weight:700;margin:7px}
+.edge{color:var(--cyan);font-weight:700;margin:0 4px}
+.small{color:var(--muted);font-size:.94rem}
+table{width:100%;border-collapse:collapse;margin:18px 0}
+th,td{border:1px solid var(--border);padding:12px;text-align:left}
+th{background:#1a2945;color:var(--cyan)}
+tr:nth-child(even){background:rgba(255,255,255,.025)}
+.tag{display:inline-block;padding:4px 9px;border-radius:6px;background:#203252;
+color:var(--cyan);font-size:.8rem;margin:2px}
+footer{text-align:center;color:var(--muted);padding:30px}
+@media(max-width:650px){section{padding:22px 16px}h2{font-size:1.55rem}}
+</style>
+</head>
+
+<body>
+<header>
+<div class="badge">AI ENGINEERING • VECTORLESS RAG • GRAPH RAG</div>
+<h1>How Knowledge Graph RAG Stores & Retrieves Data</h1>
+<p>
+A practical, step-by-step guide showing how documents become entities and relationships,
+where the graph is stored, how retrieval happens, which tools are used, and how the retrieved
+graph facts finally reach the LLM.
+</p>
+</header>
+
+<nav>
+<div class="nav">
+<a href="#bigpicture">Big Picture</a>
+<a href="#creation">Creation</a>
+<a href="#storage">Storage</a>
+<a href="#neo4j">Neo4j</a>
+<a href="#retrieval">Retrieval</a>
+<a href="#cypher">Cypher</a>
+<a href="#rag">Graph RAG</a>
+<a href="#tools">Tools</a>
+<a href="#vectorless">Vectorless RAG</a>
+<a href="#example">Full Example</a>
+<a href="#cheat">Cheat Sheet</a>
+</div>
+</nav>
+
+<main>
+
+<section id="bigpicture">
+<span class="kicker">01 • START HERE</span>
+<h2>The Big Picture</h2>
+<p>The easiest way to understand Knowledge Graph RAG is to separate it into two jobs:</p>
+
+<div class="grid">
+<div class="card">
+<h3>Job 1 — Create the graph</h3>
+<p>Convert unstructured documents into:</p>
+<pre><code>Entities + Relationships + Properties</code></pre>
+</div>
+<div class="card">
+<h3>Job 2 — Retrieve from the graph</h3>
+<p>Find relevant entities and follow their relationships using graph queries or traversal.</p>
+</div>
+</div>
+
+<div class="flow">
+<div class="flowbox">Documents</div><div class="arrow">→</div>
+<div class="flowbox">Entity Extraction</div><div class="arrow">→</div>
+<div class="flowbox">Relationship Extraction</div><div class="arrow">→</div>
+<div class="flowbox">Knowledge Graph</div><div class="arrow">→</div>
+<div class="flowbox">Graph Query</div><div class="arrow">→</div>
+<div class="flowbox">LLM</div>
+</div>
+
+<div class="callout">
+<strong>Core idea:</strong> A Knowledge Graph does not primarily retrieve by embedding similarity.
+It stores explicit connections such as <code>Rakesh —WORKS_AT→ Google</code> and retrieves
+information by querying or traversing those connections.
+</div>
+</section>
+
+<section id="creation">
+<span class="kicker">02 • GRAPH CREATION</span>
+<h2>Step 1 — Start with a Document</h2>
+
+<p>Suppose your company has this text:</p>
+
+<pre><code>"Rakesh works at Google as an AI Engineer.
+Google is headquartered in California.
+Sundar Pichai is the CEO of Google."</code></pre>
+
+<h3>Extract the entities</h3>
+<pre><code>Rakesh          → PERSON
+Google          → ORGANIZATION
+AI Engineer     → JOB_TITLE
+California      → LOCATION
+Sundar Pichai   → PERSON</code></pre>
+
+<h3>Extract the relationships</h3>
+<pre><code>Rakesh         → WORKS_AT          → Google
+Rakesh         → JOB_TITLE         → AI Engineer
+Google         → HEADQUARTERED_IN  → California
+Sundar Pichai  → CEO_OF            → Google</code></pre>
+
+<div class="callout green">
+These <strong>Subject → Relationship → Object</strong> statements are commonly called
+<strong>triples</strong>.
+</div>
+
+<h3>Creation pipeline</h3>
+<div class="flow">
+<div class="flowbox">PDF / HTML / DOCX</div><div class="arrow">→</div>
+<div class="flowbox">Text Extraction</div><div class="arrow">→</div>
+<div class="flowbox">Entity Extraction</div><div class="arrow">→</div>
+<div class="flowbox">Relation Extraction</div><div class="arrow">→</div>
+<div class="flowbox">Entity Resolution</div><div class="arrow">→</div>
+<div class="flowbox">Neo4j</div>
+</div>
+</section>
+
+<section id="storage">
+<span class="kicker">03 • DATA STORAGE</span>
+<h2>How Is the Data Actually Stored?</h2>
+
+<p>Think of the graph as two major types of objects:</p>
+
+<div class="grid">
+<div class="card">
+<h3>Nodes</h3>
+<p>Represent entities.</p>
+<pre><code>Rakesh
+Google
+California
+Sundar Pichai</code></pre>
+</div>
+
+<div class="card">
+<h3>Relationships / Edges</h3>
+<p>Connect nodes and describe their relationship.</p>
+<pre><code>WORKS_AT
+HEADQUARTERED_IN
+CEO_OF</code></pre>
+</div>
+</div>
+
+<h3>Conceptual representation</h3>
+<pre><code>Node:
+{
+    name: "Rakesh",
+    type: "Person"
+}
+
+Node:
+{
+    name: "Google",
+    type: "Company"
+}
+
+Relationship:
+Rakesh ── WORKS_AT ──> Google</code></pre>
+
+<h3>Graph view</h3>
+<div class="diagram">
+<div>
+<span class="node">Rakesh</span>
+<span class="edge">── WORKS_AT ──▶</span>
+<span class="node">Google</span>
+</div>
+<div>
+<span class="node">Google</span>
+<span class="edge">── HEADQUARTERED_IN ──▶</span>
+<span class="node">California</span>
+</div>
+<div>
+<span class="node">Sundar Pichai</span>
+<span class="edge">── CEO_OF ──▶</span>
+<span class="node">Google</span>
+</div>
+</div>
+
+<h3>Properties can also be stored</h3>
+<pre><code>Rakesh
+{
+    name: "Rakesh",
+    type: "Person"
+}
+
+WORKS_AT relationship
+{
+    role: "AI Engineer",
+    since: 2025
+}</code></pre>
+
+<div class="callout yellow">
+<strong>Important:</strong> A Knowledge Graph is a logical data model. The physical storage
+depends on the graph technology you choose. One common choice is a property-graph database such as Neo4j.
+Another family is RDF triple stores queried with SPARQL.
+</div>
+</section>
+
+<section id="neo4j">
+<span class="kicker">04 • GRAPH DATABASE</span>
+<h2>Using Neo4j to Store the Graph</h2>
+
+<p>
+For learning and implementing Graph RAG, <strong>Neo4j + Cypher</strong> is a practical stack.
+Neo4j stores nodes, relationships, and properties in a property-graph model.
+</p>
+
+<h3>Create nodes</h3>
+<pre><code>CREATE (r:Person {name: "Rakesh"})
+CREATE (g:Company {name: "Google"})
+CREATE (c:Location {name: "California"})</code></pre>
+
+<h3>Create relationships</h3>
+<pre><code>MATCH (r:Person {name: "Rakesh"}),
+      (g:Company {name: "Google"})
+CREATE (r)-[:WORKS_AT]->(g)</code></pre>
+
+<h3>Create the complete example</h3>
+<pre><code>CREATE (r:Person {name: "Rakesh"})
+CREATE (g:Company {name: "Google"})
+CREATE (c:Location {name: "California"})
+CREATE (s:Person {name: "Sundar Pichai"})
+
+CREATE (r)-[:WORKS_AT {role:"AI Engineer"}]->(g)
+CREATE (g)-[:HEADQUARTERED_IN]->(c)
+CREATE (s)-[:CEO_OF]->(g)</code></pre>
+
+<h3>The stored graph becomes</h3>
+<div class="diagram">
+<span class="node">Rakesh</span>
+<span class="edge">── WORKS_AT ──▶</span>
+<span class="node">Google</span>
+<span class="edge">── HEADQUARTERED_IN ──▶</span>
+<span class="node">California</span>
+<br>
+<span class="node">Sundar Pichai</span>
+<span class="edge">── CEO_OF ──▶</span>
+<span class="node">Google</span>
+</div>
+</section>
+
+<section id="retrieval">
+<span class="kicker">05 • RETRIEVAL</span>
+<h2>How Does Searching Take Place?</h2>
+
+<p>Suppose the user asks:</p>
+
+<pre><code>"Where is the company Rakesh works for headquartered?"</code></pre>
+
+<p>The system needs to find this path:</p>
+
+<div class="diagram">
+<span class="node">Rakesh</span>
+<span class="edge">── WORKS_AT ──▶</span>
+<span class="node">Company</span>
+<span class="edge">── HEADQUARTERED_IN ──▶</span>
+<span class="node">Location</span>
+</div>
+
+<h3>Graph traversal</h3>
+<p>Start at the entity <strong>Rakesh</strong>.</p>
+
+<pre><code>Rakesh
+  │
+  ├── WORKS_AT ──> Google
+  │
+  └── JOB_TITLE ──> AI Engineer</code></pre>
+
+<p>The question requires <code>WORKS_AT</code>, so follow that edge:</p>
+
+<pre><code>Rakesh
+   │
+   └── WORKS_AT
+          ↓
+        Google</code></pre>
+
+<p>Now we need <code>HEADQUARTERED_IN</code>:</p>
+
+<pre><code>Google
+   │
+   ├── HEADQUARTERED_IN ──> California
+   │
+   └── CEO_OF ──> Sundar Pichai</code></pre>
+
+<p>Final retrieved fact:</p>
+
+<div class="callout green">
+<strong>Google → HEADQUARTERED_IN → California</strong>
+</div>
+
+<p>This process of following relationships is called <strong>graph traversal</strong>.</p>
+</section>
+
+<section id="cypher">
+<span class="kicker">06 • SEARCH LANGUAGE</span>
+<h2>Using Cypher to Search Neo4j</h2>
+
+<p>
+Cypher is the query language used with Neo4j. Instead of doing vector similarity search,
+you describe the graph pattern you want to find.
+</p>
+
+<h3>Simple query</h3>
+<pre><code>MATCH (p:Person {name: "Rakesh"})
+      -[:WORKS_AT]->
+      (c:Company)
+RETURN c.name</code></pre>
+
+<p>Result:</p>
+<pre><code>Google</code></pre>
+
+<h3>Two-hop query</h3>
+<p>Now find where Rakesh's company is headquartered:</p>
+
+<pre><code>MATCH (p:Person {name: "Rakesh"})
+      -[:WORKS_AT]->
+      (c:Company)
+      -[:HEADQUARTERED_IN]->
+      (l:Location)
+RETURN c.name, l.name</code></pre>
+
+<p>Result:</p>
+<pre><code>Company      Location
+-------------------------
+Google       California</code></pre>
+
+<div class="callout">
+<strong>Important:</strong> The database is not asking "which text is semantically similar?"
+It is matching a <strong>graph pattern</strong>.
+</div>
+</section>
+
+<section id="rag">
+<span class="kicker">07 • GRAPH RAG</span>
+<h2>How the Graph Becomes RAG</h2>
+
+<p>The graph database is only one component. RAG adds the query-understanding and answer-generation layers.</p>
+
+<div class="flow">
+<div class="flowbox">User Question</div><div class="arrow">→</div>
+<div class="flowbox">Query Understanding</div><div class="arrow">→</div>
+<div class="flowbox">Cypher / Graph Query</div><div class="arrow">→</div>
+<div class="flowbox">Neo4j</div><div class="arrow">→</div>
+<div class="flowbox">Graph Results</div><div class="arrow">→</div>
+<div class="flowbox">LLM</div><div class="arrow">→</div>
+<div class="flowbox">Answer</div>
+</div>
+
+<h3>Step 1 — User question</h3>
+<pre><code>Where is the company Rakesh works for headquartered?</code></pre>
+
+<h3>Step 2 — Query understanding</h3>
+<p>An LLM or application logic identifies:</p>
+<pre><code>Entity:
+Rakesh
+
+Required relationship:
+WORKS_AT
+
+Second relationship:
+HEADQUARTERED_IN</code></pre>
+
+<h3>Step 3 — Generate graph query</h3>
+<pre><code>MATCH (p:Person {name: "Rakesh"})
+      -[:WORKS_AT]->
+      (c:Company)
+      -[:HEADQUARTERED_IN]->
+      (l:Location)
+RETURN c.name, l.name</code></pre>
+
+<h3>Step 4 — Neo4j executes it</h3>
+<pre><code>Google
+California</code></pre>
+
+<h3>Step 5 — Give the retrieved context to the LLM</h3>
+<pre><code>Retrieved graph facts:
+- Rakesh WORKS_AT Google
+- Google HEADQUARTERED_IN California</code></pre>
+
+<h3>Step 6 — LLM generates the answer</h3>
+<div class="callout green">
+<strong>Google is headquartered in California.</strong>
+</div>
+</section>
+
+<section id="tools">
+<span class="kicker">08 • TOOLS</span>
+<h2>Which Tools Are Used?</h2>
+
+<table>
+<tr><th>Layer</th><th>Purpose</th><th>Common Tools</th></tr>
+<tr>
+<td>Document Loading</td>
+<td>Read PDF, HTML, DOCX, CSV, etc.</td>
+<td>PyMuPDF, pypdf, BeautifulSoup, pandas</td>
+</tr>
+<tr>
+<td>Text Processing</td>
+<td>Clean and split source text</td>
+<td>Python, LangChain, LlamaIndex</td>
+</tr>
+<tr>
+<td>Entity Extraction</td>
+<td>Find people, companies, locations, concepts</td>
+<td>spaCy, Transformers, LLM</td>
+</tr>
+<tr>
+<td>Relationship Extraction</td>
+<td>Find how entities are connected</td>
+<td>LLM, Transformers, NLP rules</td>
+</tr>
+<tr>
+<td>Entity Resolution</td>
+<td>Merge aliases referring to the same entity</td>
+<td>Fuzzy matching, entity linking, LLM</td>
+</tr>
+<tr>
+<td>Graph Database</td>
+<td>Store nodes, relationships, properties</td>
+<td><strong>Neo4j</strong></td>
+</tr>
+<tr>
+<td>Graph Query</td>
+<td>Search graph patterns</td>
+<td><strong>Cypher</strong></td>
+</tr>
+<tr>
+<td>RDF Alternative</td>
+<td>Triple-based graph storage</td>
+<td>RDF + Triple Store</td>
+</tr>
+<tr>
+<td>RDF Query</td>
+<td>Query RDF graphs</td>
+<td><strong>SPARQL</strong></td>
+</tr>
+<tr>
+<td>RAG Orchestration</td>
+<td>Connect retrieval, prompts, LLMs</td>
+<td>LangChain or LlamaIndex</td>
+</tr>
+<tr>
+<td>Generation</td>
+<td>Turn retrieved facts into an answer</td>
+<td>GPT, Claude, Llama, Qwen, etc.</td>
+</tr>
+</table>
+
+<div class="callout">
+<strong>Recommended learning stack:</strong>
+<span class="tag">LLM</span>
+<span class="tag">Neo4j</span>
+<span class="tag">Cypher</span>
+<span class="tag">LangChain</span>
+<span class="tag">spaCy</span>
+</div>
+</section>
+
+<section id="vectorless">
+<span class="kicker">09 • VECTORLESS RAG</span>
+<h2>Why Is This Called Vectorless RAG?</h2>
+
+<p>Traditional vector RAG normally uses embeddings and a vector database:</p>
+
+<pre><code>Document
+   ↓
+Chunk
+   ↓
+Embedding Model
+   ↓
+Vector
+   ↓
+Vector Database
+   ↓
+Similarity Search
+   ↓
+Relevant Chunks</code></pre>
+
+<p>Knowledge Graph RAG can retrieve without embeddings:</p>
+
+<pre><code>Document
+   ↓
+Entity Extraction
+   ↓
+Relationship Extraction
+   ↓
+Knowledge Graph
+   ↓
+Cypher / Graph Traversal
+   ↓
+Relevant Facts</code></pre>
+
+<h3>Three retrieval methods</h3>
+<table>
+<tr><th>Method</th><th>Question it answers</th><th>Typical Tool</th></tr>
+<tr>
+<td>BM25</td>
+<td>Which text contains important matching terms?</td>
+<td>Elasticsearch / Lucene / OpenSearch</td>
+</tr>
+<tr>
+<td>Vector Search</td>
+<td>Which text has similar semantic meaning?</td>
+<td>FAISS / Qdrant / Pinecone etc.</td>
+</tr>
+<tr>
+<td>Knowledge Graph</td>
+<td>Which entities are connected, and how?</td>
+<td>Neo4j + Cypher</td>
+</tr>
+</table>
+
+<div class="callout">
+<strong>Vectorless does not mean "no retrieval."</strong>
+It means you can perform retrieval using non-vector methods such as BM25, graph traversal,
+SQL, metadata filtering, or combinations of them.
+</div>
+</section>
+
+<section id="example">
+<span class="kicker">10 • COMPLETE END-TO-END EXAMPLE</span>
+<h2>From PDF to Final Answer</h2>
+
+<h3>Stage A — Input</h3>
+<pre><code>company.pdf
+
+"Rakesh works at Google as an AI Engineer.
+Google is headquartered in California.
+Sundar Pichai is the CEO of Google."</code></pre>
+
+<h3>Stage B — Extract knowledge</h3>
+<pre><code>Rakesh         → WORKS_AT          → Google
+Rakesh         → JOB_TITLE         → AI Engineer
+Google         → HEADQUARTERED_IN  → California
+Sundar Pichai  → CEO_OF            → Google</code></pre>
+
+<h3>Stage C — Store</h3>
+<div class="diagram">
+<span class="node">Rakesh</span>
+<span class="edge">── WORKS_AT ──▶</span>
+<span class="node">Google</span>
+<span class="edge">── HEADQUARTERED_IN ──▶</span>
+<span class="node">California</span>
+</div>
+
+<h3>Stage D — User asks</h3>
+<pre><code>Where is the company Rakesh works for headquartered?</code></pre>
+
+<h3>Stage E — Query</h3>
+<pre><code>MATCH (p:Person {name: "Rakesh"})
+      -[:WORKS_AT]->
+      (c:Company)
+      -[:HEADQUARTERED_IN]->
+      (l:Location)
+RETURN c.name, l.name</code></pre>
+
+<h3>Stage F — Retrieved graph facts</h3>
+<pre><code>Rakesh WORKS_AT Google
+Google HEADQUARTERED_IN California</code></pre>
+
+<h3>Stage G — LLM</h3>
+<pre><code>Retrieved context:
+Rakesh works at Google.
+Google is headquartered in California.
+
+Question:
+Where is the company Rakesh works for headquartered?</code></pre>
+
+<h3>Stage H — Final answer</h3>
+<div class="callout green">
+Google is headquartered in California.
+</div>
+</section>
+
+<section id="compare">
+<span class="kicker">11 • COMPARE</span>
+<h2>Knowledge Graph RAG vs Vector RAG</h2>
+
+<table>
+<tr><th>Feature</th><th>Vector RAG</th><th>Knowledge Graph RAG</th></tr>
+<tr>
+<td>Storage</td>
+<td>Embeddings / vectors</td>
+<td>Nodes + relationships + properties</td>
+</tr>
+<tr>
+<td>Retrieval</td>
+<td>Similarity search</td>
+<td>Graph pattern matching / traversal</td>
+</tr>
+<tr>
+<td>Main tool</td>
+<td>Vector database</td>
+<td>Neo4j / graph database</td>
+</tr>
+<tr>
+<td>Query language</td>
+<td>Vector similarity APIs</td>
+<td>Cypher</td>
+</tr>
+<tr>
+<td>Strength</td>
+<td>Semantic similarity</td>
+<td>Explicit relationships and multi-hop reasoning</td>
+</tr>
+<tr>
+<td>Example</td>
+<td>Find text about password recovery</td>
+<td>Find a person's company → headquarters → CEO</td>
+</tr>
+</table>
+
+<h3>Hybrid is also possible</h3>
+<pre><code>                         User Query
+                             │
+               ┌─────────────┼─────────────┐
+               ↓             ↓             ↓
+             BM25      Vector Search   Knowledge Graph
+               │             │             │
+               └─────────────┼─────────────┘
+                             ↓
+                    Combined Context
+                             ↓
+                            LLM
+                             ↓
+                           Answer</code></pre>
+
+<p>This can combine exact keyword retrieval, semantic retrieval, and relationship-aware retrieval.</p>
+</section>
+
+<section id="cheat">
+<span class="kicker">12 • FINAL CHEAT SHEET</span>
+<h2>Remember This</h2>
+
+<div class="callout">
+<strong>1. What is stored?</strong><br>
+Entities are stored as <strong>nodes</strong>. Relationships are stored as <strong>edges</strong>.
+Additional attributes can be stored as <strong>properties</strong>.
+</div>
+
+<div class="callout">
+<strong>2. What is the basic fact format?</strong><br>
+<code>(Subject, Predicate, Object)</code><br>
+Example: <code>(Rakesh, WORKS_AT, Google)</code>
+</div>
+
+<div class="callout">
+<strong>3. Where can it be stored?</strong><br>
+A property graph can be stored in <strong>Neo4j</strong>. RDF knowledge can be stored in
+an RDF triple store.
+</div>
+
+<div class="callout">
+<strong>4. How do you search Neo4j?</strong><br>
+Use <strong>Cypher</strong> to match graph patterns and traverse relationships.
+</div>
+
+<div class="callout">
+<strong>5. How does Graph RAG work?</strong><br>
+Question → query understanding → Cypher/graph retrieval → graph facts → LLM → answer.
+</div>
+
+<div class="callout">
+<strong>6. Why vectorless?</strong><br>
+Because graph retrieval can work without embeddings or vector similarity search.
+</div>
+
+<div class="callout">
+<strong>7. The most important mental model:</strong>
+<pre><code>DATA CREATION
+
+Document
+   ↓
+Entities + Relationships
+   ↓
+Knowledge Graph
+
+
+DATA RETRIEVAL
+
+Question
+   ↓
+Find entity
+   ↓
+Follow relationships
+   ↓
+Retrieve facts
+   ↓
+LLM
+   ↓
+Answer</code></pre>
+</div>
+
+<div class="callout yellow">
+<strong>Best learning path for AI Engineering:</strong><br>
+Start with <strong>Neo4j → Cypher → create nodes/relationships → graph traversal →
+LLM-to-Cypher → Graph RAG</strong>. Then learn how to combine the graph with BM25 and
+vector retrieval for hybrid RAG.
+</div>
+</section>
+
+</main>
+
+<footer>
+Knowledge Graph RAG Study Website • Storage • Retrieval • Neo4j • Cypher • Vectorless RAG
+</footer>
+</body>
+</html>

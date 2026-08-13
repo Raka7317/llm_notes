@@ -1,0 +1,621 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Vectorless RAG — Detailed Study Notes</title>
+<style>
+:root{
+  --bg:#f5f7fb; --card:#ffffff; --text:#172033; --muted:#667085;
+  --primary:#4f46e5; --primary2:#7c3aed; --border:#e4e7ec;
+  --code:#111827; --codeText:#e5e7eb; --good:#087443; --warn:#b54708;
+}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{margin:0;font-family:Inter,Segoe UI,Arial,sans-serif;background:var(--bg);color:var(--text);line-height:1.7}
+header{background:linear-gradient(135deg,#111827,#312e81 55%,#6d28d9);color:#fff;padding:58px 20px}
+.hero{max-width:1150px;margin:auto}
+.badge{display:inline-block;padding:6px 12px;border:1px solid rgba(255,255,255,.25);border-radius:999px;font-size:13px;margin-bottom:16px}
+h1{font-size:clamp(34px,5vw,58px);line-height:1.08;margin:0 0 14px}
+.subtitle{font-size:19px;max-width:850px;color:#e5e7eb}
+.layout{max-width:1250px;margin:28px auto;display:grid;grid-template-columns:260px 1fr;gap:24px;padding:0 18px}
+nav{position:sticky;top:18px;height:max-content;background:var(--card);border:1px solid var(--border);border-radius:16px;padding:18px;box-shadow:0 8px 25px rgba(16,24,40,.05)}
+nav strong{display:block;margin-bottom:10px}
+nav a{display:block;text-decoration:none;color:#475467;padding:6px 4px;font-size:14px}
+nav a:hover{color:var(--primary)}
+main{min-width:0}
+section{background:var(--card);border:1px solid var(--border);border-radius:18px;padding:28px;margin-bottom:20px;box-shadow:0 8px 25px rgba(16,24,40,.04)}
+h2{font-size:28px;margin:0 0 16px;color:#1f2937}
+h3{font-size:20px;margin-top:24px;color:#344054}
+p{margin:10px 0}
+strong{color:#111827}
+.note,.tip,.warning{border-left:4px solid var(--primary);background:#f5f3ff;padding:15px 17px;border-radius:8px;margin:18px 0}
+.tip{border-color:var(--good);background:#ecfdf3}
+.warning{border-color:var(--warn);background:#fffaeb}
+pre{background:var(--code);color:var(--codeText);padding:20px;border-radius:12px;overflow:auto;font-size:14px;line-height:1.55}
+code{font-family:Consolas,Monaco,monospace}
+:not(pre)>code{background:#f2f4f7;padding:2px 6px;border-radius:5px}
+table{width:100%;border-collapse:collapse;margin:16px 0;font-size:14px}
+th,td{border:1px solid var(--border);padding:11px;text-align:left;vertical-align:top}
+th{background:#f9fafb}
+ul,ol{padding-left:24px}
+.grid{display:grid;grid-template-columns:repeat(2,1fr);gap:16px}
+.card{border:1px solid var(--border);border-radius:12px;padding:18px;background:#fcfcfd}
+.flow{font-weight:600}
+footer{text-align:center;color:var(--muted);padding:30px}
+@media(max-width:850px){
+ .layout{grid-template-columns:1fr}
+ nav{position:relative;top:0}
+ .grid{grid-template-columns:1fr}
+ section{padding:21px}
+}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="hero">
+    <span class="badge">AI Engineer • RAG • Retrieval</span>
+    <h1>Vectorless RAG</h1>
+    <div class="subtitle">Detailed study notes covering architecture, indexing, inverted indexes, BM25, SQL retrieval, metadata filtering, knowledge graphs, advantages, limitations, and Hybrid RAG.</div>
+  </div>
+</header>
+
+<div class="layout">
+<nav>
+  <strong>Contents</strong>
+  <a href="#s1">1. What is Vectorless RAG?</a>
+  <a href="#s2">2. Why RAG?</a>
+  <a href="#s3">3. Traditional Vector RAG</a>
+  <a href="#s4">4. Vectorless RAG</a>
+  <a href="#s5">5. Terminology</a>
+  <a href="#s6">6. How Data is Stored</a>
+  <a href="#s7">7. Inverted Index</a>
+  <a href="#s8">8. How Indexing is Created</a>
+  <a href="#s9">9. BM25</a>
+  <a href="#s10">10. TF, IDF & Length</a>
+  <a href="#s11">11. Query Flow</a>
+  <a href="#s12">12. SQL Retrieval</a>
+  <a href="#s13">13. Metadata Retrieval</a>
+  <a href="#s14">14. Knowledge Graphs</a>
+  <a href="#s15">15. Retrieval Types</a>
+  <a href="#s16">16. Comparison</a>
+  <a href="#s17">17. Advantages</a>
+  <a href="#s18">18. Disadvantages</a>
+  <a href="#s19">19. Hybrid RAG</a>
+  <a href="#s20">20. When to Use</a>
+  <a href="#s21">21. Interview Questions</a>
+  <a href="#s22">22. Final Mental Model</a>
+</nav>
+
+<main>
+
+<section id="s1">
+<h2>1. What is Vectorless RAG?</h2>
+<p><strong>Vectorless RAG</strong> is a Retrieval-Augmented Generation architecture where relevant information is retrieved <strong>without relying on vector embeddings and vector similarity search as the primary retrieval mechanism</strong>.</p>
+<h3>Traditional RAG</h3>
+<pre>Documents
+   ↓
+Chunking
+   ↓
+Embedding Model
+   ↓
+Vector Database
+   ↓
+Similarity Search
+   ↓
+Relevant Chunks
+   ↓
+LLM
+   ↓
+Answer</pre>
+<h3>Vectorless RAG</h3>
+<pre>Documents / Database
+        ↓
+Indexing / Structured Storage
+        ↓
+BM25 / Full-Text / SQL / Metadata / Graph
+        ↓
+Relevant Information
+        ↓
+LLM
+        ↓
+Answer</pre>
+<div class="tip"><strong>Core idea:</strong> RAG does not require vectors. RAG requires retrieval. The retrieval mechanism can be vector-based, keyword-based, database-based, graph-based, or a combination.</div>
+</section>
+
+<section id="s2">
+<h2>2. Why Do We Need RAG?</h2>
+<p>LLMs have limitations:</p>
+<ul>
+<li>Knowledge cutoff</li>
+<li>Hallucinations</li>
+<li>Limited access to private data</li>
+<li>Limited access to real-time data</li>
+<li>Context-window limitations</li>
+<li>They cannot automatically know your company's documents</li>
+</ul>
+<p>Instead of putting an entire knowledge base into the prompt, RAG retrieves only the relevant information.</p>
+<pre>User Question
+      ↓
+Retriever
+      ↓
+Relevant Information
+      ↓
+LLM
+      ↓
+Answer</pre>
+</section>
+
+<section id="s3">
+<h2>3. Traditional Vector RAG</h2>
+<p>Traditional RAG generally uses embeddings.</p>
+<pre>Documents
+    ↓
+Chunking
+    ↓
+Embedding Model
+    ↓
+Vectors
+    ↓
+Vector Database</pre>
+<p>A sentence such as:</p>
+<pre>"Employees can work remotely three days per week."</pre>
+<p>is converted into a numerical vector such as:</p>
+<pre>[0.123, -0.442, 0.781, 0.091, ...]</pre>
+<p>The vector represents the text's semantic meaning in a numerical space.</p>
+</section>
+
+<section id="s4">
+<h2>4. Vectorless RAG</h2>
+<p>Vectorless RAG skips the embedding step.</p>
+<pre>Documents
+    ↓
+Text / Structured Data
+    ↓
+Index
+    ↓
+Search
+    ↓
+Relevant Documents</pre>
+<p>The original text remains text. The system can index terms, metadata, entities, relationships, or structured fields and retrieve information using a non-vector mechanism.</p>
+</section>
+
+<section id="s5">
+<h2>5. Important Terminology</h2>
+<div class="grid">
+<div class="card"><h3>Vector RAG</h3><p>Usually uses <strong>dense retrieval</strong> based on embeddings.</p></div>
+<div class="card"><h3>Vectorless RAG</h3><p>Often uses <strong>sparse, lexical, structured, or graph retrieval</strong>.</p></div>
+</div>
+<p>Common vectorless mechanisms include:</p>
+<ul>
+<li>BM25</li>
+<li>Full-text search</li>
+<li>SQL retrieval</li>
+<li>Metadata filtering</li>
+<li>Knowledge graphs</li>
+<li>Exact matching</li>
+<li>Entity lookup</li>
+</ul>
+</section>
+
+<section id="s6">
+<h2>6. How Vectorless RAG Stores Data</h2>
+<p>A common misconception is: <em>"If there are no vectors, where does the data go?"</em></p>
+<p>The original data is still stored normally.</p>
+<pre>Documents table
+
+ID | Title            | Content
+---|------------------|---------------------------
+1  | HR Policy        | Employees can work...
+2  | Leave Policy     | Employees receive...
+3  | Remote Work      | Managers approve...</pre>
+<p>Possible storage systems include:</p>
+<ul>
+<li>PostgreSQL</li>
+<li>MySQL</li>
+<li>MongoDB</li>
+<li>Elasticsearch</li>
+<li>OpenSearch</li>
+<li>SQLite</li>
+<li>Document stores</li>
+<li>Object storage</li>
+<li>Graph databases</li>
+</ul>
+<div class="note"><strong>Key point:</strong> The difference is not primarily where the original data is stored; it is <strong>how the data is indexed and retrieved</strong>.</div>
+</section>
+
+<section id="s7">
+<h2>7. Inverted Index</h2>
+<p>An <strong>inverted index</strong> is one of the most important concepts in vectorless RAG, especially for full-text and BM25 search.</p>
+<pre>D1:
+Employees can work remotely three days.
+
+D2:
+Employees receive twenty days of annual leave.
+
+D3:
+Managers approve remote work requests.</pre>
+<p>Normal representation:</p>
+<pre>D1 → employees, work, remotely, days
+D2 → employees, days, annual, leave
+D3 → managers, approve, remote, work</pre>
+<p>Inverted representation:</p>
+<pre>employees → D1, D2
+work      → D1, D3
+remotely  → D1
+days      → D1, D2
+managers  → D3
+approve   → D3</pre>
+<p>The index reverses the relationship from <strong>document → terms</strong> to <strong>term → documents</strong>.</p>
+</section>
+
+<section id="s8">
+<h2>8. How Is the Index Created?</h2>
+<h3>Step 1 — Tokenization</h3>
+<pre>Employees can work remotely three days per week
+
+↓
+employees
+can
+work
+remotely
+three
+days
+per
+week</pre>
+<h3>Step 2 — Normalization</h3>
+<p>Depending on the search engine, processing may include lowercasing, punctuation handling, stemming, lemmatization, and stop-word handling.</p>
+<pre>Employees → employees</pre>
+<h3>Step 3 — Build the index</h3>
+<pre>employees → D1
+work      → D1
+remotely  → D1
+days      → D1
+week      → D1</pre>
+<h3>Step 4 — Store statistics</h3>
+<p>The search engine may maintain term frequency, document frequency, document length, and related statistics used by ranking algorithms such as BM25.</p>
+</section>
+
+<section id="s9">
+<h2>9. BM25</h2>
+<p><strong>BM25</strong> is one of the most important retrieval algorithms for vectorless RAG.</p>
+<p>BM25 stands for <strong>Best Matching 25</strong>. It is a ranking function used by search engines to determine how relevant a document is to a query.</p>
+<pre>Query:
+"remote work policy"
+
+D1:
+Remote work policy allows employees to work remotely.
+
+D2:
+Employees receive annual leave.
+
+D3:
+The company provides office equipment.
+
+D1 → high BM25 score
+D2 → low score
+D3 → low score</pre>
+<p>The highest-scoring documents are retrieved.</p>
+</section>
+
+<section id="s10">
+<h2>10. TF, IDF and Document Length</h2>
+<h3>TF — Term Frequency</h3>
+<p>TF asks: <strong>How frequently does the query term occur in this document?</strong></p>
+<pre>D1:
+remote remote remote work</pre>
+<p>The term <code>remote</code> appears multiple times, so its term frequency is high. BM25 does not let frequency increase importance without limit; it uses saturation.</p>
+<h3>IDF — Inverse Document Frequency</h3>
+<p>IDF asks: <strong>How rare is this word across the document collection?</strong></p>
+<pre>100,000 documents
+
+"the"          → 95,000 documents
+"quantization" →    500 documents</pre>
+<p>Rare terms generally carry more distinguishing information.</p>
+<h3>Document-Length Normalization</h3>
+<p>BM25 adjusts for document length so that long documents do not automatically win simply because they contain more words.</p>
+<h3>Simplified BM25 Formula</h3>
+<pre>Score(D,Q) =
+Σ IDF(t) ×
+[f(t,D)(k1+1)] /
+[f(t,D) + k1(1-b+b|D|/avgdl)]</pre>
+<p>Where:</p>
+<ul>
+<li><code>D</code> = document</li>
+<li><code>Q</code> = query</li>
+<li><code>t</code> = query term</li>
+<li><code>f(t,D)</code> = term frequency</li>
+<li><code>|D|</code> = document length</li>
+<li><code>avgdl</code> = average document length</li>
+<li><code>k1</code> = term-frequency saturation parameter</li>
+<li><code>b</code> = document-length normalization parameter</li>
+</ul>
+<div class="tip"><strong>Remember:</strong> BM25 rewards important query-term matches while accounting for term frequency and document length.</div>
+</section>
+
+<section id="s11">
+<h2>11. Vectorless RAG Query Flow</h2>
+<p>Example question:</p>
+<pre>"How many days can employees work from home?"</pre>
+<pre>User Query
+    ↓
+Query Analysis
+    ↓
+Search Index
+    ↓
+BM25 / Full-text Search
+    ↓
+Candidate Documents
+    ↓
+Ranking
+    ↓
+Top-K Documents
+    ↓
+Context
+    ↓
+LLM
+    ↓
+Answer</pre>
+<p>Retrieved document:</p>
+<pre>"Employees can work remotely three days per week."</pre>
+<p>The LLM can then answer:</p>
+<pre>"Employees can work remotely up to three days per week."</pre>
+</section>
+
+<section id="s12">
+<h2>12. Vectorless RAG Using SQL</h2>
+<p>RAG does not have to operate on unstructured documents. For structured data, SQL can be the retrieval mechanism.</p>
+<pre>employees
+
+id | name  | department | salary
+---|-------|------------|-------
+1  | John  | AI         | 80000
+2  | Sarah | HR         | 60000
+3  | Mike  | AI         | 90000</pre>
+<p>Question:</p>
+<pre>"Who has the highest salary in AI?"</pre>
+<p>The system can generate:</p>
+<pre>SELECT name, salary
+FROM employees
+WHERE department = 'AI'
+ORDER BY salary DESC
+LIMIT 1;</pre>
+<p>Database result:</p>
+<pre>Mike | 90000</pre>
+<p>Then the result can be passed to the LLM to generate a natural-language response.</p>
+</section>
+
+<section id="s13">
+<h2>13. Metadata-Based Retrieval</h2>
+<p>Documents can contain metadata such as:</p>
+<pre>document_id
+title
+department
+year
+author
+document_type
+content</pre>
+<p>User asks:</p>
+<pre>"Give me the 2025 finance policies."</pre>
+<p>The retriever can apply filters:</p>
+<pre>department = Finance
+year = 2025
+document_type = Policy</pre>
+<p>This is highly effective when your dataset has strong, reliable metadata.</p>
+</section>
+
+<section id="s14">
+<h2>14. Knowledge Graph Retrieval</h2>
+<p>A knowledge graph stores <strong>entities and relationships</strong>.</p>
+<pre>Apple
+  │
+  ├── acquired → Beats
+  │
+  └── CEO → Tim Cook</pre>
+<p>Question:</p>
+<pre>"Who owns Beats?"</pre>
+<p>Graph traversal can retrieve:</p>
+<pre>Beats
+  ↓
+ACQUIRED_BY
+  ↓
+Apple</pre>
+<p>The retrieved relationship can then be supplied to the LLM.</p>
+</section>
+
+<section id="s15">
+<h2>15. Main Types of Vectorless Retrieval</h2>
+<pre>Vectorless Retrieval
+        │
+        ├── Keyword Search
+        │      └── BM25
+        │
+        ├── Full-Text Search
+        │
+        ├── SQL Retrieval
+        │
+        ├── Metadata Filtering
+        │
+        ├── Exact Matching
+        │
+        ├── Entity Retrieval
+        │
+        └── Knowledge Graph</pre>
+</section>
+
+<section id="s16">
+<h2>16. Vector RAG vs Vectorless RAG</h2>
+<table>
+<thead><tr><th>Feature</th><th>Vector RAG</th><th>Vectorless RAG</th></tr></thead>
+<tbody>
+<tr><td>Embeddings</td><td>Required</td><td>Not required</td></tr>
+<tr><td>Vector DB</td><td>Usually</td><td>Not required</td></tr>
+<tr><td>Semantic search</td><td>Strong</td><td>Usually weaker</td></tr>
+<tr><td>Keyword search</td><td>Possible</td><td>Strong</td></tr>
+<tr><td>Exact matching</td><td>Possible</td><td>Excellent</td></tr>
+<tr><td>SQL retrieval</td><td>Possible</td><td>Excellent</td></tr>
+<tr><td>Metadata filtering</td><td>Possible</td><td>Excellent</td></tr>
+<tr><td>Knowledge graph</td><td>Possible</td><td>Excellent</td></tr>
+<tr><td>Synonym handling</td><td>Strong</td><td>Usually weaker</td></tr>
+<tr><td>Paraphrase handling</td><td>Strong</td><td>Usually weaker</td></tr>
+<tr><td>Infrastructure</td><td>More components</td><td>Can be simpler</td></tr>
+<tr><td>Best for</td><td>Semantic retrieval</td><td>Exact, structured and lexical retrieval</td></tr>
+</tbody>
+</table>
+</section>
+
+<section id="s17">
+<h2>17. Advantages of Vectorless RAG</h2>
+<div class="grid">
+<div class="card"><h3>1. No embedding model</h3><p>You do not need to run an embedding model for retrieval.</p></div>
+<div class="card"><h3>2. No vector database</h3><p>You can potentially use existing databases or search engines.</p></div>
+<div class="card"><h3>3. Excellent exact matching</h3><p>Useful for invoice numbers, product IDs, tickets, error codes and legal clauses.</p></div>
+<div class="card"><h3>4. Strong for structured data</h3><p>SQL is often more appropriate than semantic search for financial, inventory and transactional data.</p></div>
+<div class="card"><h3>5. Better interpretability</h3><p>Keyword matches and filters are easier to inspect and debug.</p></div>
+<div class="card"><h3>6. Potentially simpler infrastructure</h3><p>An existing PostgreSQL or search stack may be sufficient.</p></div>
+</div>
+</section>
+
+<section id="s18">
+<h2>18. Disadvantages of Vectorless RAG</h2>
+<h3>1. Semantic mismatch</h3>
+<pre>Document:
+"Employees may work remotely."
+
+Query:
+"Can I work from home?"</pre>
+<p>Keyword retrieval may struggle because the exact wording differs.</p>
+<h3>2. Synonym problem</h3>
+<pre>car
+automobile
+vehicle</pre>
+<p>Lexical search does not automatically understand all semantic relationships between these terms.</p>
+<h3>3. Paraphrasing problem</h3>
+<pre>Document:
+"The employee's employment may be terminated."
+
+Query:
+"When can a worker lose their job?"</pre>
+<p>The semantic relationship is strong, but lexical overlap may be low.</p>
+<h3>4. Complex conceptual questions</h3>
+<p>Questions requiring broad conceptual understanding may be harder for simple keyword retrieval.</p>
+<h3>5. Query formulation matters</h3>
+<p>If users use terminology very different from the source documents, retrieval quality can decrease.</p>
+</section>
+
+<section id="s19">
+<h2>19. Hybrid RAG</h2>
+<p>Because vector and vectorless retrieval have complementary strengths, production systems often combine them.</p>
+<pre>                    User Query
+                         ↓
+              ┌──────────┴──────────┐
+              ↓                     ↓
+         BM25 Search          Vector Search
+              ↓                     ↓
+          Candidates            Candidates
+              └──────────┬──────────┘
+                         ↓
+                     Fusion
+                         ↓
+                     Reranker
+                         ↓
+                    Top-K Chunks
+                         ↓
+                        LLM</pre>
+<p>This is commonly called <strong>Hybrid RAG</strong>.</p>
+<h3>Why is Hybrid RAG powerful?</h3>
+<p>Consider:</p>
+<pre>"What is the refund policy for order ORD-29381?"</pre>
+<p>BM25 is excellent at exact terms such as <code>ORD-29381</code>, while vector search can retrieve semantically related language such as <code>money back</code>, <code>return conditions</code>, or <code>reimbursement</code>.</p>
+<p>Combining both can improve retrieval coverage, after which a reranker can select the strongest results.</p>
+</section>
+
+<section id="s20">
+<h2>20. When Should You Use Vectorless RAG?</h2>
+<h3>Strong use cases</h3>
+<ul>
+<li>SQL databases</li>
+<li>ERP systems</li>
+<li>CRM systems</li>
+<li>Financial databases</li>
+<li>Inventory systems</li>
+<li>Order and transaction systems</li>
+<li>Invoice numbers</li>
+<li>Ticket IDs</li>
+<li>Product codes</li>
+<li>Employee IDs</li>
+<li>Documents with strong metadata</li>
+<li>Legal and technical terminology</li>
+<li>API documentation</li>
+</ul>
+<h3>When Vector Search May Be Better</h3>
+<p>Vector search is particularly useful when the user's language differs significantly from the source documents.</p>
+<pre>Document:
+"Termination of employment"
+
+Query:
+"How can I lose my job?"</pre>
+<p>Semantic retrieval can be valuable in this type of situation.</p>
+</section>
+
+<section id="s21">
+<h2>21. Important Interview Questions</h2>
+<h3>Q1. Does RAG require a vector database?</h3>
+<div class="note"><strong>Answer:</strong> No. RAG only requires a retrieval mechanism. A vector database is one possible implementation. RAG can use BM25, full-text search, SQL, metadata filtering, knowledge graphs, exact matching, or hybrid retrieval.</div>
+<h3>Q2. What is Vectorless RAG?</h3>
+<div class="note"><strong>Answer:</strong> Vectorless RAG is a RAG architecture that retrieves information without relying on embedding-based vector similarity as the primary retrieval method. It can use lexical search such as BM25, full-text indexes, SQL queries, metadata filtering, exact matching, or knowledge graphs.</div>
+<h3>Q3. What is an inverted index?</h3>
+<div class="note"><strong>Answer:</strong> An inverted index maps terms to the documents in which they occur, enabling fast lexical retrieval without scanning every document.</div>
+<h3>Q4. Why is BM25 useful?</h3>
+<div class="note"><strong>Answer:</strong> BM25 ranks documents based on query-term relevance while considering term frequency, inverse document frequency and document length.</div>
+</section>
+
+<section id="s22">
+<h2>22. Final Mental Model</h2>
+<pre>                         RAG
+                          │
+             ┌────────────┴────────────┐
+             │                         │
+       Vector-Based              Vectorless
+             │                         │
+       Embeddings                  Text/Data
+             ↓                         ↓
+       Vector Index              Search Index
+             ↓                         ↓
+    Similarity Search          BM25 / SQL /
+                               Metadata / Graph
+             │                         │
+             └────────────┬────────────┘
+                          ↓
+                    Retrieved Data
+                          ↓
+                         LLM
+                          ↓
+                       Answer</pre>
+<div class="tip">
+<strong>One-line definition:</strong><br>
+Vectorless RAG = Retrieval-Augmented Generation where retrieval is performed using non-vector mechanisms such as BM25, full-text search, SQL, metadata, exact matching, or knowledge graphs instead of embedding-based vector similarity.
+</div>
+<h3>Recommended Learning Sequence</h3>
+<ol>
+<li>BM25</li>
+<li>Inverted Index</li>
+<li>Sparse vs Dense Retrieval</li>
+<li>Hybrid Search</li>
+<li>Reranking</li>
+<li>Query Rewriting</li>
+<li>Agentic RAG</li>
+<li>RAG Evaluation — Retriever + Generator + End-to-End</li>
+</ol>
+</section>
+
+</main>
+</div>
+
+<footer>
+  Vectorless RAG — AI Engineer Study Notes
+</footer>
+
+</body>
+</html>

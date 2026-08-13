@@ -1,0 +1,580 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Knowledge Graph — Complete Study Notes</title>
+<style>
+:root{
+  --bg:#0b1020; --card:#121a2d; --card2:#18223a; --text:#e8edf7;
+  --muted:#aab6cc; --accent:#67e8f9; --accent2:#a78bfa;
+  --border:#293650; --code:#0a0f1c; --good:#86efac;
+}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{
+  margin:0;font-family:Inter,Segoe UI,Arial,sans-serif;
+  background:linear-gradient(135deg,#080c18,#10182b 55%,#0b1020);
+  color:var(--text);line-height:1.7;
+}
+header{
+  padding:70px 20px 55px;text-align:center;
+  background:radial-gradient(circle at top,#24345a 0,#111a31 45%,transparent 75%);
+  border-bottom:1px solid var(--border);
+}
+header h1{font-size:clamp(2.4rem,6vw,4.5rem);margin:0 0 10px}
+header p{max-width:850px;margin:auto;color:var(--muted);font-size:1.1rem}
+.badge{
+  display:inline-block;padding:6px 13px;border:1px solid var(--border);
+  border-radius:999px;color:var(--accent);font-size:.85rem;margin-bottom:18px;
+}
+.container{max-width:1100px;margin:auto;padding:35px 20px 80px}
+nav{
+  position:sticky;top:0;z-index:5;background:rgba(11,16,32,.94);
+  backdrop-filter:blur(12px);border-bottom:1px solid var(--border);
+}
+nav .nav-inner{
+  max-width:1100px;margin:auto;padding:12px 20px;display:flex;
+  gap:10px;overflow:auto;white-space:nowrap;
+}
+nav a{
+  color:var(--muted);text-decoration:none;padding:7px 11px;border-radius:8px;
+}
+nav a:hover{background:var(--card2);color:var(--text)}
+section{
+  background:rgba(18,26,45,.88);border:1px solid var(--border);
+  border-radius:18px;padding:30px;margin:24px 0;
+  box-shadow:0 12px 35px rgba(0,0,0,.18);
+}
+h2{font-size:2rem;margin-top:0;color:var(--accent)}
+h3{color:#d9dfff;margin-top:28px}
+strong{color:#fff}
+.callout{
+  padding:18px 20px;border-left:4px solid var(--accent);
+  background:#101a2d;border-radius:10px;margin:18px 0;
+}
+.warning{border-left-color:#fbbf24}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:16px}
+.card{
+  background:var(--card2);border:1px solid var(--border);
+  border-radius:14px;padding:20px;
+}
+.card h3{margin-top:0}
+pre{
+  background:var(--code);border:1px solid var(--border);border-radius:12px;
+  padding:18px;overflow:auto;color:#dce7ff;
+}
+code{font-family:Consolas,Monaco,monospace}
+.diagram{
+  background:#0a0f1c;border:1px solid var(--border);border-radius:14px;
+  padding:25px;text-align:center;overflow:auto;
+}
+.node{
+  display:inline-block;padding:13px 20px;border:1px solid #5b6d91;
+  border-radius:12px;background:#17233c;font-weight:700;margin:7px;
+}
+.edge{color:var(--accent);font-weight:700;margin:0 5px}
+table{width:100%;border-collapse:collapse;margin:18px 0}
+th,td{border:1px solid var(--border);padding:13px;text-align:left}
+th{background:#1b2742;color:var(--accent)}
+tr:nth-child(even){background:rgba(255,255,255,.025)}
+ul,ol{padding-left:25px}
+li{margin:7px 0}
+.kicker{color:var(--accent2);font-weight:700;letter-spacing:.05em}
+.flow{
+  display:flex;align-items:center;justify-content:center;flex-wrap:wrap;
+  gap:8px;margin:22px 0;
+}
+.flow .box{
+  padding:14px 17px;border:1px solid var(--border);background:var(--card2);
+  border-radius:10px;text-align:center;min-width:125px;
+}
+.arrow{font-size:1.4rem;color:var(--accent)}
+footer{text-align:center;color:var(--muted);padding:30px}
+@media(max-width:650px){
+ section{padding:22px 17px} h2{font-size:1.55rem}
+ table{font-size:.9rem}
+}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="badge">AI ENGINEERING • RAG • GRAPH RAG</div>
+  <h1>Knowledge Graph</h1>
+  <p>A complete, practical explanation of entities, relationships, triples, graph storage, extraction from documents, querying, and how Knowledge Graphs work with RAG and BM25.</p>
+</header>
+
+<nav>
+<div class="nav-inner">
+<a href="#what">What is it?</a>
+<a href="#components">Components</a>
+<a href="#triples">Triples</a>
+<a href="#storage">Storage</a>
+<a href="#build">Build from text</a>
+<a href="#query">Querying</a>
+<a href="#rag">Graph RAG</a>
+<a href="#bm25">BM25 vs KG</a>
+<a href="#pros">Advantages</a>
+<a href="#interview">Interview</a>
+</div>
+</nav>
+
+<main class="container">
+
+<section id="what">
+<span class="kicker">01 • FUNDAMENTALS</span>
+<h2>What is a Knowledge Graph?</h2>
+<p>
+A <strong>Knowledge Graph (KG)</strong> is a structured representation of knowledge in which
+real-world entities are represented as <strong>nodes</strong> and the relationships between those
+entities are represented as <strong>edges</strong>.
+</p>
+<div class="callout">
+<strong>Simple definition:</strong> A Knowledge Graph stores facts as connected entities and relationships,
+often represented as <strong>(Subject, Predicate, Object)</strong> triples.
+</div>
+
+<div class="diagram">
+  <span class="node">Rakesh</span>
+  <span class="edge">── WORKS_AT ──▶</span>
+  <span class="node">Google</span>
+</div>
+
+<p>Here:</p>
+<ul>
+<li><strong>Rakesh</strong> is an entity/node.</li>
+<li><strong>Google</strong> is an entity/node.</li>
+<li><strong>WORKS_AT</strong> is the relationship/edge.</li>
+</ul>
+</section>
+
+<section id="components">
+<span class="kicker">02 • CORE COMPONENTS</span>
+<h2>Nodes, Edges and Properties</h2>
+
+<div class="grid">
+<div class="card">
+<h3>Node / Entity</h3>
+<p>Represents a thing, person, organization, place, product, concept, event, etc.</p>
+<pre><code>Rakesh
+Google
+California
+Machine Learning</code></pre>
+</div>
+<div class="card">
+<h3>Edge / Relationship</h3>
+<p>Connects two entities and describes how they are related.</p>
+<pre><code>WORKS_AT
+HEADQUARTERED_IN
+LOCATED_IN
+DEVELOPED</code></pre>
+</div>
+<div class="card">
+<h3>Properties</h3>
+<p>Additional information can be attached to nodes or relationships.</p>
+<pre><code>role = "AI Engineer"
+since = 2025</code></pre>
+</div>
+</div>
+
+<h3>Example with properties</h3>
+<div class="diagram">
+<span class="node">Rakesh</span>
+<span class="edge">── WORKS_AT {role: AI Engineer} ──▶</span>
+<span class="node">Google</span>
+</div>
+</section>
+
+<section id="triples">
+<span class="kicker">03 • DATA MODEL</span>
+<h2>Knowledge Graph Triples</h2>
+<p>The most common conceptual representation is a <strong>triple</strong>:</p>
+
+<pre><code>Subject       Predicate          Object
+------------------------------------------------
+Rakesh        WORKS_AT           Google
+Google        HEADQUARTERED_IN   California
+Einstein      BORN_IN            Ulm
+Einstein      DEVELOPED          Theory of Relativity</code></pre>
+
+<div class="callout">
+A triple can be read like a sentence: <strong>Subject → Relationship → Object</strong>.
+</div>
+
+<h3>Example</h3>
+<pre><code>(Albert Einstein, BORN_IN, Ulm)
+
+Subject   = Albert Einstein
+Predicate = BORN_IN
+Object    = Ulm</code></pre>
+
+<p>Multiple triples together create a connected graph rather than isolated facts.</p>
+</section>
+
+<section id="storage">
+<span class="kicker">04 • HOW DATA IS STORED</span>
+<h2>How does a Knowledge Graph store data?</h2>
+<p>
+Unlike a traditional relational database that mainly organizes data into tables and rows,
+a graph-oriented system emphasizes <strong>entities and their connections</strong>.
+</p>
+
+<h3>Conceptual storage</h3>
+<pre><code>Node:
+Rakesh
+  type: Person
+
+Node:
+Google
+  type: Organization
+
+Node:
+California
+  type: Location
+
+Relationship:
+Rakesh --WORKS_AT--> Google
+
+Relationship:
+Google --HEADQUARTERED_IN--> California</code></pre>
+
+<h3>Graph database vs RDF-style representation</h3>
+<div class="grid">
+<div class="card">
+<h3>Property Graph</h3>
+<p>Nodes and edges can both contain properties.</p>
+<pre><code>(Rakesh)-[WORKS_AT {
+  role: "AI Engineer",
+  since: 2025
+}]->(Google)</code></pre>
+<p>Commonly associated with graph databases such as Neo4j.</p>
+</div>
+<div class="card">
+<h3>RDF / Triple Store</h3>
+<p>Knowledge is naturally represented as subject-predicate-object statements.</p>
+<pre><code>&lt;Rakesh&gt;
+  &lt;WORKS_AT&gt;
+  &lt;Google&gt;</code></pre>
+<p>Often queried using SPARQL.</p>
+</div>
+</div>
+</section>
+
+<section id="build">
+<span class="kicker">05 • FROM DOCUMENTS TO GRAPH</span>
+<h2>How is a Knowledge Graph created from text?</h2>
+
+<p>Suppose a document contains:</p>
+<pre><code>"Albert Einstein was born in Ulm, Germany in 1879.
+He developed the theory of relativity."</code></pre>
+
+<p>An information-extraction pipeline identifies entities and relationships:</p>
+
+<div class="flow">
+<div class="box">Raw Document</div><div class="arrow">→</div>
+<div class="box">Entity Extraction</div><div class="arrow">→</div>
+<div class="box">Relationship Extraction</div><div class="arrow">→</div>
+<div class="box">Graph Construction</div>
+</div>
+
+<h3>Step 1 — Entity extraction</h3>
+<pre><code>Albert Einstein → PERSON
+Ulm             → LOCATION
+Germany         → LOCATION
+1879            → DATE/YEAR
+Theory of Relativity → CONCEPT</code></pre>
+
+<h3>Step 2 — Relationship extraction</h3>
+<pre><code>Albert Einstein → BORN_IN → Ulm
+Albert Einstein → BORN_IN_YEAR → 1879
+Albert Einstein → DEVELOPED → Theory of Relativity</code></pre>
+
+<h3>Step 3 — Store the graph</h3>
+<div class="diagram">
+<div>
+<span class="node">Ulm</span>
+</div>
+<div>
+<span class="edge">▲ BORN_IN</span>
+</div>
+<div>
+<span class="node">Albert Einstein</span>
+<span class="edge">── DEVELOPED ──▶</span>
+<span class="node">Theory of Relativity</span>
+</div>
+</div>
+
+<div class="callout">
+In modern AI systems, an LLM can help extract entities and relationships from unstructured documents,
+but the extracted facts should be validated before being treated as trusted knowledge.
+</div>
+</section>
+
+<section id="query">
+<span class="kicker">06 • RETRIEVAL</span>
+<h2>How do we query a Knowledge Graph?</h2>
+
+<h3>Graph traversal</h3>
+<p>Because relationships are explicit, we can follow paths through the graph.</p>
+
+<pre><code>Einstein
+   │
+   └── BORN_IN ──▶ Ulm
+</code></pre>
+
+<p>Question:</p>
+<pre><code>Where was Einstein born?</code></pre>
+
+<p>The system follows:</p>
+<pre><code>Albert Einstein
+      ↓
+    BORN_IN
+      ↓
+     Ulm</code></pre>
+
+<p>and can answer:</p>
+<div class="callout"><strong>Albert Einstein was born in Ulm.</strong></div>
+
+<h3>Multi-hop reasoning</h3>
+<p>Knowledge graphs become especially useful when the answer requires multiple relationships.</p>
+
+<pre><code>Einstein
+   ↓ DEVELOPED
+Theory of Relativity
+   ↓ INFLUENCED
+Modern Physics
+   ↓ USED_IN
+Cosmology</code></pre>
+
+<p>A query can traverse multiple hops to discover connected information.</p>
+</section>
+
+<section id="rag">
+<span class="kicker">07 • GRAPH RAG</span>
+<h2>Knowledge Graph + RAG</h2>
+
+<p>
+Traditional RAG retrieves text chunks, while <strong>Graph RAG</strong> can use entities and
+relationships to retrieve structured context and connected information.
+</p>
+
+<h3>Traditional RAG</h3>
+<div class="flow">
+<div class="box">User Query</div><div class="arrow">→</div>
+<div class="box">Embedding</div><div class="arrow">→</div>
+<div class="box">Vector DB</div><div class="arrow">→</div>
+<div class="box">Top-K Chunks</div><div class="arrow">→</div>
+<div class="box">LLM</div>
+</div>
+
+<h3>Graph RAG</h3>
+<div class="flow">
+<div class="box">User Query</div><div class="arrow">→</div>
+<div class="box">Entity / Relation Extraction</div><div class="arrow">→</div>
+<div class="box">Knowledge Graph</div><div class="arrow">→</div>
+<div class="box">Graph Traversal</div><div class="arrow">→</div>
+<div class="box">Context</div><div class="arrow">→</div>
+<div class="box">LLM</div>
+</div>
+
+<h3>Why Graph RAG?</h3>
+<ul>
+<li>Captures explicit relationships between entities.</li>
+<li>Can support multi-hop questions.</li>
+<li>Can connect information spread across multiple documents.</li>
+<li>Can provide structured context to the LLM.</li>
+<li>Can complement vector search instead of replacing it.</li>
+</ul>
+
+<div class="callout warning">
+<strong>Important:</strong> A Knowledge Graph does not automatically make an LLM correct.
+Bad entity extraction, incorrect relationships, stale facts, or incomplete graph construction can still produce bad answers.
+</div>
+</section>
+
+<section id="bm25">
+<span class="kicker">08 • BM25 VS KNOWLEDGE GRAPH</span>
+<h2>BM25 vs Knowledge Graph</h2>
+
+<p>BM25 and Knowledge Graphs solve different problems.</p>
+
+<table>
+<tr>
+<th>Aspect</th>
+<th>BM25</th>
+<th>Knowledge Graph</th>
+</tr>
+<tr>
+<td>What is it?</td>
+<td>Information retrieval / ranking algorithm</td>
+<td>Structured knowledge representation</td>
+</tr>
+<tr>
+<td>Main purpose</td>
+<td>Find relevant documents or text</td>
+<td>Represent entities and relationships</td>
+</tr>
+<tr>
+<td>Data view</td>
+<td>Text and terms</td>
+<td>Nodes and edges</td>
+</tr>
+<tr>
+<td>Matching</td>
+<td>Primarily lexical / keyword-based</td>
+<td>Relationship and entity based</td>
+</tr>
+<tr>
+<td>Strength</td>
+<td>Exact terms, names, identifiers</td>
+<td>Connected facts and multi-hop relationships</td>
+</tr>
+<tr>
+<td>Typical use</td>
+<td>Search and first-stage retrieval</td>
+<td>Graph reasoning, structured retrieval, Graph RAG</td>
+</tr>
+</table>
+
+<h3>Example</h3>
+<p>Query:</p>
+<pre><code>"Einstein born Ulm"</code></pre>
+
+<p><strong>BM25:</strong> searches indexed text for matching terms such as Einstein, born, and Ulm.</p>
+
+<p><strong>Knowledge Graph:</strong> can directly represent:</p>
+
+<pre><code>Einstein ──BORN_IN──▶ Ulm</code></pre>
+
+<h3>They can work together</h3>
+<div class="flow">
+<div class="box">User Query</div><div class="arrow">→</div>
+<div class="box">BM25</div><div class="arrow">+</div>
+<div class="box">Vector Search</div><div class="arrow">+</div>
+<div class="box">Knowledge Graph</div><div class="arrow">→</div>
+<div class="box">LLM</div>
+</div>
+
+<div class="callout">
+<strong>Key idea:</strong> BM25 retrieves relevant text; the Knowledge Graph represents and connects knowledge.
+They are complementary rather than direct replacements for each other.
+</div>
+</section>
+
+<section id="pros">
+<span class="kicker">09 • PRACTICAL USE</span>
+<h2>Advantages and Limitations</h2>
+
+<div class="grid">
+<div class="card">
+<h3>Advantages</h3>
+<ul>
+<li>Explicit relationships</li>
+<li>Good for multi-hop reasoning</li>
+<li>Structured representation</li>
+<li>Entity-centric retrieval</li>
+<li>Can combine facts from multiple sources</li>
+<li>Useful for explainable paths</li>
+</ul>
+</div>
+
+<div class="card">
+<h3>Limitations</h3>
+<ul>
+<li>Building the graph can be expensive</li>
+<li>Entity resolution can be difficult</li>
+<li>Relationship extraction can introduce errors</li>
+<li>Graphs need maintenance and updates</li>
+<li>Incomplete graphs can miss useful facts</li>
+<li>Large graphs can require careful indexing and traversal strategies</li>
+</ul>
+</div>
+</div>
+
+<h3>Common use cases</h3>
+<ul>
+<li>Enterprise knowledge management</li>
+<li>Recommendation systems</li>
+<li>Search engines</li>
+<li>Fraud detection</li>
+<li>Drug and biomedical knowledge systems</li>
+<li>Customer 360 systems</li>
+<li>Question answering</li>
+<li>Graph RAG</li>
+</ul>
+</section>
+
+<section id="interview">
+<span class="kicker">10 • INTERVIEW REVISION</span>
+<h2>Knowledge Graph — Interview Cheat Sheet</h2>
+
+<div class="callout">
+<strong>Q: What is a Knowledge Graph?</strong><br>
+A Knowledge Graph represents knowledge as entities and relationships, commonly modeled as nodes,
+edges, and subject-predicate-object triples.
+</div>
+
+<div class="callout">
+<strong>Q: What is a triple?</strong><br>
+A triple consists of a Subject, Predicate, and Object. Example:
+<code>(Einstein, BORN_IN, Ulm)</code>.
+</div>
+
+<div class="callout">
+<strong>Q: How is it different from a vector database?</strong><br>
+A vector database stores vector representations optimized for similarity search.
+A Knowledge Graph explicitly stores entities and their relationships.
+</div>
+
+<div class="callout">
+<strong>Q: How is it different from BM25?</strong><br>
+BM25 is a lexical retrieval/ranking algorithm. A Knowledge Graph is a structured representation
+of connected facts.
+</div>
+
+<div class="callout">
+<strong>Q: Why use a Knowledge Graph in RAG?</strong><br>
+It can improve entity-aware retrieval, relationship-aware retrieval, and multi-hop question answering
+by supplying structured connected context to the LLM.
+</div>
+
+<h3>One-minute mental model</h3>
+<pre><code>DOCUMENTS
+    ↓
+Entity Extraction
+    ↓
+Relationship Extraction
+    ↓
+┌─────────────────────────────┐
+│      KNOWLEDGE GRAPH        │
+│                             │
+│ Person ──WORKS_AT──> Org    │
+│   │                         │
+│   └──LIVES_IN──> Location   │
+└─────────────────────────────┘
+    ↓
+Graph Traversal / Retrieval
+    ↓
+Structured Context
+    ↓
+LLM
+    ↓
+Answer</code></pre>
+
+<div class="callout">
+<strong>Remember:</strong><br>
+Vector DB = "Which pieces of text are semantically similar?"<br>
+BM25 = "Which pieces of text contain important matching terms?"<br>
+Knowledge Graph = "Which entities are connected, and how?"
+</div>
+</section>
+
+</main>
+
+<footer>
+Knowledge Graph Study Notes • AI Engineering • RAG / Graph RAG
+</footer>
+
+</body>
+</html>
