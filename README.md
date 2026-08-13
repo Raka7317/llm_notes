@@ -1,1 +1,2 @@
 link: https://llm-notes-inky.vercel.app/
+LLM Evaluation is the process of systematically measuring the performance, reliability, and quality of Large Language Models and LLM-powered applications. This repository contains notes on model evaluation, benchmarks, reasoning, knowledge, coding, instruction following, RAG evaluation, hallucination, groundedness, LLM-as-a-Judge, agent evaluation, and evaluation workflows.
