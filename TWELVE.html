@@ -1,0 +1,628 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>LLM Evaluation — RAG Evaluation Strategy</title>
+<style>
+:root{
+  --bg:#f6f8fc; --card:#ffffff; --ink:#172033; --muted:#5f6b7a;
+  --line:#dfe5ef; --accent:#315efb; --accent2:#7c3aed; --good:#087f5b;
+  --warn:#b45309; --danger:#c92a2a; --soft:#eef3ff; --soft2:#f5efff;
+  --shadow:0 10px 30px rgba(24,39,75,.08); --radius:18px;
+}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{margin:0;font-family:Inter,Segoe UI,Arial,sans-serif;background:var(--bg);color:var(--ink);line-height:1.7}
+.container{width:min(1180px,92%);margin:auto}
+.hero{padding:54px 0 38px;background:linear-gradient(135deg,#eef3ff 0%,#fff 55%,#f4efff 100%);border-bottom:1px solid var(--line)}
+.badge{display:inline-block;padding:7px 12px;border-radius:999px;background:#e5ecff;color:#2748b8;font-weight:700;font-size:.82rem}
+h1{font-size:clamp(2.1rem,5vw,4rem);line-height:1.08;margin:16px 0}
+.subtitle{font-size:1.15rem;color:var(--muted);max-width:850px}
+.meta{display:flex;gap:10px;flex-wrap:wrap;margin-top:22px}
+.meta span{background:#fff;border:1px solid var(--line);padding:8px 12px;border-radius:10px;font-size:.9rem}
+nav{position:sticky;top:0;z-index:20;background:rgba(255,255,255,.94);backdrop-filter:blur(10px);border-bottom:1px solid var(--line)}
+.navin{display:flex;gap:10px;overflow:auto;padding:10px 0}
+nav a{white-space:nowrap;text-decoration:none;color:#39445a;padding:8px 11px;border-radius:9px;font-size:.88rem}
+nav a:hover{background:var(--soft);color:var(--accent)}
+main{padding:34px 0 70px}
+section{margin:28px 0}
+h2{font-size:1.85rem;margin:0 0 15px}
+h3{font-size:1.28rem;margin:22px 0 10px}
+p{margin:9px 0}
+.card{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);padding:24px;box-shadow:var(--shadow);margin:16px 0}
+.grid{display:grid;grid-template-columns:repeat(3,1fr);gap:16px}
+.grid2{display:grid;grid-template-columns:repeat(2,1fr);gap:16px}
+.mini{padding:19px;border:1px solid var(--line);border-radius:14px;background:#fff}
+.mini h3{margin-top:0}
+.kicker{font-size:.78rem;text-transform:uppercase;letter-spacing:.1em;color:var(--accent);font-weight:800}
+ul,ol{padding-left:24px}
+li{margin:6px 0}
+.callout{border-left:5px solid var(--accent);background:var(--soft);padding:18px 20px;border-radius:0 14px 14px 0;margin:16px 0}
+.callout.good{border-left-color:var(--good);background:#eaf8f3}
+.callout.warn{border-left-color:var(--warn);background:#fff6e8}
+.callout.danger{border-left-color:var(--danger);background:#fff0f0}
+.term{font-weight:800;color:#233b8f}
+.flow{display:flex;align-items:stretch;gap:10px;flex-wrap:wrap;margin:18px 0}
+.step{flex:1 1 180px;background:#fff;border:1px solid var(--line);border-radius:15px;padding:16px;position:relative}
+.step strong{display:block;color:var(--accent);margin-bottom:5px}
+.arrow{display:flex;align-items:center;font-size:1.4rem;color:#94a0b4}
+@media(max-width:800px){.grid,.grid2{grid-template-columns:1fr}.arrow{display:none}}
+table{width:100%;border-collapse:collapse;background:#fff;border:1px solid var(--line);border-radius:14px;overflow:hidden}
+th,td{text-align:left;padding:12px 14px;border-bottom:1px solid var(--line);vertical-align:top}
+th{background:#f1f4fa}
+tr:last-child td{border-bottom:0}
+code{background:#f1f3f7;border:1px solid #e1e5eb;padding:2px 6px;border-radius:6px}
+pre{background:#111827;color:#e5e7eb;padding:18px;border-radius:14px;overflow:auto}
+.note-title{display:flex;align-items:center;gap:10px}
+.num{width:32px;height:32px;border-radius:50%;display:inline-flex;align-items:center;justify-content:center;background:var(--accent);color:#fff;font-weight:800}
+.timeline{border-left:3px solid #cbd5ff;margin:18px 0;padding-left:22px}
+.timeline .item{margin:0 0 20px;position:relative}
+.timeline .item:before{content:"";position:absolute;left:-31px;top:7px;width:12px;height:12px;border-radius:50%;background:var(--accent)}
+.quote{font-size:1.15rem;font-weight:700;padding:22px;border-radius:15px;background:linear-gradient(120deg,#f0f4ff,#f8f2ff);border:1px solid #dfe3ff}
+.footer{padding:30px 0;border-top:1px solid var(--line);color:var(--muted);text-align:center}
+.checklist label{display:block;margin:8px 0}
+.checklist input{margin-right:8px}
+</style>
+</head>
+
+<body>
+<header class="hero">
+  <div class="container">
+    <span class="badge">LLM EVALUATION • RAG APPLICATION EVALUATION</span>
+    <h1>How Do You Evaluate Your RAG Chatbot?</h1>
+    <p class="subtitle">
+      Detailed English study notes from the lecture: playlist recap, RAG evaluation framework,
+      component/pipeline/application-level evaluation, Eval Suite, DeepEval, regression testing,
+      CI/CD gating, online evaluation, observability, drift detection, and the self-improving loop.
+    </p>
+    <div class="meta">
+      <span>Case Study: Campus X Doubt Solver</span>
+      <span>Focus: RAG Evaluation</span>
+      <span>Library: DeepEval</span>
+      <span>Interview Question: RAG Evaluation</span>
+    </div>
+  </div>
+</header>
+
+<nav>
+  <div class="container navin">
+    <a href="#recap">Recap</a>
+    <a href="#apps">LLM Apps</a>
+    <a href="#case">Case Study</a>
+    <a href="#framework">Evaluation Framework</a>
+    <a href="#components">Components</a>
+    <a href="#pipeline">RAG Triad</a>
+    <a href="#application">Application</a>
+    <a href="#suite">Eval Suite</a>
+    <a href="#deepeval">DeepEval</a>
+    <a href="#regression">Regression</a>
+    <a href="#online">Online Eval</a>
+    <a href="#roadmap">Next 4 Sessions</a>
+    <a href="#interview">Interview Answer</a>
+  </div>
+</nav>
+
+<main class="container">
+
+<section id="recap">
+  <h2>1. Where We Are in the LLM Evaluation Playlist</h2>
+  <div class="card">
+    <p>The first few lectures focused on the fundamentals of LLM evaluation and why evaluation is necessary for LLM-based systems.</p>
+    <div class="grid">
+      <div class="mini"><h3>Reference-Based Eval</h3><p>Evaluation where a reference or expected answer is available.</p></div>
+      <div class="mini"><h3>Reference-Free Eval</h3><p>Evaluation where a reference answer is not necessarily required.</p></div>
+      <div class="mini"><h3>Online vs Offline</h3><p>Offline evaluation happens before deployment; online evaluation continues after deployment.</p></div>
+    </div>
+  </div>
+
+  <div class="card">
+    <h3>The Two Major Types of LLM Evaluation</h3>
+    <div class="grid2">
+      <div class="mini"><h3>Model Evaluation</h3><p>Evaluates the underlying LLM/model itself.</p></div>
+      <div class="mini"><h3>Application Evaluation</h3><p>Evaluates an LLM-powered application. This becomes the major focus from this point onward.</p></div>
+    </div>
+  </div>
+
+  <div class="card">
+    <h3>Model Evaluation Covered So Far</h3>
+    <ul>
+      <li><strong>Standardized evaluations / benchmarks:</strong> standardized tests used to evaluate model capabilities.</li>
+      <li><strong>Custom model evaluations:</strong> evaluations created using your own dataset, especially when selecting a model for a particular application.</li>
+    </ul>
+  </div>
+
+  <div class="callout good">
+    <strong>Major milestone:</strong> The playlist now moves from model evaluation to the most important practical part — <strong>application evaluation</strong>.
+  </div>
+</section>
+
+<section id="apps">
+  <h2>2. Types of LLM-Based Applications</h2>
+  <p>LLM applications can take many forms. The lecture highlights several examples:</p>
+  <div class="grid">
+    <div class="mini"><h3>General Chatbot</h3><p>A normal conversational application without RAG or agent functionality.</p></div>
+    <div class="mini"><h3>RAG Chatbot</h3><p>A chatbot that retrieves relevant information from an external knowledge base before generating an answer.</p></div>
+    <div class="mini"><h3>Agents</h3><p>LLM-based systems capable of performing more complex workflows and actions.</p></div>
+    <div class="mini"><h3>Multimodal Apps</h3><p>Applications that work with modalities beyond text, such as image generation.</p></div>
+    <div class="mini"><h3>Fixed-Schema Output</h3><p>Applications where the LLM produces output following a predefined schema, such as email classification.</p></div>
+    <div class="mini"><h3>Image-Based Applications</h3><p>Applications in which images are an important input or output modality.</p></div>
+  </div>
+
+  <div class="callout">
+    <strong>Course selection:</strong> It is not practical to teach evaluation for every possible application type. The course therefore focuses on <strong>RAG applications</strong> and <strong>agent applications</strong>, because these patterns are especially important in professional projects.
+  </div>
+</section>
+
+<section id="case">
+  <h2>3. Case Study — Campus X Doubt Solver</h2>
+  <div class="card">
+    <span class="kicker">Problem Statement</span>
+    <h3>Build a RAG chatbot for the LLM course</h3>
+    <p>The course contains lectures, and each lecture has a transcript. These transcripts become the knowledge documents for the chatbot.</p>
+    <p>A student can ask questions or doubts about the LLM course, and the chatbot should answer using the available lecture transcripts.</p>
+  </div>
+
+  <div class="flow">
+    <div class="step"><strong>1. Lecture Transcripts</strong>Course lecture transcripts become source documents.</div>
+    <div class="arrow">→</div>
+    <div class="step"><strong>2. Retrieval</strong>Relevant transcript chunks are retrieved for a user query.</div>
+    <div class="arrow">→</div>
+    <div class="step"><strong>3. Generation</strong>The LLM uses the question + retrieved context to generate an answer.</div>
+    <div class="arrow">→</div>
+    <div class="step"><strong>4. Answer + Citation</strong>The chatbot answers and can identify the relevant lecture/session.</div>
+  </div>
+
+  <div class="callout warn">
+    The goal is intentionally not to create a highly complicated RAG system. The main objective is to learn <strong>how to evaluate even a simple RAG application properly</strong>.
+  </div>
+</section>
+
+<section id="framework">
+  <h2>4. Complete RAG Evaluation Framework</h2>
+  <p>The central idea is that an LLM application should not be evaluated with one single test. It needs an <strong>evaluation suite</strong> covering multiple perspectives.</p>
+
+  <div class="grid3 grid">
+    <div class="mini"><h3>Level 1</h3><p><strong>Component Level</strong><br>Evaluate individual RAG components such as the retriever and generator.</p></div>
+    <div class="mini"><h3>Level 2</h3><p><strong>Pipeline Level</strong><br>Evaluate the complete RAG pipeline after retriever and generator are connected.</p></div>
+    <div class="mini"><h3>Level 3</h3><p><strong>Application/System Level</strong><br>Evaluate the complete user-facing application.</p></div>
+  </div>
+
+  <div class="card">
+    <h3>Overall Development + Evaluation Flow</h3>
+    <div class="timeline">
+      <div class="item"><strong>Step 1:</strong> Build the retriever.</div>
+      <div class="item"><strong>Step 2:</strong> Evaluate the retriever independently.</div>
+      <div class="item"><strong>Step 3:</strong> Build the generator.</div>
+      <div class="item"><strong>Step 4:</strong> Evaluate the generator independently.</div>
+      <div class="item"><strong>Step 5:</strong> Connect retriever + generator to create the RAG pipeline.</div>
+      <div class="item"><strong>Step 6:</strong> Evaluate the RAG pipeline using the RAG Triad.</div>
+      <div class="item"><strong>Step 7:</strong> Evaluate application quality.</div>
+      <div class="item"><strong>Step 8:</strong> Evaluate application safety.</div>
+      <div class="item"><strong>Step 9:</strong> Evaluate operational metrics.</div>
+    </div>
+  </div>
+
+  <div class="quote">
+    The key principle: <strong>Do not build the entire RAG chatbot first and test only at the end.</strong>
+    Build and evaluate continuously — just like software is tested at function, feature, integration, and system levels.
+  </div>
+</section>
+
+<section id="components">
+  <h2>5. Component-Level Evaluation</h2>
+
+  <div class="card">
+    <div class="note-title"><span class="num">1</span><h3>Retriever</h3></div>
+    <p>The retriever is responsible for finding relevant documents/chunks from the vector database for a user query.</p>
+    <h3>Basic Retriever Flow</h3>
+    <ol>
+      <li>Load documents.</li>
+      <li>Chunk the documents.</li>
+      <li>Convert chunks into vectors using an embedding model.</li>
+      <li>Store the vectors in a vector database.</li>
+      <li>Receive a new user query.</li>
+      <li>Retrieve the most relevant documents/chunks.</li>
+    </ol>
+  </div>
+
+  <div class="card">
+    <h3>Retriever Metrics</h3>
+    <table>
+      <thead><tr><th>Metric</th><th>What it asks</th></tr></thead>
+      <tbody>
+        <tr><td><strong>Recall</strong></td><td>Out of all the relevant/correct documents that should have been retrieved, how many did the retriever actually retrieve?</td></tr>
+        <tr><td><strong>Precision</strong></td><td>Out of all the documents retrieved, how many were actually useful/relevant?</td></tr>
+      </tbody>
+    </table>
+    <div class="callout good"><strong>Retriever goal:</strong> retrieve the right context — not simply retrieve a large number of documents.</div>
+  </div>
+
+  <div class="card">
+    <div class="note-title"><span class="num">2</span><h3>Generator</h3></div>
+    <p>The generator is the LLM that receives a question and relevant context and produces an answer.</p>
+    <p>At this stage, the generator is evaluated <strong>in isolation</strong>. It is not yet connected to the retriever.</p>
+  </div>
+
+  <div class="card">
+    <h3>Generator Metrics</h3>
+    <table>
+      <thead><tr><th>Metric</th><th>What it checks</th></tr></thead>
+      <tbody>
+        <tr><td><strong>Faithfulness</strong></td><td>Whether the generated answer is supported by the supplied context rather than containing unsupported hallucinated information.</td></tr>
+        <tr><td><strong>Answer Relevance</strong></td><td>Whether the generated answer is relevant to the user's question.</td></tr>
+        <tr><td><strong>Citation Accuracy</strong></td><td>Whether the citations/references provided by the application correctly point to the source information.</td></tr>
+      </tbody>
+    </table>
+    <div class="callout">
+      <strong>Golden-data idea:</strong> At the isolated generator stage, questions and contexts can be supplied manually as a controlled/golden dataset rather than coming from the retriever.
+    </div>
+  </div>
+</section>
+
+<section id="pipeline">
+  <h2>6. Pipeline-Level Evaluation — The RAG Triad</h2>
+  <p>After the retriever and generator have independently passed their evaluations, they are connected to create the RAG pipeline.</p>
+
+  <div class="flow">
+    <div class="step"><strong>User Query</strong>The original question.</div>
+    <div class="arrow">+</div>
+    <div class="step"><strong>Retrieved Context</strong>Context fetched from the vector database.</div>
+    <div class="arrow">→</div>
+    <div class="step"><strong>Generated Answer</strong>Answer produced by the generator.</div>
+  </div>
+
+  <div class="card">
+    <h3>The Three RAG Triad Metrics</h3>
+    <table>
+      <thead><tr><th>Pair</th><th>Metric</th><th>Purpose</th></tr></thead>
+      <tbody>
+        <tr><td>Question + Context</td><td><strong>Context Relevance</strong></td><td>Checks whether the retrieved context is relevant to the question.</td></tr>
+        <tr><td>Context + Answer</td><td><strong>Faithfulness</strong></td><td>Checks whether the generated answer is grounded in the retrieved context or contains hallucination.</td></tr>
+        <tr><td>Question + Answer</td><td><strong>Answer Relevance</strong></td><td>Checks whether the generated answer is relevant to the original question.</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="callout good">
+    <strong>RAG Triad = Context Relevance + Faithfulness + Answer Relevance.</strong>
+    Together, these metrics provide a compact way to inspect whether the RAG pipeline is functioning properly.
+  </div>
+</section>
+
+<section id="application">
+  <h2>7. Application-Level Evaluation</h2>
+  <p>Once the pipeline works, evaluate the complete Campus X Doubt Solver as a user-facing application.</p>
+
+  <div class="grid">
+    <div class="mini"><h3>Correctness</h3><p>Is the answer actually correct?</p></div>
+    <div class="mini"><h3>Completeness</h3><p>Does the answer address every part of the user's question? A response can be partially correct but still incomplete.</p></div>
+    <div class="mini"><h3>Style</h3><p>Does the response style match the desired Campus X teaching/explanation style?</p></div>
+  </div>
+
+  <h3>Safety Evaluation</h3>
+  <div class="grid">
+    <div class="mini"><h3>Toxicity</h3><p>Does the response contain toxic or inappropriate content?</p></div>
+    <div class="mini"><h3>PII Leakage</h3><p>Does the application expose personally identifiable information?</p></div>
+    <div class="mini"><h3>Jailbreak Resistance</h3><p>Can the chatbot be manipulated into violating intended behavior?</p></div>
+  </div>
+
+  <h3>Operational Evaluation</h3>
+  <div class="grid">
+    <div class="mini"><h3>Latency</h3><p>How long does the application take to answer?</p></div>
+    <div class="mini"><h3>Cost per Query</h3><p>How much does each interaction cost?</p></div>
+    <div class="mini"><h3>Token Usage</h3><p>How many tokens are being consumed?</p></div>
+  </div>
+</section>
+
+<section id="suite">
+  <h2>8. What Is an Eval Suite?</h2>
+  <div class="card">
+    <p>An <strong>Eval Suite</strong> is the complete collection of evaluations used to test the application from multiple perspectives.</p>
+    <p>For the RAG chatbot, it includes component, pipeline, application, safety, and operational evaluations.</p>
+  </div>
+
+  <h3>Conceptual Project Structure</h3>
+<pre><code>rag-project/
+│
+├── src/
+│   ├── retriever.py
+│   ├── generator.py
+│   ├── rag_pipeline.py
+│   ├── api.py
+│   └── ui.py
+│
+├── evals/
+│   ├── eval_retriever.py
+│   ├── eval_generator.py
+│   ├── eval_rag_pipeline.py
+│   ├── eval_application.py
+│   ├── eval_safety.py
+│   └── eval_operations.py
+│
+└── run_evals.py</code></pre>
+
+  <div class="card">
+    <h3>Role of <code>run_evals.py</code></h3>
+    <p>The idea is to have one entry point that triggers the different evaluation files and produces an overall report.</p>
+    <p>This makes the complete evaluation suite repeatable and useful for regression testing.</p>
+  </div>
+</section>
+
+<section id="deepeval">
+  <h2>9. DeepEval — Evaluation Library</h2>
+  <div class="card">
+    <p>Instead of writing all evaluation logic from scratch, the lecture chooses <strong>DeepEval</strong> as the primary evaluation library for the practical RAG evaluation work.</p>
+    <p>Many of the required metrics are already available, including RAG and safety-related metrics.</p>
+  </div>
+
+  <div class="grid">
+    <div class="mini"><h3>RAG Metrics</h3><p>Answer relevance, faithfulness, contextual precision, contextual recall, contextual relevance, and related evaluation capabilities.</p></div>
+    <div class="mini"><h3>Safety</h3><p>Toxicity, PII leakage, and other safety-oriented evaluations.</p></div>
+    <div class="mini"><h3>Broader Scope</h3><p>The lecture highlights use cases beyond RAG, including agents, multi-turn chatbots, non-LLM applications, and image-based applications.</p></div>
+  </div>
+
+  <div class="callout">
+    <strong>Why DeepEval instead of Ragas in this course?</strong>
+    <ol>
+      <li>Ragas has already been covered in the advanced RAG course.</li>
+      <li>DeepEval is presented as a broader evaluation library with a wider scope.</li>
+      <li>Its syntax is based around <strong>Pytest</strong>, making it familiar to people who have worked with Python software testing.</li>
+    </ol>
+  </div>
+
+  <div class="callout warn">
+    The lecture's broader advice is to understand the <strong>concepts</strong>, not become dependent on a particular tool. Tools can change from company to company.
+  </div>
+</section>
+
+<section id="regression">
+  <h2>10. Regression Testing</h2>
+  <div class="card">
+    <p>After building the evaluation suite, the next important step is <strong>regression testing</strong>.</p>
+    <p>The idea is simple: run the complete evaluation suite on a new version of the application and compare the results with a previous/baseline version.</p>
+  </div>
+
+  <div class="grid2">
+    <div class="mini"><h3>Version 1</h3><p>Baseline configuration + baseline evaluation metrics.</p></div>
+    <div class="mini"><h3>Version 2</h3><p>New configuration + new evaluation metrics.</p></div>
+  </div>
+
+  <h3>What Regression Testing Answers</h3>
+  <ul>
+    <li>Did the new retriever become better or worse?</li>
+    <li>Did the new generator improve?</li>
+    <li>Did any important quality metric decline?</li>
+    <li>Is the new software version objectively better than the previous version?</li>
+    <li>Should the new version be deployed?</li>
+  </ul>
+
+  <h3>Three Levels of Regression Testing Discussed</h3>
+  <div class="grid">
+    <div class="mini"><h3>Level 1 — Simple</h3><p>Run the eval suite and manually compare new results with the baseline.</p></div>
+    <div class="mini"><h3>Level 2 — Experiment Tracking</h3><p>Log configurations and metrics for repeated experiments and compare them visually.</p></div>
+    <div class="mini"><h3>Level 3 — CI/CD</h3><p>Automatically run evaluations after code changes and gate deployment based on thresholds.</p></div>
+  </div>
+
+  <h3>Experiment Tracking Example</h3>
+  <div class="card">
+    <p>Suppose the first run uses a particular chunk size, overlap, temperature, and embedding configuration.</p>
+    <p>The evaluation produces values such as:</p>
+    <table>
+      <thead><tr><th>Metric</th><th>Example Baseline</th></tr></thead>
+      <tbody>
+        <tr><td>Retriever Recall</td><td>82</td></tr>
+        <tr><td>Retriever Precision</td><td>68</td></tr>
+        <tr><td>Other Eval Metrics</td><td>Logged for comparison</td></tr>
+      </tbody>
+    </table>
+    <p>Then you change chunking size or overlap and run the suite again. The new results are logged and compared with the baseline.</p>
+  </div>
+
+  <h3>Experiment Tracking Tools Mentioned</h3>
+  <p>The lecture mentions tools such as <strong>MLflow</strong>, <strong>Confident AI</strong>, and <strong>Weights & Biases</strong> as possible options.</p>
+
+  <h3>CI/CD Gating</h3>
+  <div class="card">
+    <ol>
+      <li>A developer changes code or configuration.</li>
+      <li>The change is pushed to the repository.</li>
+      <li>A CI system such as GitHub Actions triggers the evaluation suite.</li>
+      <li>New metrics are compared with the baseline.</li>
+      <li>A threshold can be defined — for example, a metric should not drop by more than an allowed amount.</li>
+      <li>If the new version passes, deployment is allowed.</li>
+      <li>If the new version regresses beyond the threshold, deployment is stopped.</li>
+    </ol>
+  </div>
+
+  <div class="callout danger">
+    <strong>Core idea:</strong> Evaluation becomes a deployment gate. A change should not automatically reach production if it causes unacceptable regression.
+  </div>
+</section>
+
+<section id="online">
+  <h2>11. Online Evaluation After Deployment</h2>
+  <p>Evaluation does not stop when the application is deployed. Once the chatbot is live, the system should continue to be monitored and evaluated.</p>
+
+  <div class="card">
+    <h3>Observability / Tracing</h3>
+    <p>The lecture mentions tools such as <strong>LangSmith</strong>, <strong>Langfuse</strong>, and <strong>Confident AI</strong> for tracing and observability.</p>
+    <p>Tracing code can capture live interaction data such as:</p>
+    <div class="grid">
+      <div class="mini"><h3>Latency</h3><p>How long the response took.</p></div>
+      <div class="mini"><h3>Cost</h3><p>Cost associated with the interaction.</p></div>
+      <div class="mini"><h3>Tokens</h3><p>Token consumption.</p></div>
+      <div class="mini"><h3>User Feedback</h3><p>Thumbs up / thumbs down signals.</p></div>
+      <div class="mini"><h3>Traces</h3><p>Information about the execution path of the application.</p></div>
+      <div class="mini"><h3>Dashboard</h3><p>Visualize captured production signals.</p></div>
+    </div>
+  </div>
+
+  <h3>Online Quality Evaluation</h3>
+  <p>Some metrics that were evaluated offline can also be evaluated on live traffic, including:</p>
+  <ul>
+    <li>Faithfulness</li>
+    <li>Answer relevance</li>
+    <li>Correctness / quality-related signals</li>
+  </ul>
+
+  <h3>Drift Detection</h3>
+  <div class="card">
+    <p><strong>Drift</strong> means that application performance changes or degrades over time.</p>
+    <p>For example, suppose a dashboard tracks faithfulness over the previous 24 hours. If faithfulness suddenly drops during the last several hours, that may indicate a drift event that should trigger investigation and corrective action.</p>
+  </div>
+
+  <h3>Self-Improving Evaluation Loop</h3>
+  <div class="flow">
+    <div class="step"><strong>Live Interaction</strong>A real user interacts with the chatbot.</div>
+    <div class="arrow">→</div>
+    <div class="step"><strong>Failure Example</strong>A problematic or incorrect response is identified.</div>
+    <div class="arrow">→</div>
+    <div class="step"><strong>Add to Offline Data</strong>The example becomes part of the offline/golden evaluation dataset.</div>
+    <div class="arrow">→</div>
+    <div class="step"><strong>Future Evaluation</strong>Future versions are tested against the richer dataset.</div>
+  </div>
+
+  <div class="callout good">
+    This creates a feedback loop in which production failures improve the offline evaluation dataset, making future versions easier to evaluate more thoroughly.
+  </div>
+</section>
+
+<section id="roadmap">
+  <h2>12. Roadmap for the Next Four Sessions</h2>
+  <div class="timeline">
+    <div class="item">
+      <strong>Session 1 — Component-Level Evaluation</strong>
+      <p>Build the retriever, evaluate it, build the generator, evaluate it, and introduce DeepEval in practice.</p>
+    </div>
+    <div class="item">
+      <strong>Session 2 — RAG Pipeline + RAG Triad</strong>
+      <p>Connect retriever and generator, create the RAG pipeline, and evaluate context relevance, faithfulness, and answer relevance.</p>
+    </div>
+    <div class="item">
+      <strong>Session 3 — Application-Level Evaluation</strong>
+      <p>Run the complete application evaluation, including quality-oriented metrics and broader application checks.</p>
+    </div>
+    <div class="item">
+      <strong>Session 4 — Regression + Online Evaluation</strong>
+      <p>Cover regression testing and the post-deployment online evaluation/observability process.</p>
+    </div>
+  </div>
+</section>
+
+<section id="interview">
+  <h2>13. Interview Master Answer — “How Do You Evaluate Your RAG Chatbot?”</h2>
+
+  <div class="quote">
+    “I would not evaluate a RAG chatbot using only one or two metrics. I would build a complete evaluation suite and evaluate the application at component, pipeline, and application levels. Then I would use the suite for regression testing before deployment and continue with online evaluation after deployment.”
+  </div>
+
+  <div class="card">
+    <h3>Step-by-Step Interview Structure</h3>
+    <ol>
+      <li><strong>Build an Eval Suite.</strong> Explain that evaluation happens at multiple levels.</li>
+      <li><strong>Component level:</strong> evaluate the retriever using <strong>Recall</strong> and <strong>Precision</strong>.</li>
+      <li><strong>Generator level:</strong> evaluate <strong>Faithfulness</strong>, <strong>Answer Relevance</strong>, and <strong>Citation Accuracy</strong>.</li>
+      <li><strong>Pipeline level:</strong> evaluate the <strong>RAG Triad</strong> — Context Relevance, Faithfulness, and Answer Relevance.</li>
+      <li><strong>Application level:</strong> evaluate <strong>Correctness</strong>, <strong>Completeness</strong>, and <strong>Style</strong>.</li>
+      <li><strong>Safety:</strong> evaluate Toxicity, PII Leakage, Jailbreak Resistance, and other applicable safety checks.</li>
+      <li><strong>Operations:</strong> monitor Latency, Cost per Query, and Token Usage.</li>
+      <li><strong>Regression testing:</strong> run the complete eval suite whenever a new version/configuration is created and compare it with a baseline.</li>
+      <li><strong>Automation:</strong> use experiment tracking and, where appropriate, CI/CD gates to prevent unacceptable regressions from being deployed.</li>
+      <li><strong>Deployment:</strong> deploy only after the new version passes the required evaluation criteria.</li>
+      <li><strong>Online evaluation:</strong> monitor live traces, latency, cost, tokens, user feedback, quality metrics, and drift after deployment.</li>
+      <li><strong>Continuous improvement:</strong> collect production failures and add useful examples back into the offline/golden evaluation dataset.</li>
+    </ol>
+  </div>
+
+  <div class="callout good">
+    <strong>Interview differentiator:</strong> Merely saying “I check recall, precision, and answer relevance” is incomplete. The stronger answer is a <strong>framework</strong>: component → pipeline → application → safety/operations → regression → deployment → online evaluation → feedback loop.
+  </div>
+</section>
+
+<section>
+  <h2>14. One-Page Revision Sheet</h2>
+  <table>
+    <thead><tr><th>Stage</th><th>What is evaluated?</th><th>Key Metrics / Concepts</th></tr></thead>
+    <tbody>
+      <tr><td>Component — Retriever</td><td>Quality of retrieved documents</td><td>Recall, Precision</td></tr>
+      <tr><td>Component — Generator</td><td>LLM generation in isolation</td><td>Faithfulness, Answer Relevance, Citation Accuracy</td></tr>
+      <tr><td>Pipeline</td><td>Retriever + Generator together</td><td>RAG Triad: Context Relevance, Faithfulness, Answer Relevance</td></tr>
+      <tr><td>Application — Quality</td><td>User-facing response quality</td><td>Correctness, Completeness, Style</td></tr>
+      <tr><td>Application — Safety</td><td>Safe behavior</td><td>Toxicity, PII Leakage, Jailbreak Resistance</td></tr>
+      <tr><td>Operations</td><td>Production efficiency</td><td>Latency, Cost, Tokens</td></tr>
+      <tr><td>Regression</td><td>New version vs baseline</td><td>Baseline comparison, experiment tracking, CI/CD gates</td></tr>
+      <tr><td>Online Evaluation</td><td>Live production behavior</td><td>Tracing, feedback, quality metrics, drift</td></tr>
+      <tr><td>Continuous Improvement</td><td>Learn from failures</td><td>Production failures → offline/golden dataset</td></tr>
+    </tbody>
+  </table>
+</section>
+
+<section>
+  <h2>15. Mental Model</h2>
+  <div class="card">
+    <div class="flow">
+      <div class="step"><strong>Build</strong>Retriever → Generator → RAG Pipeline → Application</div>
+      <div class="arrow">→</div>
+      <div class="step"><strong>Evaluate</strong>Components → Pipeline → Application → Safety → Operations</div>
+      <div class="arrow">→</div>
+      <div class="step"><strong>Regression</strong>Compare new version against baseline</div>
+      <div class="arrow">→</div>
+      <div class="step"><strong>Deploy</strong>Release only when evaluation criteria are satisfied</div>
+      <div class="arrow">→</div>
+      <div class="step"><strong>Monitor</strong>Trace → Evaluate → Detect Drift → Collect Failures</div>
+      <div class="arrow">→</div>
+      <div class="step"><strong>Improve</strong>Add valuable failures to offline evaluation data</div>
+    </div>
+  </div>
+</section>
+
+<section>
+  <h2>16. Quick Self-Check</h2>
+  <div class="card checklist">
+    <label><input type="checkbox"> I can explain Model Eval vs Application Eval.</label>
+    <label><input type="checkbox"> I can explain why RAG evaluation is multi-level.</label>
+    <label><input type="checkbox"> I know the difference between retriever and generator evaluation.</label>
+    <label><input type="checkbox"> I can explain Recall and Precision for retrieval.</label>
+    <label><input type="checkbox"> I can explain the three RAG Triad metrics.</label>
+    <label><input type="checkbox"> I can distinguish correctness from completeness.</label>
+    <label><input type="checkbox"> I can explain safety and operational evaluation.</label>
+    <label><input type="checkbox"> I can explain what an Eval Suite is.</label>
+    <label><input type="checkbox"> I can explain why regression testing is required.</label>
+    <label><input type="checkbox"> I can explain baseline, experiment tracking, and CI/CD gating.</label>
+    <label><input type="checkbox"> I can explain online evaluation and observability.</label>
+    <label><input type="checkbox"> I can explain drift detection.</label>
+    <label><input type="checkbox"> I can explain the self-improving evaluation loop.</label>
+    <label><input type="checkbox"> I can answer “How do you evaluate your RAG chatbot?” as a structured framework.</label>
+  </div>
+</section>
+
+<section>
+  <h2>17. Key Takeaways</h2>
+  <div class="card">
+    <ul>
+      <li>RAG evaluation is a <strong>framework</strong>, not a list of three or four metrics.</li>
+      <li>Evaluation should happen continuously during development, not only after the entire application is finished.</li>
+      <li>The three major levels are <strong>Component → Pipeline → Application/System</strong>.</li>
+      <li>Retriever evaluation focuses on retrieval quality; generator evaluation focuses on grounded and relevant generation.</li>
+      <li>The <strong>RAG Triad</strong> connects question, context, and answer through Context Relevance, Faithfulness, and Answer Relevance.</li>
+      <li>Application evaluation expands beyond RAG quality into correctness, completeness, style, safety, and operations.</li>
+      <li>An <strong>Eval Suite</strong> collects these tests into one repeatable testing framework.</li>
+      <li><strong>Regression testing</strong> compares new application versions against a baseline.</li>
+      <li>Experiment tracking and CI/CD can automate regression detection and deployment gating.</li>
+      <li>Evaluation continues after deployment through <strong>online evaluation, tracing, observability, drift detection, and user feedback</strong>.</li>
+      <li>Production failures can feed back into the offline/golden dataset, creating a <strong>self-improving evaluation loop</strong>.</li>
+    </ul>
+  </div>
+</section>
+
+</main>
+
+<footer class="footer">
+  <div class="container">
+    <strong>LLM Evaluation Notes — RAG Evaluation Strategy</strong><br>
+    Source: User-provided lecture transcript • Converted into structured English study notes.
+  </div>
+</footer>
+</body>
+</html>

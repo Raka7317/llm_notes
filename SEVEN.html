@@ -1,0 +1,650 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="description" content="Professional AI Engineering study notes on Offline and Online LLM Evaluation.">
+<title>LLM Evaluation — Offline vs Online Evaluation</title>
+<style>
+:root{
+--bg:#090d12;--surface:#10161e;--surface2:#151c25;--surface3:#0c1219;
+--text:#e8eef7;--muted:#9aa8ba;--border:#273342;--accent:#71b7ff;
+--accent2:#9b8cff;--green:#63d6a8;--yellow:#f2cc6b;--red:#ff7e8e;
+--shadow:0 18px 50px rgba(0,0,0,.28);--radius:16px;--sidebar:270px;
+}
+*{box-sizing:border-box;scroll-behavior:smooth}
+body{margin:0;background:var(--bg);color:var(--text);font:15px/1.75 Inter,ui-sans-serif,system-ui,-apple-system,"Segoe UI",sans-serif}
+a{color:inherit;text-decoration:none}
+.header{position:sticky;top:0;z-index:30;background:rgba(9,13,18,.92);backdrop-filter:blur(16px);border-bottom:1px solid var(--border)}
+.header-inner{max-width:1500px;height:78px;margin:auto;padding:0 26px;display:flex;align-items:center;justify-content:space-between;gap:20px}
+.brand{font-size:11px;font-weight:900;letter-spacing:.15em;color:var(--accent)}
+.header-center{display:flex;align-items:center;gap:15px}
+.page{font-size:11px;color:var(--muted);font-weight:800;letter-spacing:.08em}
+.header-title{font-size:17px;font-weight:800}
+.progress-wrap{min-width:135px}.progress-label{font-size:10px;color:var(--muted);text-align:right;margin-bottom:5px}
+.progress{height:5px;background:#202934;border-radius:99px;overflow:hidden}.progress span{display:block;width:25%;height:100%;background:var(--accent)}
+.mobile-nav{display:none}
+.layout{max-width:1500px;margin:auto;padding:28px 26px 70px;display:grid;grid-template-columns:var(--sidebar) minmax(0,950px);gap:30px}
+.sidebar{position:sticky;top:102px;height:calc(100vh - 125px);overflow:auto;padding-right:8px}
+.sidebar-title{text-transform:uppercase;letter-spacing:.15em;font-size:10px;color:var(--muted);font-weight:900;margin:8px 0 12px}
+.nav a{display:block;color:#aeb9c8;padding:7px 10px;border-radius:9px;margin:2px 0;font-size:13px}
+.nav a:hover{background:var(--surface);color:var(--text)}
+.main{min-width:0}
+.hero{padding:18px 0 10px}.eyebrow{font-size:11px;font-weight:900;color:var(--accent);letter-spacing:.15em}
+.hero h1{font-size:clamp(38px,5vw,62px);line-height:1.02;letter-spacing:-.045em;margin:10px 0}
+.subtitle{font-size:18px;color:var(--muted);max-width:760px}
+.card{background:linear-gradient(180deg,var(--surface),#0e141b);border:1px solid var(--border);border-radius:var(--radius);padding:21px;box-shadow:var(--shadow);margin:18px 0}
+.card.flat{box-shadow:none}.glance{display:grid;grid-template-columns:repeat(5,1fr);gap:10px}
+.glance .item{padding:13px;border:1px solid var(--border);background:var(--surface2);border-radius:12px}
+.glance b{display:block;font-size:10px;color:var(--accent);letter-spacing:.08em;margin-bottom:3px}
+h2{font-size:28px;line-height:1.2;margin:52px 0 14px;letter-spacing:-.025em;scroll-margin-top:105px}
+h3{font-size:19px;margin:26px 0 8px}h4{font-size:15px;margin:18px 0 6px}
+p,li{color:#c1cad7}strong{color:#f0f5fb}
+.definition,.key,.warning,.danger{padding:4px 0 4px 17px;margin:14px 0}
+.definition{border-left:3px solid var(--accent)}.key{border-left:3px solid var(--green)}
+.warning{border-left:3px solid var(--yellow)}.danger{border-left:3px solid var(--red)}
+.toc{display:grid;grid-template-columns:repeat(2,1fr);gap:8px}.toc a{border:1px solid var(--border);background:#10161e;border-radius:10px;padding:9px 11px;color:#c6d0dd}
+table{width:100%;border-collapse:collapse;margin:16px 0;font-size:13px}
+th,td{border:1px solid var(--border);padding:11px;text-align:left;vertical-align:top}
+th{background:#171f29;color:#edf3fa}td{color:#bcc7d4}
+.pipeline{display:flex;flex-wrap:wrap;align-items:center;justify-content:center;gap:8px;margin:20px 0}
+.node{min-width:125px;padding:12px 14px;text-align:center;border:1px solid #334154;background:#141c26;border-radius:12px;color:#dbe6f3}
+.arrow{font-size:20px;color:var(--accent)}
+.timeline{display:grid;gap:12px;margin:18px 0}.step{display:grid;grid-template-columns:40px 1fr;gap:13px}
+.num{width:36px;height:36px;border-radius:50%;display:grid;place-items:center;background:#172537;border:1px solid #355174;color:var(--accent);font-weight:900}
+.step .card{margin:0;box-shadow:none}
+.grid2{display:grid;grid-template-columns:repeat(2,1fr);gap:12px}
+.grid3{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}
+.mini{border:1px solid var(--border);background:var(--surface2);border-radius:13px;padding:16px}
+.mini b{display:block;margin-bottom:4px;color:#eaf1f9}
+.tags{display:flex;flex-wrap:wrap;gap:6px}.tag{font-size:11px;border:1px solid var(--border);border-radius:999px;padding:4px 8px;color:var(--accent)}
+.formula{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;background:var(--surface3);border:1px solid var(--border);border-radius:12px;padding:18px;text-align:center;color:#dce9f7;font-size:16px}
+.qa{border:1px solid var(--border);background:var(--surface2);border-radius:12px;padding:15px;margin:10px 0}
+.qa b{color:#f1f5fb}.revision{display:grid;grid-template-columns:repeat(2,1fr);gap:12px}.revision .card{margin:0}
+.code{position:relative;background:#070a0e;border:1px solid var(--border);border-radius:12px;overflow:auto}
+pre{margin:0;padding:18px;font:13px/1.65 ui-monospace,SFMono-Regular,Menlo,monospace;color:#d8e4f1}
+.copy{position:absolute;right:9px;top:9px;border:1px solid var(--border);background:#151d27;color:#cbd6e2;border-radius:7px;padding:5px 8px;cursor:pointer}
+.footer{margin-top:55px;border-top:1px solid var(--border);padding-top:24px;color:var(--muted);font-size:13px}
+@media(max-width:1100px){
+.layout{grid-template-columns:1fr}.sidebar{display:none}.mobile-nav{display:block;position:sticky;top:78px;z-index:20;background:rgba(9,13,18,.95);border-bottom:1px solid var(--border);padding:9px 15px}
+.mobile-nav select{width:100%;background:var(--surface);color:var(--text);border:1px solid var(--border);border-radius:9px;padding:9px}
+}
+@media(max-width:700px){
+.header-inner{padding:0 15px}.brand{display:none}.header-title{font-size:14px}.progress-wrap{min-width:75px}.layout{padding:15px}.hero h1{font-size:39px}.glance,.grid2,.grid3,.toc,.revision{grid-template-columns:1fr}.card{padding:17px}h2{font-size:25px}.pipeline{flex-direction:column}.arrow{transform:rotate(90deg)}
+}
+</style>
+</head>
+<body>
+
+<header class="header">
+<div class="header-inner">
+<div class="brand">AI ENGINEERING NOTES</div>
+<div class="header-center"><span class="page">PAGE 05</span><span class="header-title">Offline vs Online Evaluation</span></div>
+<div class="progress-wrap"><div class="progress-label">05 / 20</div><div class="progress"><span></span></div></div>
+</div>
+</header>
+
+<div class="mobile-nav">
+<select onchange="if(this.value)location.hash=this.value">
+<option value="">Jump to section…</option>
+<option value="overview">Overview</option><option value="recap">Course Recap</option>
+<option value="offline">Offline Evaluation</option><option value="benefits">Benefits</option>
+<option value="production">Production Risks</option><option value="online">Online Evaluation</option>
+<option value="comparison">Comparison</option><option value="correctness">Correctness vs Normality</option>
+<option value="signals">Signals</option><option value="logging">Logging</option>
+<option value="monitoring">Dashboarding & Alerting</option><option value="computed">Computed Evaluation</option>
+<option value="sampling">Sampling</option><option value="platform">Evaluation Platform</option>
+<option value="loop">Self-Improving Loop</option><option value="interview">Interview Questions</option>
+<option value="revision">Quick Revision</option>
+</select>
+</div>
+
+<div class="layout">
+<aside class="sidebar">
+<div class="sidebar-title">On This Page</div>
+<nav class="nav">
+<a href="#overview">Overview</a><a href="#recap">Course Recap</a>
+<a href="#offline">1. Offline Evaluation</a><a href="#benefits">2. Benefits</a>
+<a href="#production">3. Production Risks</a><a href="#online">4. Online Evaluation</a>
+<a href="#comparison">5. Offline vs Online</a><a href="#correctness">6. Correctness vs Normality</a>
+<a href="#signals">7. Production Signals</a><a href="#logging">8. Logging</a>
+<a href="#monitoring">9. Dashboarding & Alerting</a><a href="#computed">10. Computed Evaluation</a>
+<a href="#sampling">11. Sampling</a><a href="#platform">12. Evaluation Platform</a>
+<a href="#loop">13. Self-Improving Loop</a><a href="#interview">Interview Questions</a>
+<a href="#revision">Quick Revision</a>
+</nav>
+</aside>
+
+<main class="main">
+
+<section id="overview" class="hero">
+<div class="eyebrow">PAGE 05 • LLM EVALUATION</div>
+<h1>Offline vs Online Evaluation</h1>
+<div class="subtitle">How to validate an LLM application before release and continuously monitor it after deployment.</div>
+
+<div class="card">
+<p><strong>Offline evaluation</strong> and <strong>online evaluation</strong> solve two different but complementary problems. Offline evaluation tests an application in a controlled environment before deployment. Online evaluation observes the application after deployment using real production traffic.</p>
+<p>This distinction is essential for production-grade AI engineering. A system can perform extremely well on a golden dataset and still fail when thousands of real users introduce unexpected inputs, new usage patterns, operational load, or changing data.</p>
+<p>This page builds the complete mental model: release gates, version comparison, regression testing, production risks, reference-free evaluation, logging, captured and computed signals, dashboards, alerting, sampling, LLM-as-a-Judge, and the feedback loop that continuously improves the offline dataset.</p>
+</div>
+
+<div class="card">
+<h3>At a Glance</h3>
+<div class="glance">
+<div class="item"><b>OFFLINE</b>Before deployment</div>
+<div class="item"><b>ONLINE</b>After deployment</div>
+<div class="item"><b>DATA</b>Golden vs live traffic</div>
+<div class="item"><b>MAIN GOAL</b>Correctness vs normality</div>
+<div class="item"><b>LOOP</b>Production → Dataset → Release</div>
+</div>
+</div>
+</section>
+
+<section id="recap">
+<h2>Course Recap</h2>
+<p>Before introducing offline and online evaluation, the lecture connects the topic to the earlier LLM evaluation framework.</p>
+<div class="grid2">
+<div class="mini"><b>Why do we need evaluations?</b><span>LLM systems are probabilistic and can fail in many ways.</span></div>
+<div class="mini"><b>What are evaluations?</b><span>Model-based and application-based evaluation were introduced.</span></div>
+<div class="mini"><b>What does an eval pipeline look like?</b><span>A structured pipeline was introduced for testing an LLM application.</span></div>
+<div class="mini"><b>Why multiple pipelines?</b><span>Applications have component, workflow, and application-level failure points plus different risk categories.</span></div>
+<div class="mini"><b>Risk categories</b><span>Quality, safety, and operations such as latency and related metrics.</span></div>
+<div class="mini"><b>Evaluation methods</b><span>Programmatic evaluation, LLM-as-a-Judge, and human evaluation.</span></div>
+</div>
+<div class="key"><strong>Today's central distinction:</strong> offline evaluation asks whether the application works correctly; online evaluation asks whether the deployed application is behaving normally in production.</div>
+</section>
+
+<section id="offline">
+<h2>1. What Is Offline Evaluation?</h2>
+<h3>Definition</h3>
+<div class="definition"><p><strong>Offline evaluation</strong> is the evaluation of an LLM-based application <strong>before it is deployed to production</strong>, usually using a controlled evaluation dataset and predefined evaluation criteria.</p></div>
+
+<h3>Simple Explanation</h3>
+<p>Build the application → prepare test cases → run the evaluation pipeline → inspect the results → decide whether the application is ready for release.</p>
+
+<h3>Example: UPSC Answer Grader</h3>
+<p>The lecture uses an LLM application that evaluates UPSC Mains-style answers like a human evaluator. A <strong>golden dataset</strong> is created, an <strong>LLM-as-a-Judge</strong> approach is used, and the automated scores are compared with human evaluation.</p>
+<p>Because this happens after building the software but before deployment, it is an example of offline evaluation.</p>
+
+<div class="pipeline">
+<div class="node">Golden Dataset</div><div class="arrow">→</div>
+<div class="node">LLM Application</div><div class="arrow">→</div>
+<div class="node">Evaluator</div><div class="arrow">→</div>
+<div class="node">Score</div><div class="arrow">→</div>
+<div class="node">Release Decision</div>
+</div>
+</section>
+
+<section id="benefits">
+<h2>2. Three Major Benefits of Offline Evaluation</h2>
+
+<div class="timeline">
+<div class="step"><div class="num">1</div><div class="card">
+<h3>Pre-Release Testing</h3>
+<p>You should not deploy an LLM application without first testing how it behaves against known cases. Offline evaluation gives a controlled way to determine whether the software is ready for production.</p>
+<h4>Release Gate</h4>
+<p>The evaluation score can become an automated CI/CD gate. For example, an organization might define a threshold of <strong>95%</strong>.</p>
+<ul><li>Score ≥ 95% → deployment pipeline can proceed.</li><li>Score &lt; 95% → deployment is blocked or the previous version is retained.</li></ul>
+<div class="key"><strong>Interview point:</strong> Offline evaluation can become a quality gate inside CI/CD rather than remaining a manual testing step.</div>
+</div></div>
+
+<div class="step"><div class="num">2</div><div class="card">
+<h3>Version Comparison</h3>
+<p>When several implementation choices are available, run the <strong>same evaluation pipeline and same golden dataset</strong> against each version.</p>
+<div class="grid3">
+<div class="mini"><b>Models</b>Compare Claude vs an OpenAI model, for example.</div>
+<div class="mini"><b>Prompts</b>Compare different system prompts.</div>
+<div class="mini"><b>Rerankers</b>Compare retrieval/reranking strategies.</div>
+<div class="mini"><b>Vector DBs</b>Compare different storage/retrieval systems.</div>
+<div class="mini"><b>Architectures</b>Compare alternative application designs.</div>
+<div class="mini"><b>Other components</b>Change one component while holding the evaluation setup constant.</div>
+</div>
+<p>Because the evaluation conditions remain the same, the scores provide an objective basis for comparison.</p>
+</div></div>
+
+<div class="step"><div class="num">3</div><div class="card">
+<h3>Regression Testing</h3>
+<p><strong>Regression testing</strong> checks whether a change that improves one behavior accidentally damages another existing behavior.</p>
+<p>Imagine a CampusX chatbot that sounds too cold when students ask about refunds. You modify the system prompt to make the chatbot kinder and more polite. The new prompt may improve tone—but it might also make the chatbot less precise about prices.</p>
+<p>If the old refund success rate was 90%, a healthy change should not unexpectedly reduce it to 80%.</p>
+<div class="warning"><strong>Regression principle:</strong> Improving one metric should not silently destroy another important metric.</div>
+</div></div>
+</div>
+
+<h3>Regression Test Matrix</h3>
+<table>
+<tr><th>Change</th><th>Expected Improvement</th><th>What Must Also Be Checked?</th></tr>
+<tr><td>System prompt</td><td>Better tone</td><td>Pricing accuracy, relevance, helpfulness</td></tr>
+<tr><td>LLM model</td><td>Better overall quality</td><td>Latency, cost, safety, regression cases</td></tr>
+<tr><td>Vector database</td><td>Better retrieval</td><td>Existing answer quality and latency</td></tr>
+<tr><td>Reranker</td><td>Better context selection</td><td>Faithfulness and previously strong cases</td></tr>
+</table>
+</section>
+
+<section id="production">
+<h2>3. What Can Go Wrong After Deployment?</h2>
+<p>Passing offline evaluation does not mean that production risk has disappeared. Production exposes the system to a much larger and less predictable environment.</p>
+
+<div class="grid3">
+<div class="mini"><b>01 — Unexpected Inputs</b><p>Users can ask questions that were never included in the golden dataset.</p></div>
+<div class="mini"><b>02 — Emergent Failures</b><p>Some failures appear only at scale or after thousands of interactions.</p></div>
+<div class="mini"><b>03 — Drift</b><p>The real-world data distribution and business context can change over time.</p></div>
+</div>
+
+<h3>3.1 Unexpected Inputs</h3>
+<ul>
+<li>Hindi-English mixed conversations even when testing focused mainly on English.</li>
+<li>Ambiguous or incomplete questions.</li>
+<li>Angry messages containing an underlying question.</li>
+<li>Adversarial prompt-injection attempts.</li>
+<li>Unexpected edge cases.</li>
+</ul>
+
+<h3>3.2 Emergent and Systematic Failures</h3>
+<p>Some problems are difficult to reproduce offline because they depend on scale.</p>
+<p>For example, a new course launch may suddenly bring thousands of concurrent users. The application may experience a large latency increase that was not visible during offline evaluation.</p>
+<p>Another example is a subtle bias that becomes visible only after thousands of conversations reveal a pattern—for instance, noticeably different behavior toward users from different backgrounds.</p>
+
+<h3>3.3 Drift</h3>
+<div class="definition"><p><strong>Drift</strong> occurs when the real-world data, usage patterns, business information, or operating environment changes over time, making the existing evaluation setup less representative of current production.</p></div>
+<p>Suppose a RAG chatbot is initially evaluated using documents containing course prices, curriculum, and policies. A year later, prices, policies, and curriculum have changed. If the golden dataset is never updated, the evaluation pipeline may continue producing good scores even though users are dissatisfied with the current chatbot.</p>
+<div class="danger"><strong>Key insight:</strong> An outdated evaluation set can create a false sense of quality. The evaluation itself can become obsolete because of drift.</div>
+</section>
+
+<section id="online">
+<h2>4. What Is Online Evaluation?</h2>
+<div class="definition"><p><strong>Online evaluation</strong> evaluates a deployed LLM application using <strong>live production traffic after deployment</strong>, while real users interact with the system.</p></div>
+
+<h3>The Biggest Difference</h3>
+<p>Online evaluation generally operates <strong>without a fixed golden answer key</strong>. The next user question is unknown, and the correct answer may not already exist in an evaluation dataset.</p>
+
+<div class="card">
+<h3>Core Purpose</h3>
+<div class="pipeline">
+<div class="node">Production Traffic</div><div class="arrow">→</div>
+<div class="node">Observe Signals</div><div class="arrow">→</div>
+<div class="node">Detect Abnormality</div><div class="arrow">→</div>
+<div class="node">Investigate / Act</div>
+</div>
+<p><strong>Online evaluation asks:</strong> “Is the deployed application behaving normally in production right now?”</p>
+</div>
+</section>
+
+<section id="comparison">
+<h2>5. Offline vs Online Evaluation</h2>
+<table>
+<tr><th>Dimension</th><th>Offline Evaluation</th><th>Online Evaluation</th></tr>
+<tr><td>Timing</td><td>Before deployment</td><td>After deployment; continuously</td></tr>
+<tr><td>Data</td><td>Fixed golden dataset</td><td>Live production traffic</td></tr>
+<tr><td>Answer key</td><td>Usually available for reference-based evaluation</td><td>Usually unavailable for newly arriving inputs</td></tr>
+<tr><td>Inputs</td><td>Anticipated and selected cases</td><td>Anything real users send</td></tr>
+<tr><td>Best for</td><td>Release gating, version comparison, regression testing</td><td>Drift, surprises, emergent bugs, production health</td></tr>
+<tr><td>Cost</td><td>Usually cheaper and repeatable</td><td>Can become expensive at scale</td></tr>
+<tr><td>Speed</td><td>Fast and controlled</td><td>Continuous and potentially large-scale</td></tr>
+</table>
+
+<div class="card">
+<h3>They Are Complementary</h3>
+<div class="grid2">
+<div class="mini"><b>Offline → Correctness</b><p>“Does my application work correctly on known evaluation cases?”</p></div>
+<div class="mini"><b>Online → Normality</b><p>“Is my deployed application behaving normally in the real world?”</p></div>
+</div>
+<div class="key"><strong>Do not think of online evaluation as the replacement for offline evaluation.</strong> A production-grade LLM system needs both.</div>
+</div>
+</section>
+
+<section id="correctness">
+<h2>6. Correctness vs Normality</h2>
+
+<h3>Correctness</h3>
+<p>Correctness asks whether the system's output is actually right according to an appropriate reference.</p>
+<p>For the UPSC grader, correctness means checking whether the marks assigned by the LLM-based grader are close to the marks assigned by a human evaluator.</p>
+
+<h3>Why Direct Correctness Is Difficult in Production</h3>
+<p>After deployment, a new answer can arrive that has never been evaluated by a human. You know what the LLM produced, but you do not yet know what a human would have produced for that exact answer.</p>
+<p>Therefore, you cannot directly calculate human-vs-model correctness for every new production interaction.</p>
+
+<h3>Alternative: Normality</h3>
+<p>When direct correctness is unavailable, compare current behavior with a known healthy <strong>baseline distribution</strong>.</p>
+
+<div class="card">
+<h3>Distribution Example</h3>
+<p>Suppose a UPSC grader historically produces the following score distribution:</p>
+<div class="pipeline">
+<div class="node">Week 1<br>Mostly 500–700</div><div class="arrow">→</div>
+<div class="node">Week 2<br>Similar pattern</div><div class="arrow">→</div>
+<div class="node">Week 5<br>Suddenly 800–900</div>
+</div>
+<p>The change does not prove that the new scores are incorrect. Students may genuinely have improved. But a large distribution shift is a <strong>signal that something changed and should be investigated</strong>.</p>
+</div>
+
+<h3>Reference-Free Signals Can Help</h3>
+<p>Some quality metrics do not require knowing the exact correct answer. For example, <strong>faithfulness</strong> in a RAG system can be evaluated by checking whether the generated answer is supported by the retrieved context.</p>
+
+<h3>User Feedback as a Proxy</h3>
+<p>Suppose a chatbot suddenly receives a large number of <strong>thumbs-down</strong> ratings during the last hour. This does not directly prove every answer is incorrect, but it is a strong production-quality signal that something may have gone wrong.</p>
+
+<div class="key"><strong>Important distinction:</strong> Online evaluation may estimate quality through reference-free metrics, baselines, and user signals when direct correctness is unavailable.</div>
+</section>
+
+<section id="signals">
+<h2>7. Production Signals</h2>
+<p>The lecture divides online signals into two categories: <strong>captured signals</strong> and <strong>computed signals</strong>.</p>
+
+<div class="grid2">
+<div class="card flat">
+<h3>Captured Signals</h3>
+<p>Values already available from the application, infrastructure, model provider, or user. They can be recorded directly.</p>
+<div class="tags"><span class="tag">Thumbs Up/Down</span><span class="tag">Latency</span><span class="tag">Token Usage</span><span class="tag">Cost</span><span class="tag">Errors</span></div>
+</div>
+<div class="card flat">
+<h3>Computed Signals</h3>
+<p>Metrics that require an evaluator or additional computation.</p>
+<div class="tags"><span class="tag">Faithfulness</span><span class="tag">Relevance</span><span class="tag">Correctness</span><span class="tag">Hallucination</span><span class="tag">Toxicity</span><span class="tag">Bias</span></div>
+</div>
+</div>
+</section>
+
+<section id="logging">
+<h2>8. Step 1 — Logging</h2>
+<div class="definition"><p><strong>Logging is the first step of online evaluation.</strong> If production conversations are not recorded, there is nothing reliable to evaluate later.</p></div>
+
+<h3>What Should Be Logged?</h3>
+<table>
+<tr><th>Category</th><th>Examples</th></tr>
+<tr><td>Conversation identity</td><td>Conversation ID, turn ID, user ID, session ID, timestamp</td></tr>
+<tr><td>User input</td><td>The question/message sent by the user</td></tr>
+<tr><td>RAG context</td><td>Retrieved context used to generate the response</td></tr>
+<tr><td>Model output</td><td>The generated answer</td></tr>
+<tr><td>Operational metrics</td><td>Latency, prompt tokens, completion tokens, total cost</td></tr>
+<tr><td>Errors</td><td>Error information and status codes</td></tr>
+<tr><td>User behavior</td><td>Thumbs up/down, escalation, repeated/rephrased questions, abandonment</td></tr>
+</table>
+
+<h3>Example Logging Record</h3>
+<div class="code"><button class="copy">Copy</button><pre><code>{
+  "conversation_id": "conv_123",
+  "turn_id": "turn_08",
+  "user_id": "user_456",
+  "timestamp": "2026-08-13T10:30:00Z",
+  "user_input": "...",
+  "retrieved_context": ["..."],
+  "model_output": "...",
+  "latency_ms": 2030,
+  "prompt_tokens": 850,
+  "completion_tokens": 220,
+  "cost": 0.012,
+  "status": "success",
+  "feedback": "thumbs_down"
+}</code></pre></div>
+
+<h3>LangSmith as an Example</h3>
+<p>The lecture uses <strong>LangSmith</strong> as an example of a tool that can store traces containing user inputs, outputs, metadata, and other production information.</p>
+
+<h3>Engineering Properties of Good Logging</h3>
+<div class="timeline">
+<div class="step"><div class="num">1</div><div class="card"><b>Non-blocking</b><p>Logging should happen without unnecessarily increasing user-facing latency.</p></div></div>
+<div class="step"><div class="num">2</div><div class="card"><b>Durable and Queryable</b><p>Stored traces should remain available and be retrievable for future evaluation and debugging.</p></div></div>
+<div class="step"><div class="num">3</div><div class="card"><b>Late Signal Attachment</b><p>Signals that arrive later—such as an email escalation the next day—should be attached to the original conversation using identifiers such as conversation ID.</p></div></div>
+<div class="step"><div class="num">4</div><div class="card"><b>PII Handling</b><p>Phone numbers, addresses, card numbers, dates of birth, Aadhaar numbers, and similar sensitive information should be masked or removed before long-term storage where appropriate.</p></div></div>
+</div>
+<div class="warning"><strong>Privacy principle:</strong> Observability should improve system visibility without creating a new source of personal-data exposure.</div>
+</section>
+
+<section id="monitoring">
+<h2>9. Dashboarding & Alerting</h2>
+
+<h3>Captured Quantity Flow</h3>
+<div class="pipeline">
+<div class="node">Log</div><div class="arrow">→</div>
+<div class="node">Dashboard</div><div class="arrow">→</div>
+<div class="node">Alert</div><div class="arrow">→</div>
+<div class="node">Engineer Action</div>
+</div>
+
+<h3>Dashboarding</h3>
+<p>Captured quantities such as latency can be sent directly to a monitoring dashboard. The dashboard aggregates values over time windows such as the last hour, 24 hours, week, or longer.</p>
+<p>The important unit is usually not one isolated conversation but the <strong>aggregate behavior across many conversations</strong>.</p>
+
+<div class="card">
+<h3>Example: Sudden Traffic Spike</h3>
+<p>A new course launches and hundreds or thousands of users arrive simultaneously. Chatbot latency increases.</p>
+<div class="pipeline">
+<div class="node">Traffic Spike</div><div class="arrow">→</div>
+<div class="node">Latency Rises</div><div class="arrow">→</div>
+<div class="node">Dashboard Shows Shift</div><div class="arrow">→</div>
+<div class="node">Scale Resources</div>
+</div>
+<p>An engineering team might allocate additional compute, add instances, adjust load balancing, or otherwise manage traffic.</p>
+</div>
+
+<h3>Alerting</h3>
+<p>Engineers cannot watch dashboards continuously. Alerts turn abnormal metrics into actionable notifications.</p>
+<p>For example, an alert can be configured when a metric crosses a threshold during a defined time window and can notify a team through systems such as Slack, email, PagerDuty-style tools, or an internal API.</p>
+
+<div class="key"><strong>Captured signal flow:</strong> Log → Aggregate/Monitor → Dashboard → Threshold Alert → Engineer Action.</div>
+</section>
+
+<section id="computed">
+<h2>10. Computed Evaluation in Production</h2>
+<p>Computed metrics require an evaluator. A good example is <strong>hallucination rate</strong>.</p>
+
+<h3>Reference-Free Evaluation</h3>
+<div class="definition"><p>A <strong>reference-free evaluation</strong> does not require a predefined golden answer for the current production input.</p></div>
+
+<h3>Hallucination Evaluation Pipeline</h3>
+<div class="pipeline">
+<div class="node">Production Trace</div><div class="arrow">→</div>
+<div class="node">Sample</div><div class="arrow">→</div>
+<div class="node">LLM-as-a-Judge</div><div class="arrow">→</div>
+<div class="node">Hallucination Score</div><div class="arrow">→</div>
+<div class="node">Dashboard</div><div class="arrow">→</div>
+<div class="node">Alert</div>
+</div>
+
+<h3>How the Evaluator Works</h3>
+<p>The evaluator can receive:</p>
+<ul>
+<li>The user's question.</li>
+<li>The retrieved context.</li>
+<li>The generated answer.</li>
+<li>A detailed rubric explaining how hallucination should be detected.</li>
+</ul>
+<p>A stronger LLM can then act as a <strong>Judge</strong> and compute an evaluation score.</p>
+
+<div class="warning"><strong>Cost consideration:</strong> If the production chatbot handles a large number of conversations, running an additional LLM judge on every conversation can become expensive.</div>
+
+<h3>Reference-Based vs Reference-Free</h3>
+<table>
+<tr><th>Reference-Based</th><th>Reference-Free</th></tr>
+<tr><td>Known answer/reference exists.</td><td>No fixed answer key for the current input.</td></tr>
+<tr><td>Common in controlled offline datasets.</td><td>Useful for many live production cases.</td></tr>
+<tr><td>Example: automated UPSC marks vs human marks.</td><td>Example: checking whether an answer is supported by retrieved context.</td></tr>
+</table>
+</section>
+
+<section id="sampling">
+<h2>11. Sampling: Controlling Evaluation Cost</h2>
+<p>If an application receives a large number of production conversations, evaluating every conversation with an LLM-as-a-Judge may be too expensive.</p>
+
+<h3>Random Sampling</h3>
+<p>A basic strategy is to randomly select a subset of conversations and evaluate only that subset.</p>
+
+<h3>Why Random Sampling Is Not Always Optimal</h3>
+<p>Not all conversations are equally informative. Most production conversations may be routine, while a small subset contains the highest-risk behavior.</p>
+
+<h3>Stratified Sampling</h3>
+<div class="definition"><p><strong>Stratified sampling</strong> divides production conversations into meaningful categories and intentionally samples more heavily from high-risk categories.</p></div>
+
+<div class="grid3">
+<div class="mini"><b>Thumbs Down</b><p>Users explicitly indicate dissatisfaction.</p></div>
+<div class="mini"><b>Abandoned Chats</b><p>Conversation ends abruptly.</p></div>
+<div class="mini"><b>Escalations</b><p>User asks for human support.</p></div>
+<div class="mini"><b>Repeated Questions</b><p>User rephrases the same question repeatedly.</p></div>
+<div class="mini"><b>Financial Topics</b><p>Pricing, fees, refunds, payments.</p></div>
+<div class="mini"><b>High-Risk Topics</b><p>Other categories known to be sensitive or failure-prone.</p></div>
+</div>
+
+<h3>Why Stratification Helps</h3>
+<p>If a sample contains more conversations that are likely to contain failures, the evaluator has a higher probability of discovering meaningful problems with the same evaluation budget.</p>
+
+<div class="key"><strong>Practical rule:</strong> Sample for information value, not simply for mathematical convenience.</div>
+</section>
+
+<section id="platform">
+<h2>12. Evaluation Platform Example — LangSmith</h2>
+<p>The lecture demonstrates how a platform such as <strong>LangSmith</strong> can support both online and offline evaluation workflows.</p>
+
+<h3>Types of Evaluators</h3>
+<div class="tags">
+<span class="tag">PII Leakage</span><span class="tag">Prompt Injection</span><span class="tag">Code Injection</span>
+<span class="tag">Toxicity</span><span class="tag">Bias & Fairness</span><span class="tag">Hallucination</span>
+<span class="tag">Correctness</span><span class="tag">Relevance</span><span class="tag">Conciseness</span>
+<span class="tag">Conversation Quality</span><span class="tag">Agent Evaluation</span><span class="tag">Multimodal</span>
+</div>
+
+<h3>How the Same Evaluator Becomes Online or Offline</h3>
+<table>
+<tr><th>Evaluator Runs On</th><th>Mode</th><th>Meaning</th></tr>
+<tr><td>Production traces</td><td>Online</td><td>The evaluator analyzes live logged interactions.</td></tr>
+<tr><td>Dataset / experiment examples</td><td>Offline</td><td>The evaluator analyzes controlled evaluation data.</td></tr>
+</table>
+
+<p>This is a powerful conceptual point: <strong>the evaluator type alone does not determine whether the evaluation is online or offline; the data it runs against matters.</strong></p>
+
+<h3>Typical Evaluator Configuration</h3>
+<ol>
+<li>Select the application.</li>
+<li>Select the evaluator type, such as hallucination.</li>
+<li>Select an LLM to act as the Judge.</li>
+<li>Configure model/API settings.</li>
+<li>Define the rubric and instructions.</li>
+<li>Specify the required output format.</li>
+<li>Choose whether the evaluator runs on traces or a dataset.</li>
+</ol>
+</section>
+
+<section id="loop">
+<h2>13. The Self-Improving Offline ↔ Online Loop</h2>
+<p>One of the most important ideas in the lecture is that online and offline evaluation should remain continuously connected.</p>
+
+<div class="pipeline">
+<div class="node">Offline Dataset</div><div class="arrow">→</div>
+<div class="node">Offline Evaluation</div><div class="arrow">→</div>
+<div class="node">Release</div><div class="arrow">→</div>
+<div class="node">Production</div><div class="arrow">→</div>
+<div class="node">Online Monitoring</div><div class="arrow">→</div>
+<div class="node">Failure</div><div class="arrow">→</div>
+<div class="node">Dataset Update</div>
+</div>
+
+<h3>Step-by-Step</h3>
+<div class="timeline">
+<div class="step"><div class="num">1</div><div class="card"><b>Build a golden dataset</b><p>Start with representative evaluation cases.</p></div></div>
+<div class="step"><div class="num">2</div><div class="card"><b>Run offline evaluation</b><p>Check correctness, quality, safety, and regression before release.</p></div></div>
+<div class="step"><div class="num">3</div><div class="card"><b>Deploy</b><p>Release the version that satisfies the required evaluation gates.</p></div></div>
+<div class="step"><div class="num">4</div><div class="card"><b>Monitor production</b><p>Log traces, collect signals, run online evaluators, and monitor dashboards.</p></div></div>
+<div class="step"><div class="num">5</div><div class="card"><b>Identify meaningful failures</b><p>Find conversations where the system behaved incorrectly, unexpectedly, or unsafely.</p></div></div>
+<div class="step"><div class="num">6</div><div class="card"><b>Add failures to the offline dataset</b><p>Annotate the production conversation and make it part of future evaluation.</p></div></div>
+<div class="step"><div class="num">7</div><div class="card"><b>Repeat</b><p>Run the next release against the enriched dataset and continue the cycle.</p></div></div>
+</div>
+
+<div class="card">
+<h3>Why This Creates a Better System</h3>
+<p>The offline dataset becomes progressively more realistic because it contains real production failure cases. Instead of relying only on what engineers predicted users might ask, the evaluation suite gradually incorporates what users actually did.</p>
+<div class="key"><strong>Self-improving loop:</strong> Production failures become future offline test cases.</div>
+</div>
+</section>
+
+<section id="interview">
+<h2>Interview Questions</h2>
+
+<div class="qa"><b>Q1. What is offline evaluation?</b><p>Evaluation of an LLM application before production deployment, typically using a controlled dataset and predefined evaluation criteria.</p></div>
+<div class="qa"><b>Q2. What are the three major benefits of offline evaluation?</b><p>Pre-release testing/release gating, version comparison, and regression testing.</p></div>
+<div class="qa"><b>Q3. What is a release gate?</b><p>An automated condition in the deployment pipeline that allows or blocks a release based on evaluation results.</p></div>
+<div class="qa"><b>Q4. What is regression testing in LLM applications?</b><p>Testing whether a change improves the intended behavior without degrading previously working behaviors.</p></div>
+<div class="qa"><b>Q5. What are three major production risks after offline evaluation?</b><p>Unexpected inputs, emergent/systematic failures, and drift.</p></div>
+<div class="qa"><b>Q6. What is online evaluation?</b><p>Continuous evaluation of a deployed application using live production traffic.</p></div>
+<div class="qa"><b>Q7. Why is online evaluation often reference-free?</b><p>Because new production questions are unknown and generally do not have pre-existing golden answers.</p></div>
+<div class="qa"><b>Q8. What is the difference between correctness and normality?</b><p>Correctness asks whether the output is actually right; normality asks whether current production behavior is consistent with a healthy baseline.</p></div>
+<div class="qa"><b>Q9. What are captured signals?</b><p>Signals that can be recorded directly, such as latency, cost, token usage, errors, and user feedback.</p></div>
+<div class="qa"><b>Q10. What are computed signals?</b><p>Metrics requiring additional evaluation or computation, such as faithfulness, hallucination, toxicity, relevance, and bias.</p></div>
+<div class="qa"><b>Q11. Why is logging the first step?</b><p>Because production evaluation requires access to the conversations and signals generated in production.</p></div>
+<div class="qa"><b>Q12. Why should production logging be non-blocking?</b><p>So observability does not unnecessarily increase user-facing application latency.</p></div>
+<div class="qa"><b>Q13. Why is sampling needed for LLM-as-a-Judge?</b><p>Running an additional LLM evaluator over every production conversation can be expensive.</p></div>
+<div class="qa"><b>Q14. Why can stratified sampling be better than random sampling?</b><p>It intentionally prioritizes categories that are more likely to contain failures.</p></div>
+<div class="qa"><b>Q15. How does an evaluator become online or offline?</b><p>An evaluator running against production traces is an online evaluator; the same type of evaluator running against a controlled dataset is an offline evaluator.</p></div>
+<div class="qa"><b>Q16. How do online and offline evaluation close the loop?</b><p>Production failures are added or annotated in the offline dataset, making future offline evaluation more representative.</p></div>
+</section>
+
+<section id="revision">
+<h2>Quick Revision</h2>
+
+<div class="revision">
+<div class="card"><h3>Offline Evaluation</h3><ul><li>Before deployment</li><li>Golden dataset</li><li>Controlled inputs</li><li>Usually reference-based</li><li>Release gating</li><li>Version comparison</li><li>Regression testing</li></ul></div>
+<div class="card"><h3>Online Evaluation</h3><ul><li>After deployment</li><li>Live traffic</li><li>Unexpected inputs</li><li>Often reference-free</li><li>Drift detection</li><li>Normality monitoring</li><li>Production risk detection</li></ul></div>
+<div class="card"><h3>Captured Signals</h3><ul><li>Latency</li><li>Tokens</li><li>Cost</li><li>Errors</li><li>Thumbs up/down</li><li>Escalations</li><li>Repeated questions</li></ul></div>
+<div class="card"><h3>Computed Signals</h3><ul><li>Faithfulness</li><li>Relevance</li><li>Hallucination</li><li>Correctness estimates</li><li>Toxicity</li><li>Bias & fairness</li></ul></div>
+</div>
+
+<div class="card">
+<h3>One-Minute Mental Model</h3>
+<div class="pipeline">
+<div class="node">Build</div><div class="arrow">→</div>
+<div class="node">Offline Eval</div><div class="arrow">→</div>
+<div class="node">Release Gate</div><div class="arrow">→</div>
+<div class="node">Production</div><div class="arrow">→</div>
+<div class="node">Logging</div><div class="arrow">→</div>
+<div class="node">Monitoring</div><div class="arrow">→</div>
+<div class="node">Online Eval</div><div class="arrow">→</div>
+<div class="node">Failures</div><div class="arrow">→</div>
+<div class="node">Dataset Update</div>
+</div>
+</div>
+
+<div class="card">
+<h3>Key Takeaways</h3>
+<ol>
+<li><strong>Offline evaluation is mandatory before deploying an LLM application.</strong></li>
+<li><strong>Its three major benefits are release testing, version comparison, and regression testing.</strong></li>
+<li><strong>Production creates risks that a fixed golden dataset cannot fully predict.</strong></li>
+<li><strong>Online evaluation continuously monitors the deployed application using live traffic.</strong></li>
+<li><strong>Online evaluation often has no fixed answer key, so reference-free metrics and production signals become important.</strong></li>
+<li><strong>Correctness and normality are different concepts.</strong></li>
+<li><strong>Captured signals are recorded directly; computed signals require evaluators.</strong></li>
+<li><strong>Logging should be non-blocking, durable, queryable, capable of attaching late signals, and privacy-aware.</strong></li>
+<li><strong>Dashboards reveal aggregate behavior; alerts turn abnormal behavior into action.</strong></li>
+<li><strong>LLM-as-a-Judge can evaluate production traces, but sampling controls evaluation cost.</strong></li>
+<li><strong>Stratified sampling focuses evaluation capacity on high-risk conversations.</strong></li>
+<li><strong>Online and offline evaluation are complementary—not competing approaches.</strong></li>
+<li><strong>Production failures should become future offline evaluation cases.</strong></li>
+</ol>
+</div>
+
+<div class="card">
+<h3>Final Mental Model</h3>
+<p>A production-grade AI engineer does not stop at “I built the chatbot.” The complete mindset is:</p>
+<div class="definition"><p><strong>Build → Evaluate → Release → Observe → Detect → Learn → Update Dataset → Re-evaluate → Release Again.</strong></p></div>
+<p>This is the shift from simply building an LLM application to engineering an LLM system that can operate reliably at real-world scale.</p>
+</div>
+
+<div class="footer">
+<strong>Study Note:</strong> This page converts the supplied Hindi lecture into professional English technical notes while preserving its core examples, terminology, evaluation logic, and production-engineering perspective.
+</div>
+</section>
+
+</main>
+</div>
+
+<script>
+document.querySelectorAll(".copy").forEach(btn=>{
+btn.addEventListener("click",()=>{
+const code=btn.parentElement.querySelector("code").innerText;
+navigator.clipboard.writeText(code);
+btn.textContent="Copied";
+setTimeout(()=>btn.textContent="Copy",1200);
+});
+});
+</script>
+</body>
+</html>

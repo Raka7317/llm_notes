@@ -1,0 +1,2068 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>LLM Evaluations — Page 2 | What Are LLM Evals?</title>
+
+    <meta
+        name="description"
+        content="Detailed notes on LLM Evaluations: definition, systematic and repeatable testing, evaluation criteria, model evaluations, application evaluations, benchmarks, and LLM capability categories."
+    >
+
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        html {
+            scroll-behavior: smooth;
+        }
+
+        body {
+            font-family: Arial, Helvetica, sans-serif;
+            background: #0b1020;
+            color: #e5e7eb;
+            line-height: 1.7;
+        }
+
+        a {
+            color: inherit;
+            text-decoration: none;
+        }
+
+        /* =========================
+           HEADER
+        ========================== */
+
+        header {
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+            background: rgba(11, 16, 32, 0.94);
+            backdrop-filter: blur(12px);
+            border-bottom: 1px solid #1f2937;
+        }
+
+        .nav {
+            max-width: 1200px;
+            margin: auto;
+            padding: 18px 24px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .logo {
+            font-size: 1.25rem;
+            font-weight: 800;
+            color: #ffffff;
+        }
+
+        .logo span {
+            color: #8b5cf6;
+        }
+
+        .nav-links {
+            display: flex;
+            gap: 22px;
+            font-size: 0.95rem;
+        }
+
+        .nav-links a {
+            color: #9ca3af;
+            transition: 0.2s;
+        }
+
+        .nav-links a:hover {
+            color: #ffffff;
+        }
+
+        /* =========================
+           HERO
+        ========================== */
+
+        .hero {
+            max-width: 1200px;
+            margin: auto;
+            padding: 90px 24px 60px;
+        }
+
+        .page-label {
+            display: inline-block;
+            padding: 7px 14px;
+            border: 1px solid #4c1d95;
+            background: #1e1b4b;
+            color: #c4b5fd;
+            border-radius: 999px;
+            font-size: 0.85rem;
+            font-weight: 700;
+            margin-bottom: 20px;
+        }
+
+        .hero h1 {
+            font-size: clamp(2.5rem, 6vw, 5rem);
+            line-height: 1.05;
+            max-width: 950px;
+            color: #ffffff;
+            margin-bottom: 24px;
+        }
+
+        .hero h1 span {
+            color: #8b5cf6;
+        }
+
+        .hero p {
+            max-width: 850px;
+            color: #9ca3af;
+            font-size: 1.15rem;
+        }
+
+        /* =========================
+           LAYOUT
+        ========================== */
+
+        .container {
+            max-width: 1200px;
+            margin: auto;
+            padding: 0 24px 80px;
+        }
+
+        .content-layout {
+            display: grid;
+            grid-template-columns: 250px 1fr;
+            gap: 40px;
+        }
+
+        .sidebar {
+            position: sticky;
+            top: 95px;
+            height: fit-content;
+            border: 1px solid #1f2937;
+            background: #111827;
+            border-radius: 14px;
+            padding: 20px;
+        }
+
+        .sidebar h3 {
+            color: #ffffff;
+            margin-bottom: 15px;
+            font-size: 1rem;
+        }
+
+        .sidebar a {
+            display: block;
+            padding: 8px 0;
+            color: #9ca3af;
+            font-size: 0.9rem;
+        }
+
+        .sidebar a:hover {
+            color: #a78bfa;
+        }
+
+        /* =========================
+           SECTIONS
+        ========================== */
+
+        section {
+            margin-bottom: 55px;
+            scroll-margin-top: 100px;
+        }
+
+        h2 {
+            color: #ffffff;
+            font-size: 2rem;
+            margin-bottom: 18px;
+            border-left: 4px solid #8b5cf6;
+            padding-left: 14px;
+        }
+
+        h3 {
+            color: #ffffff;
+            font-size: 1.35rem;
+            margin: 25px 0 12px;
+        }
+
+        p {
+            color: #cbd5e1;
+            margin-bottom: 16px;
+        }
+
+        strong {
+            color: #ffffff;
+        }
+
+        ul,
+        ol {
+            margin: 15px 0 20px 25px;
+            color: #cbd5e1;
+        }
+
+        li {
+            margin-bottom: 9px;
+        }
+
+        /* =========================
+           CARDS
+        ========================== */
+
+        .card-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 18px;
+            margin: 25px 0;
+        }
+
+        .card {
+            background: #111827;
+            border: 1px solid #1f2937;
+            border-radius: 14px;
+            padding: 22px;
+        }
+
+        .card h3 {
+            margin-top: 0;
+            color: #a78bfa;
+        }
+
+        .card p {
+            margin-bottom: 0;
+        }
+
+        /* =========================
+           DEFINITION BOX
+        ========================== */
+
+        .definition {
+            background: #171329;
+            border: 1px solid #5b21b6;
+            border-radius: 14px;
+            padding: 25px;
+            margin: 25px 0;
+        }
+
+        .definition-title {
+            color: #c4b5fd;
+            font-weight: 800;
+            margin-bottom: 10px;
+        }
+
+        .definition p {
+            color: #ede9fe;
+            font-size: 1.05rem;
+        }
+
+        /* =========================
+           COMPARISON
+        ========================== */
+
+        .comparison {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 25px 0;
+            background: #111827;
+            border-radius: 12px;
+            overflow: hidden;
+        }
+
+        .comparison th,
+        .comparison td {
+            border: 1px solid #273244;
+            padding: 15px;
+            text-align: left;
+            vertical-align: top;
+        }
+
+        .comparison th {
+            background: #1e293b;
+            color: #ffffff;
+        }
+
+        .comparison td {
+            color: #cbd5e1;
+        }
+
+        /* =========================
+           CAPABILITY CARDS
+        ========================== */
+
+        .capability-number {
+            font-size: 0.8rem;
+            color: #8b5cf6;
+            font-weight: 800;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .capability-card h3 {
+            margin: 5px 0 10px;
+        }
+
+        /* =========================
+           FLOW
+        ========================== */
+
+        .flow {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            gap: 10px;
+            margin: 25px 0;
+        }
+
+        .flow-box {
+            padding: 12px 18px;
+            background: #1e293b;
+            border: 1px solid #475569;
+            border-radius: 10px;
+            color: #ffffff;
+            font-weight: 700;
+        }
+
+        .arrow {
+            color: #8b5cf6;
+            font-weight: bold;
+        }
+
+        /* =========================
+           HIGHLIGHT
+        ========================== */
+
+        .highlight {
+            background: #0f172a;
+            border-left: 4px solid #8b5cf6;
+            padding: 20px;
+            border-radius: 0 10px 10px 0;
+            margin: 20px 0;
+        }
+
+        .highlight p {
+            margin: 0;
+        }
+
+        /* =========================
+           BENCHMARK TABLE
+        ========================== */
+
+        .benchmark-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 25px;
+            background: #111827;
+        }
+
+        .benchmark-table th,
+        .benchmark-table td {
+            padding: 15px;
+            border: 1px solid #273244;
+            text-align: left;
+        }
+
+        .benchmark-table th {
+            background: #1e293b;
+            color: #ffffff;
+        }
+
+        .benchmark-table td {
+            color: #cbd5e1;
+        }
+
+        /* =========================
+           FOOTER
+        ========================== */
+
+        footer {
+            border-top: 1px solid #1f2937;
+            padding: 35px 24px;
+            text-align: center;
+            color: #64748b;
+        }
+
+        /* =========================
+           RESPONSIVE
+        ========================== */
+
+        @media (max-width: 850px) {
+            .content-layout {
+                grid-template-columns: 1fr;
+            }
+
+            .sidebar {
+                position: relative;
+                top: 0;
+            }
+
+            .card-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .nav-links {
+                display: none;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+<header>
+    <nav class="nav">
+        <a href="#" class="logo">
+            LLM<span>Evals</span>
+        </a>
+
+        <div class="nav-links">
+            <a href="#definition">Definition</a>
+            <a href="#types">Types</a>
+            <a href="#model-evals">Model Evals</a>
+            <a href="#application-evals">Application Evals</a>
+            <a href="#summary">Summary</a>
+        </div>
+    </nav>
+</header>
+
+
+<!-- =========================
+     HERO
+========================== -->
+
+<section class="hero">
+
+    <div class="page-label">
+        PAGE 02 · LLM EVALUATIONS
+    </div>
+
+    <h1>
+        What Exactly Are
+        <span>LLM Evals?</span>
+    </h1>
+
+    <p>
+        A detailed guide to understanding LLM evaluations,
+        systematic and repeatable testing, evaluation criteria,
+        model evaluations, application evaluations, benchmarks,
+        and the major capabilities used to evaluate modern LLMs.
+    </p>
+
+</section>
+
+
+<div class="container">
+
+    <div class="content-layout">
+
+        <!-- =========================
+             SIDEBAR
+        ========================== -->
+
+        <aside class="sidebar">
+
+            <h3>On This Page</h3>
+
+            <a href="#definition">
+                1. Definition of LLM Evals
+            </a>
+
+            <a href="#three-properties">
+                2. Three Core Properties
+            </a>
+
+            <a href="#metrics">
+                3. Evals ≠ Just Metrics
+            </a>
+
+            <a href="#purpose">
+                4. Purpose of Evals
+            </a>
+
+            <a href="#types">
+                5. Two Types of Evals
+            </a>
+
+            <a href="#model-evals">
+                6. Model Evals
+            </a>
+
+            <a href="#capabilities">
+                7. Eight Capabilities
+            </a>
+
+            <a href="#benchmarks">
+                8. Benchmarks
+            </a>
+
+            <a href="#application-evals">
+                9. Application Evals
+            </a>
+
+            <a href="#analogy">
+                10. Smartphone Analogy
+            </a>
+
+            <a href="#summary">
+                11. Final Summary
+            </a>
+
+        </aside>
+
+
+        <!-- =========================
+             MAIN CONTENT
+        ========================== -->
+
+        <main>
+
+            <!-- DEFINITION -->
+
+            <section id="definition">
+
+                <h2>1. What Are LLM Evaluations?</h2>
+
+                <div class="definition">
+
+                    <div class="definition-title">
+                        Core Definition
+                    </div>
+
+                    <p>
+                        <strong>
+                            LLM evaluations are systematic, repeatable tests
+                            used to judge an LLM or an LLM-powered system
+                            against clear evaluation criteria.
+                        </strong>
+                    </p>
+
+                </div>
+
+                <p>
+                    LLM evaluations are not simply a collection of random
+                    questions asked to a model. They are structured testing
+                    systems designed to determine whether a model or
+                    LLM-powered application behaves as expected.
+                </p>
+
+                <p>
+                    The definition contains three critical characteristics:
+                </p>
+
+                <div class="card-grid">
+
+                    <div class="card">
+                        <h3>1. Systematic</h3>
+
+                        <p>
+                            Testing follows a structured methodology rather
+                            than relying on a few manually selected prompts.
+                        </p>
+                    </div>
+
+                    <div class="card">
+                        <h3>2. Repeatable</h3>
+
+                        <p>
+                            The same evaluation can be executed again against
+                            different versions of the system.
+                        </p>
+                    </div>
+
+                    <div class="card">
+                        <h3>3. Clear Criteria</h3>
+
+                        <p>
+                            The system is evaluated against explicitly defined
+                            criteria rather than personal intuition.
+                        </p>
+                    </div>
+
+                </div>
+
+            </section>
+
+
+            <!-- THREE PROPERTIES -->
+
+            <section id="three-properties">
+
+                <h2>2. The Three Core Properties of LLM Evals</h2>
+
+                <h3>Systematic Testing</h3>
+
+                <p>
+                    Systematic testing means that evaluation is performed
+                    using a properly prepared dataset rather than casually
+                    asking a few questions.
+                </p>
+
+                <p>
+                    For example, imagine building a chatbot for an educational
+                    platform. Instead of manually asking five questions,
+                    you could collect a representative sample of real user
+                    conversations and convert them into an evaluation dataset.
+                </p>
+
+                <div class="highlight">
+
+                    <p>
+                        <strong>Goal:</strong>
+                        Cover normal cases, difficult cases, edge cases,
+                        and real-world user behavior as comprehensively
+                        as possible.
+                    </p>
+
+                </div>
+
+
+                <h3>Repeatable Testing</h3>
+
+                <p>
+                    Repeatability means that the same evaluation dataset
+                    should continue to work even when the system changes.
+                </p>
+
+                <p>
+                    For example, you might change:
+                </p>
+
+                <ul>
+                    <li>Prompt</li>
+                    <li>LLM</li>
+                    <li>Retriever</li>
+                    <li>Chunking strategy</li>
+                    <li>Embedding model</li>
+                    <li>Application logic</li>
+                </ul>
+
+                <p>
+                    Even after these changes, you should be able to run the
+                    same evaluation suite and compare the results.
+                </p>
+
+                <div class="flow">
+
+                    <div class="flow-box">
+                        Evaluation Dataset
+                    </div>
+
+                    <div class="arrow">→</div>
+
+                    <div class="flow-box">
+                        Version 1
+                    </div>
+
+                    <div class="arrow">→</div>
+
+                    <div class="flow-box">
+                        Score
+                    </div>
+
+                    <div class="arrow">→</div>
+
+                    <div class="flow-box">
+                        Version 2
+                    </div>
+
+                    <div class="arrow">→</div>
+
+                    <div class="flow-box">
+                        Compare
+                    </div>
+
+                </div>
+
+                <p>
+                    This allows developers to determine whether a new version
+                    actually improved the system or introduced regressions.
+                </p>
+
+
+                <h3>Clear Evaluation Criteria</h3>
+
+                <p>
+                    The third requirement is defining what "good" actually
+                    means for your application.
+                </p>
+
+                <p>
+                    For example, a chatbot might need to satisfy the following
+                    criteria:
+                </p>
+
+                <ul>
+                    <li>Answer must be correct.</li>
+                    <li>Explanation should be simple and understandable.</li>
+                    <li>Answer should use the approved knowledge base.</li>
+                    <li>Response should be grounded in retrieved information.</li>
+                    <li>Response should be safe.</li>
+                    <li>Response should not contain abusive language.</li>
+                    <li>Response should maintain the expected tone.</li>
+                </ul>
+
+                <div class="highlight">
+
+                    <p>
+                        <strong>Key idea:</strong>
+                        Without explicit criteria, you are essentially doing
+                        informal testing. With explicit criteria, you are
+                        performing structured evaluation.
+                    </p>
+
+                </div>
+
+            </section>
+
+
+            <!-- METRICS -->
+
+            <section id="metrics">
+
+                <h2>3. LLM Evals Are Not Just Metrics</h2>
+
+                <p>
+                    A common misunderstanding comes from traditional machine
+                    learning.
+                </p>
+
+                <p>
+                    In classical ML, evaluation often means calculating metrics
+                    such as:
+                </p>
+
+                <ul>
+                    <li>Accuracy</li>
+                    <li>Precision</li>
+                    <li>Recall</li>
+                    <li>F1 Score</li>
+                    <li>ROC-AUC</li>
+                </ul>
+
+                <p>
+                    This can create the misconception that an LLM evaluation
+                    is simply a set of metrics.
+                </p>
+
+                <div class="definition">
+
+                    <div class="definition-title">
+                        Important Distinction
+                    </div>
+
+                    <p>
+                        <strong>
+                            An LLM eval is the complete testing setup,
+                            not merely a metric.
+                        </strong>
+                    </p>
+
+                </div>
+
+                <p>
+                    The complete evaluation setup can include:
+                </p>
+
+                <ul>
+                    <li>What component is being tested?</li>
+                    <li>What dataset is being used?</li>
+                    <li>What criteria are being evaluated?</li>
+                    <li>What evaluation method is being used?</li>
+                    <li>Which evaluation tools are being used?</li>
+                    <li>When is the evaluation performed?</li>
+                    <li>Is evaluation offline or in production?</li>
+                    <li>How are the results interpreted?</li>
+                </ul>
+
+                <p>
+                    For example, if you are evaluating the retriever inside
+                    a RAG system, the retriever, evaluation dataset,
+                    retrieval metrics, evaluation framework, and execution
+                    process can all be considered parts of the evaluation
+                    setup.
+                </p>
+
+            </section>
+
+
+            <!-- PURPOSE -->
+
+            <section id="purpose">
+
+                <h2>4. What Is the Purpose of an LLM Eval?</h2>
+
+                <p>
+                    The goal of an LLM evaluation is not simply to produce
+                    a number.
+                </p>
+
+                <p>
+                    The goal is to answer practical engineering and product
+                    questions.
+                </p>
+
+                <div class="card-grid">
+
+                    <div class="card">
+                        <h3>Can We Use This Model?</h3>
+
+                        <p>
+                            Is this model capable enough for the task we want
+                            to solve?
+                        </p>
+                    </div>
+
+                    <div class="card">
+                        <h3>Is It Ready to Ship?</h3>
+
+                        <p>
+                            Is the application reliable enough to be deployed
+                            to real users?
+                        </p>
+                    </div>
+
+                    <div class="card">
+                        <h3>Did the Prompt Improve?</h3>
+
+                        <p>
+                            Did Prompt Version 2 actually perform better than
+                            Prompt Version 1?
+                        </p>
+                    </div>
+
+                    <div class="card">
+                        <h3>Is the RAG Grounded?</h3>
+
+                        <p>
+                            Are responses actually supported by the retrieved
+                            context?
+                        </p>
+                    </div>
+
+                    <div class="card">
+                        <h3>Is the Agent Correct?</h3>
+
+                        <p>
+                            Is the agent completing the intended task
+                            correctly?
+                        </p>
+                    </div>
+
+                    <div class="card">
+                        <h3>Is the System Safe?</h3>
+
+                        <p>
+                            Can real users safely interact with the system?
+                        </p>
+                    </div>
+
+                    <div class="card">
+                        <h3>Is Latency Acceptable?</h3>
+
+                        <p>
+                            Does the application respond quickly enough for
+                            the intended user experience?
+                        </p>
+                    </div>
+
+                </div>
+
+            </section>
+
+
+            <!-- TYPES -->
+
+            <section id="types">
+
+                <h2>5. Two Major Types of LLM Evals</h2>
+
+                <p>
+                    LLM evaluations can broadly be divided into two categories:
+                </p>
+
+                <table class="comparison">
+
+                    <thead>
+                        <tr>
+                            <th>Type</th>
+                            <th>What Is Evaluated?</th>
+                            <th>Main Purpose</th>
+                        </tr>
+                    </thead>
+
+                    <tbody>
+
+                        <tr>
+                            <td>
+                                <strong>Model Evals</strong>
+                            </td>
+
+                            <td>
+                                The LLM itself
+                            </td>
+
+                            <td>
+                                Measure the capabilities and performance
+                                of the underlying model.
+                            </td>
+                        </tr>
+
+                        <tr>
+                            <td>
+                                <strong>Application Evals</strong>
+                            </td>
+
+                            <td>
+                                An LLM-powered application or its components
+                            </td>
+
+                            <td>
+                                Determine whether the complete product or
+                                individual components work correctly.
+                            </td>
+                        </tr>
+
+                    </tbody>
+
+                </table>
+
+                <div class="highlight">
+
+                    <p>
+                        <strong>Important terminology note:</strong>
+                        "Model Evals" and "Application Evals" are useful
+                        categories for understanding the topic, but they are
+                        not necessarily official industry terms. In practice,
+                        both are often discussed broadly as "LLM evaluations,"
+                        with the context determining which type is meant.
+                    </p>
+
+                </div>
+
+            </section>
+
+
+            <!-- MODEL EVALS -->
+
+            <section id="model-evals">
+
+                <h2>6. Model Evaluations</h2>
+
+                <p>
+                    Model evaluations focus directly on the underlying LLM.
+                </p>
+
+                <div class="definition">
+
+                    <div class="definition-title">
+                        Model Eval
+                    </div>
+
+                    <p>
+                        Evaluating the capabilities of an LLM itself using
+                        standardized tests and benchmarks.
+                    </p>
+
+                </div>
+
+                <p>
+                    Whenever a new LLM is released, its creators typically
+                    evaluate it across different benchmarks and publish the
+                    results.
+                </p>
+
+                <p>
+                    This helps the industry understand how capable the model
+                    is compared with other models.
+                </p>
+
+                <div class="flow">
+
+                    <div class="flow-box">
+                        New LLM
+                    </div>
+
+                    <div class="arrow">→</div>
+
+                    <div class="flow-box">
+                        Benchmarks
+                    </div>
+
+                    <div class="arrow">→</div>
+
+                    <div class="flow-box">
+                        Evaluation
+                    </div>
+
+                    <div class="arrow">→</div>
+
+                    <div class="flow-box">
+                        Scores
+                    </div>
+
+                    <div class="arrow">→</div>
+
+                    <div class="flow-box">
+                        Capability Comparison
+                    </div>
+
+                </div>
+
+                <p>
+                    These evaluations help developers and organizations
+                    understand which models might be suitable for their
+                    particular applications.
+
+                </p>
+
+            </section>
+
+
+            <!-- CAPABILITIES -->
+
+            <section id="capabilities">
+
+                <h2>7. Eight Major LLM Capability Categories</h2>
+
+                <p>
+                    Modern LLMs are commonly evaluated across several major
+                    capability areas.
+                </p>
+
+                <div class="card-grid">
+
+                    <div class="card capability-card">
+
+                        <div class="capability-number">
+                            Capability 01
+                        </div>
+
+                        <h3>Reasoning</h3>
+
+                        <p>
+                            Can the model reason through a problem step by
+                            step and arrive at an appropriate solution?
+                        </p>
+
+                    </div>
+
+
+                    <div class="card capability-card">
+
+                        <div class="capability-number">
+                            Capability 02
+                        </div>
+
+                        <h3>Knowledge</h3>
+
+                        <p>
+                            Does the model possess sufficient general and
+                            world knowledge up to its knowledge cutoff?
+                        </p>
+
+                    </div>
+
+
+                    <div class="card capability-card">
+
+                        <div class="capability-number">
+                            Capability 03
+                        </div>
+
+                        <h3>Basic Mathematics</h3>
+
+                        <p>
+                            Can the model correctly solve mathematical
+                            problems?
+                        </p>
+
+                    </div>
+
+
+                    <div class="card capability-card">
+
+                        <div class="capability-number">
+                            Capability 04
+                        </div>
+
+                        <h3>Coding</h3>
+
+                        <p>
+                            Can the model understand programming problems,
+                            generate code, and solve coding tasks?
+                        </p>
+
+                    </div>
+
+
+                    <div class="card capability-card">
+
+                        <div class="capability-number">
+                            Capability 05
+                        </div>
+
+                        <h3>Instruction Following</h3>
+
+                        <p>
+                            Can the model follow multiple instructions
+                            accurately and consistently?
+                        </p>
+
+                    </div>
+
+
+                    <div class="card capability-card">
+
+                        <div class="capability-number">
+                            Capability 06
+                        </div>
+
+                        <h3>Long-Context Handling</h3>
+
+                        <p>
+                            Can the model retrieve and reason over relevant
+                            information from very large contexts?
+                        </p>
+
+                    </div>
+
+
+                    <div class="card capability-card">
+
+                        <div class="capability-number">
+                            Capability 07
+                        </div>
+
+                        <h3>Multimodal Understanding</h3>
+
+                        <p>
+                            Can the model understand and work with different
+                            modalities such as text, images, audio, and other
+                            forms of input or output?
+                        </p>
+
+                    </div>
+
+
+                    <div class="card capability-card">
+
+                        <div class="capability-number">
+                            Capability 08
+                        </div>
+
+                        <h3>Tool Use</h3>
+
+                        <p>
+                            Can the model correctly use external tools,
+                            APIs, functions, or other capabilities?
+                        </p>
+
+                    </div>
+
+                </div>
+
+            </section>
+
+
+            <!-- BENCHMARKS -->
+
+            <section id="benchmarks">
+
+                <h2>8. Benchmarks Used for Model Evaluation</h2>
+
+                <p>
+                    Model capabilities are evaluated using standardized
+                    benchmarks.
+                </p>
+
+                <table class="benchmark-table">
+
+                    <thead>
+
+                        <tr>
+                            <th>Capability / Area</th>
+                            <th>Example Benchmark</th>
+                            <th>Purpose</th>
+                        </tr>
+
+                    </thead>
+
+                    <tbody>
+
+                        <tr>
+                            <td>Knowledge & Reasoning</td>
+                            <td>MMLU</td>
+                            <td>
+                                Tests knowledge and reasoning across
+                                multiple subjects.
+                            </td>
+                        </tr>
+
+                        <tr>
+                            <td>Mathematics</td>
+                            <td>GSM8K</td>
+                            <td>
+                                Tests mathematical problem-solving,
+                                especially grade-school-level problems.
+                            </td>
+                        </tr>
+
+                        <tr>
+                            <td>Coding</td>
+                            <td>SWE-bench</td>
+                            <td>
+                                Evaluates models on real-world software
+                                engineering tasks.
+                            </td>
+                        </tr>
+
+                        <tr>
+                            <td>Human Evaluation</td>
+                            <td>HumanEval</td>
+                            <td>
+                                Evaluates code-generation capabilities.
+                            </td>
+                        </tr>
+
+                        <tr>
+                            <td>Instruction Following</td>
+                            <td>IFEval</td>
+                            <td>
+                                Tests whether models follow explicit
+                                instructions and constraints.
+                            </td>
+                        </tr>
+
+                        <tr>
+                            <td>Long Context</td>
+                            <td>Needle in a Haystack</td>
+                            <td>
+                                Tests whether a model can retrieve specific
+                                information from a long context.
+                            </td>
+                        </tr>
+
+                        <tr>
+                            <td>Multimodal Understanding</td>
+                            <td>TRIPLE-MU</td>
+                            <td>
+                                Used to evaluate multimodal capabilities.
+                            </td>
+                        </tr>
+
+                    </tbody>
+
+                </table>
+
+                <div class="highlight">
+
+                    <p>
+                        <strong>Important:</strong>
+                        These benchmarks are examples. The benchmark landscape
+                        is much larger, and different benchmarks measure
+                        different capabilities and behaviors.
+                    </p>
+
+                </div>
+
+            </section>
+
+
+            <!-- MODEL EVALS FOR AI ENGINEERS -->
+
+            <section>
+
+                <h2>9. How Important Are Model Evals for an AI Engineer?</h2>
+
+                <p>
+                    AI engineers should understand model evaluations, but they
+                    generally will not be responsible for creating the major
+                    industry-wide benchmarks used to evaluate frontier models.
+                </p>
+
+                <p>
+                    Frontier AI labs typically perform large-scale model
+                    evaluations when they release new models.
+                </p>
+
+                <p>
+                    However, AI engineers should understand:
+                </p>
+
+                <ul>
+                    <li>What model evaluations are.</li>
+                    <li>What benchmarks are.</li>
+                    <li>What different benchmarks measure.</li>
+                    <li>How to interpret benchmark results.</li>
+                    <li>How benchmark results can influence model selection.</li>
+                </ul>
+
+                <div class="highlight">
+
+                    <p>
+                        <strong>Practical benefit:</strong>
+                        When starting a project, understanding benchmark
+                        results helps you make better decisions about whether
+                        to use a proprietary model, another provider's model,
+                        or an open-source model.
+                    </p>
+
+                </div>
+
+            </section>
+
+
+            <!-- APPLICATION EVALS -->
+
+            <section id="application-evals">
+
+                <h2>10. Application Evaluations</h2>
+
+                <p>
+                    Application evaluations are the most important part of
+                    this learning path for an AI engineer.
+                </p>
+
+                <div class="definition">
+
+                    <div class="definition-title">
+                        Application Eval
+                    </div>
+
+                    <p>
+                        Application evaluations assess the behavior and
+                        performance of an LLM-powered application, either
+                        at the level of the complete system or at the level
+                        of specific components.
+                    </p>
+
+                </div>
+
+                <p>
+                    A common beginner misconception is:
+                </p>
+
+                <div class="highlight">
+
+                    <p>
+                        "The LLM is the brain, so if the LLM is good,
+                        the application must also be good."
+                    </p>
+
+                </div>
+
+                <p>
+                    This is incorrect.
+                </p>
+
+                <p>
+                    An LLM-powered application usually contains many
+                    additional components.
+                </p>
+
+                <div class="card-grid">
+
+                    <div class="card">
+                        <h3>User Interface</h3>
+                        <p>
+                            The interface through which users interact with
+                            the application.
+                        </p>
+                    </div>
+
+                    <div class="card">
+                        <h3>System Prompt</h3>
+                        <p>
+                            Instructions controlling the model's behavior.
+                        </p>
+                    </div>
+
+                    <div class="card">
+                        <h3>Tools & APIs</h3>
+                        <p>
+                            External functions, APIs, databases, and services
+                            used by the application.
+                        </p>
+                    </div>
+
+                    <div class="card">
+                        <h3>Orchestration</h3>
+                        <p>
+                            Logic controlling workflows, branching,
+                            parallel execution, and agent behavior.
+                        </p>
+                    </div>
+
+                    <div class="card">
+                        <h3>Guardrails</h3>
+                        <p>
+                            Safety and behavioral controls around the
+                            application.
+                        </p>
+                    </div>
+
+                    <div class="card">
+                        <h3>Output Parsers</h3>
+                        <p>
+                            Components responsible for converting model
+                            output into structured formats.
+                        </p>
+                    </div>
+
+                    <div class="card">
+                        <h3>Memory & Context</h3>
+                        <p>
+                            Mechanisms that maintain relevant information
+                            across interactions.
+                        </p>
+                    </div>
+
+                    <div class="card">
+                        <h3>RAG Components</h3>
+                        <p>
+                            Retrieval systems, embedding models, vector
+                            databases, rerankers, and related components.
+                        </p>
+                    </div>
+
+                    <div class="card">
+                        <h3>Monitoring</h3>
+                        <p>
+                            Production monitoring and observability systems.
+                        </p>
+                    </div>
+
+                    <div class="card">
+                        <h3>Feedback Loop</h3>
+                        <p>
+                            Mechanisms for collecting user feedback and
+                            improving the system.
+                        </p>
+                    </div>
+
+                </div>
+
+            </section>
+
+
+            <!-- SMARTPHONE ANALOGY -->
+
+            <section id="analogy">
+
+                <h2>11. Smartphone Analogy</h2>
+
+                <p>
+                    A useful way to understand application evaluations is
+                    through a smartphone analogy.
+                </p>
+
+                <p>
+                    A smartphone may contain a powerful processor such as a
+                    Snapdragon or MediaTek chip.
+                </p>
+
+                <p>
+                    The processor itself can be benchmarked to determine how
+                    powerful it is.
+                </p>
+
+                <p>
+                    But does having a powerful processor automatically make
+                    the smartphone a great product?
+                </p>
+
+                <p>
+                    Obviously not.
+                </p>
+
+                <p>
+                    A smartphone also depends on:
+                </p>
+
+                <ul>
+                    <li>Camera system</li>
+                    <li>Operating system</li>
+                    <li>Battery</li>
+                    <li>Display</li>
+                    <li>Audio system</li>
+                    <li>Graphics capabilities</li>
+                    <li>Software optimization</li>
+                    <li>Connectivity</li>
+                </ul>
+
+                <div class="highlight">
+
+                    <p>
+                        A powerful processor tells us something about the
+                        processor. It does not guarantee that the complete
+                        smartphone is a good product.
+                    </p>
+
+                </div>
+
+                <p>
+                    The same principle applies to LLM applications.
+                </p>
+
+                <div class="flow">
+
+                    <div class="flow-box">
+                        Model Evaluation
+                    </div>
+
+                    <div class="arrow">+</div>
+
+                    <div class="flow-box">
+                        Application Components
+                    </div>
+
+                    <div class="arrow">+</div>
+
+                    <div class="flow-box">
+                        Application Evaluation
+                    </div>
+
+                    <div class="arrow">→</div>
+
+                    <div class="flow-box">
+                        Reliable Product
+                    </div>
+
+                </div>
+
+                <p>
+                    Frontier labs evaluate the underlying models.
+                    AI engineers are responsible for evaluating the
+                    application built around those models.
+                </p>
+
+            </section>
+
+
+            <!-- COMPONENT LEVEL -->
+
+            <section>
+
+                <h2>12. Application Evals: System-Level vs Component-Level</h2>
+
+                <p>
+                    Application evaluations can happen at two levels:
+                </p>
+
+                <table class="comparison">
+
+                    <thead>
+                        <tr>
+                            <th>Level</th>
+                            <th>What Is Evaluated?</th>
+                            <th>Example</th>
+                        </tr>
+                    </thead>
+
+                    <tbody>
+
+                        <tr>
+
+                            <td>
+                                <strong>System Level</strong>
+                            </td>
+
+                            <td>
+                                The complete LLM-powered application.
+                            </td>
+
+                            <td>
+                                Is the final RAG chatbot response correct,
+                                grounded, safe, fast, and useful?
+                            </td>
+
+                        </tr>
+
+                        <tr>
+
+                            <td>
+                                <strong>Component Level</strong>
+                            </td>
+
+                            <td>
+                                Individual components within the application.
+                            </td>
+
+                            <td>
+                                Is the retriever working correctly?
+                                Is the embedding model effective?
+                                Is the reranker performing correctly?
+                            </td>
+
+                        </tr>
+
+                    </tbody>
+
+                </table>
+
+                <p>
+                    For example, in a RAG chatbot you might separately
+                    evaluate:
+                </p>
+
+                <ul>
+                    <li>Retriever quality</li>
+                    <li>Embedding quality</li>
+                    <li>Reranker performance</li>
+                    <li>Context relevance</li>
+                    <li>Answer correctness</li>
+                    <li>Groundedness</li>
+                    <li>Latency</li>
+                    <li>Cost</li>
+                    <li>Safety</li>
+                </ul>
+
+            </section>
+
+
+            <!-- DIFFERENCE -->
+
+            <section>
+
+                <h2>13. Model Eval vs Application Eval</h2>
+
+                <table class="comparison">
+
+                    <thead>
+
+                        <tr>
+                            <th>Question</th>
+                            <th>Model Eval</th>
+                            <th>Application Eval</th>
+                        </tr>
+
+                    </thead>
+
+                    <tbody>
+
+                        <tr>
+                            <td>What is being evaluated?</td>
+
+                            <td>
+                                The underlying LLM.
+                            </td>
+
+                            <td>
+                                The complete application or one of its
+                                components.
+                            </td>
+                        </tr>
+
+                        <tr>
+                            <td>Main question</td>
+
+                            <td>
+                                "Can the model do this?"
+                            </td>
+
+                            <td>
+                                "Will our product work correctly?"
+                            </td>
+                        </tr>
+
+                        <tr>
+                            <td>Typical owner</td>
+
+                            <td>
+                                Frontier model labs.
+                            </td>
+
+                            <td>
+                                AI/application engineering teams.
+                            </td>
+                        </tr>
+
+                        <tr>
+                            <td>Typical tools</td>
+
+                            <td>
+                                Standardized benchmarks and leaderboards.
+                            </td>
+
+                            <td>
+                                Custom datasets, rubrics, evaluators,
+                                testing frameworks, and application-specific
+                                metrics.
+                            </td>
+                        </tr>
+
+                        <tr>
+                            <td>Example</td>
+
+                            <td>
+                                Can the LLM solve mathematical problems?
+                            </td>
+
+                            <td>
+                                Does our RAG chatbot provide grounded and
+                                correct answers?
+                            </td>
+                        </tr>
+
+                    </tbody>
+
+                </table>
+
+            </section>
+
+
+            <!-- APPLICATION QUESTIONS -->
+
+            <section>
+
+                <h2>14. Questions Application Evals Should Answer</h2>
+
+                <p>
+                    For an AI engineer, application evaluation should help
+                    answer questions such as:
+                </p>
+
+                <div class="card-grid">
+
+                    <div class="card">
+                        <h3>Correctness</h3>
+                        <p>
+                            Did the application provide the correct answer?
+                        </p>
+                    </div>
+
+                    <div class="card">
+                        <h3>Groundedness</h3>
+                        <p>
+                            Is the answer supported by the retrieved context?
+                        </p>
+                    </div>
+
+                    <div class="card">
+                        <h3>Completeness</h3>
+                        <p>
+                            Did the system provide all important information?
+                        </p>
+                    </div>
+
+                    <div class="card">
+                        <h3>Clarity</h3>
+                        <p>
+                            Is the answer understandable to the intended user?
+                        </p>
+                    </div>
+
+                    <div class="card">
+                        <h3>Safety</h3>
+                        <p>
+                            Is the application safe for real-world users?
+                        </p>
+                    </div>
+
+                    <div class="card">
+                        <h3>Latency</h3>
+                        <p>
+                            Does the application respond quickly enough?
+                        </p>
+                    </div>
+
+                    <div class="card">
+                        <h3>Cost</h3>
+                        <p>
+                            Is the application economically viable at scale?
+                        </p>
+                    </div>
+
+                    <div class="card">
+                        <h3>Task Completion</h3>
+                        <p>
+                            Can the agent or application complete its intended
+                            task correctly?
+                        </p>
+                    </div>
+
+                </div>
+
+            </section>
+
+
+            <!-- WHY APPLICATION EVALS MATTER -->
+
+            <section>
+
+                <h2>15. Why Application Evals Matter More to AI Engineers</h2>
+
+                <p>
+                    The job of an AI engineer is to build LLM-powered
+                    applications.
+                </p>
+
+                <p>
+                    Therefore, understanding whether the complete application
+                    actually works is a core engineering responsibility.
+                </p>
+
+                <p>
+                    A model can have excellent benchmark scores while the
+                    application built around it can still fail because of:
+                </p>
+
+                <ul>
+                    <li>Bad prompts</li>
+                    <li>Poor retrieval</li>
+                    <li>Incorrect chunking</li>
+                    <li>Bad embeddings</li>
+                    <li>Incorrect orchestration</li>
+                    <li>Tool failures</li>
+                    <li>Unsafe outputs</li>
+                    <li>Hallucinations</li>
+                    <li>High latency</li>
+                    <li>High operational cost</li>
+                </ul>
+
+                <div class="highlight">
+
+                    <p>
+                        <strong>
+                            A good model does not automatically create a
+                            good application.
+                        </strong>
+                    </p>
+
+                </div>
+
+            </section>
+
+
+            <!-- FINAL SUMMARY -->
+
+            <section id="summary">
+
+                <h2>16. Complete Lecture Summary</h2>
+
+                <p>
+                    This lecture answered the "WHAT" behind LLM evaluations.
+                </p>
+
+                <div class="card-grid">
+
+                    <div class="card">
+
+                        <h3>Why?</h3>
+
+                        <p>
+                            We need LLM evaluations because LLM-powered
+                            applications are probabilistic and complex,
+                            making traditional software testing insufficient.
+                        </p>
+
+                    </div>
+
+                    <div class="card">
+
+                        <h3>What?</h3>
+
+                        <p>
+                            LLM evaluations are systematic, repeatable tests
+                            performed against clearly defined criteria.
+                        </p>
+
+                    </div>
+
+                    <div class="card">
+
+                        <h3>Two Types</h3>
+
+                        <p>
+                            Model evaluations measure the capabilities of the
+                            underlying LLM, while application evaluations
+                            measure the behavior of the application built
+                            around it.
+                        </p>
+
+                    </div>
+
+                    <div class="card">
+
+                        <h3>How?</h3>
+
+                        <p>
+                            The next stage is learning how application
+                            evaluations are actually designed, implemented,
+                            and executed.
+                        </p>
+
+                    </div>
+
+                </div>
+
+            </section>
+
+
+            <!-- KEY TAKEAWAYS -->
+
+            <section>
+
+                <h2>17. Key Takeaways</h2>
+
+                <ol>
+
+                    <li>
+                        <strong>LLM evals are not just metrics.</strong>
+                        They represent the complete testing setup.
+                    </li>
+
+                    <li>
+                        <strong>Good evaluations are systematic.</strong>
+                        They use structured datasets rather than random
+                        manual testing.
+                    </li>
+
+                    <li>
+                        <strong>Good evaluations are repeatable.</strong>
+                        The same evaluation should work across different
+                        versions of the system.
+                    </li>
+
+                    <li>
+                        <strong>Evaluation requires clear criteria.</strong>
+                        You must define what "good" means before testing.
+                    </li>
+
+                    <li>
+                        <strong>There are two useful categories:</strong>
+                        model evaluations and application evaluations.
+                    </li>
+
+                    <li>
+                        <strong>Model evaluations measure model capabilities.</strong>
+                    </li>
+
+                    <li>
+                        <strong>Application evaluations measure the product.</strong>
+                    </li>
+
+                    <li>
+                        <strong>Model evaluation commonly uses benchmarks.</strong>
+                    </li>
+
+                    <li>
+                        <strong>Modern LLMs are evaluated across multiple
+                        capabilities</strong> including reasoning, knowledge,
+                        mathematics, coding, instruction following, long
+                        context, multimodality, and tool use.
+                    </li>
+
+                    <li>
+                        <strong>AI engineers should understand model
+                        benchmarks</strong> even if they rarely create
+                        frontier-model evaluations themselves.
+                    </li>
+
+                    <li>
+                        <strong>Application evaluation is the core practical
+                        focus for AI engineers.</strong>
+                    </li>
+
+                    <li>
+                        <strong>An LLM is only one component of an
+                        LLM-powered application.</strong>
+                    </li>
+
+                    <li>
+                        <strong>Application evaluation can happen at both
+                        system and component levels.</strong>
+                    </li>
+
+                    <li>
+                        <strong>The key question changes:</strong>
+                        Model eval asks "Can the model do this?"
+                        Application eval asks "Will our product work correctly?"
+                    </li>
+
+                </ol>
+
+            </section>
+
+
+            <!-- NEXT TOPIC -->
+
+            <section>
+
+                <h2>18. What Comes Next?</h2>
+
+                <div class="definition">
+
+                    <div class="definition-title">
+                        Next Topic
+                    </div>
+
+                    <p>
+                        <strong>
+                            How are LLM evaluations actually performed?
+                        </strong>
+                    </p>
+
+                    <p>
+                        The next part moves from the "WHAT" of LLM evaluations
+                        toward the "HOW", with the main focus on
+                        <strong>Application Evaluations</strong>.
+                    </p>
+
+                </div>
+
+                <div class="flow">
+
+                    <div class="flow-box">
+                        Why?
+                    </div>
+
+                    <div class="arrow">→</div>
+
+                    <div class="flow-box">
+                        What?
+                    </div>
+
+                    <div class="arrow">→</div>
+
+                    <div class="flow-box">
+                        Model Evals
+                    </div>
+
+                    <div class="arrow">→</div>
+
+                    <div class="flow-box">
+                        Application Evals
+                    </div>
+
+                    <div class="arrow">→</div>
+
+                    <div class="flow-box">
+                        How?
+                    </div>
+
+                </div>
+
+            </section>
+
+        </main>
+
+    </div>
+
+</div>
+
+
+<footer>
+
+    <p>
+        LLM Evals Learning Hub · Page 02
+    </p>
+
+    <p>
+        Systematic · Repeatable · Criteria-Driven
+    </p>
+
+</footer>
+
+</body>
+</html>

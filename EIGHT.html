@@ -1,0 +1,412 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>LLM Benchmarking — Model Evaluation & Core Capabilities</title>
+<style>
+:root{
+  --bg:#07101b;--panel:#0d1826;--panel2:#111f30;--text:#e8eef6;--muted:#9aabbd;
+  --accent:#58c7ff;--accent2:#8b7cff;--green:#48d597;--yellow:#f5c45d;--red:#ff7181;
+  --border:#213247;--shadow:0 14px 40px rgba(0,0,0,.25)
+}
+*{box-sizing:border-box;scroll-behavior:smooth}
+body{margin:0;background:var(--bg);color:var(--text);font:15px/1.75 Inter,ui-sans-serif,system-ui,-apple-system,Segoe UI,sans-serif}
+a{color:inherit;text-decoration:none}
+.header{position:sticky;top:0;z-index:20;background:rgba(7,16,27,.92);backdrop-filter:blur(16px);border-bottom:1px solid var(--border)}
+.header-inner{max-width:1500px;margin:auto;padding:15px 28px;display:flex;align-items:center;gap:25px}
+.brand{font-weight:800;letter-spacing:.08em;color:var(--accent);font-size:12px}
+.header-main{flex:1;text-align:center}
+.kicker{font-size:11px;color:var(--muted);letter-spacing:.18em;text-transform:uppercase}
+.header-main h1{font-size:19px;margin:2px 0;font-weight:750}
+.progress{font-size:12px;color:var(--muted)}
+.layout{max-width:1500px;margin:auto;display:grid;grid-template-columns:245px minmax(0,1fr) 220px;gap:28px;padding:28px}
+.sidebar{position:sticky;top:91px;height:calc(100vh - 110px);overflow:auto}
+.sidebar h3,.right h3{font-size:11px;letter-spacing:.15em;color:var(--muted);text-transform:uppercase}
+.nav a{display:block;padding:8px 11px;color:var(--muted);border-left:2px solid transparent;border-radius:6px;margin:2px 0}
+.nav a:hover{color:var(--text);background:var(--panel);border-left-color:var(--accent)}
+main{min-width:0}
+.hero{padding:28px 0 18px}
+.page-label{color:var(--accent);font-size:12px;font-weight:800;letter-spacing:.16em}
+.hero h2{font-size:clamp(32px,4vw,52px);line-height:1.08;margin:8px 0 10px}
+.subtitle{font-size:18px;color:var(--muted);max-width:850px}
+.card{background:var(--panel);border:1px solid var(--border);border-radius:14px;padding:22px;margin:18px 0;box-shadow:var(--shadow)}
+.card h3{margin-top:0}
+.glance{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:10px}
+.glance div{background:var(--panel2);border:1px solid var(--border);padding:14px;border-radius:10px}
+.tag{display:inline-block;font-size:10px;font-weight:800;letter-spacing:.12em;padding:3px 8px;border-radius:20px;background:#17293d;color:var(--accent);margin-bottom:8px}
+section{scroll-margin-top:105px;margin:45px 0}
+h2{font-size:28px;margin-bottom:8px} h3{font-size:19px;margin:22px 0 7px} h4{font-size:15px}
+p{color:#cbd6e2}
+strong{color:#fff}
+ul,ol{padding-left:22px;color:#cbd6e2}
+li{margin:7px 0}
+.toc ol{columns:2}
+.table-wrap{overflow:auto}
+table{width:100%;border-collapse:collapse;min-width:680px}
+th,td{text-align:left;padding:12px 14px;border-bottom:1px solid var(--border);vertical-align:top}
+th{color:var(--accent);background:#101e2d}
+.pipeline{display:flex;flex-wrap:wrap;align-items:center;justify-content:center;gap:8px;margin:22px 0}
+.step{padding:14px 18px;border:1px solid var(--border);background:var(--panel2);border-radius:10px;text-align:center;font-weight:700}
+.arrow{color:var(--accent);font-size:20px}
+.cap-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:14px}
+.cap{padding:20px;border:1px solid var(--border);background:var(--panel);border-radius:14px}
+.cap .num{font-size:12px;color:var(--accent);font-weight:800}
+.cap h3{margin:5px 0}
+.formula{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:16px;background:#07131f;border:1px solid var(--border);padding:16px;border-radius:10px;color:#d9efff}
+.callout{border-left:4px solid var(--accent);background:#0d1d2d;padding:15px 18px;border-radius:8px;margin:16px 0}
+.callout.warning{border-left-color:var(--yellow)} .callout.green{border-left-color:var(--green)}
+.qa{border:1px solid var(--border);border-radius:10px;margin:10px 0;overflow:hidden}
+.qa b{display:block;padding:12px 15px;background:#101d2b}.qa p{padding:0 15px 10px}
+.right .card{padding:16px}
+.fact{font-size:13px;border-bottom:1px solid var(--border);padding:10px 0}.fact:last-child{border:0}
+.mobile-nav{display:none}
+footer{border-top:1px solid var(--border);padding:30px 0;color:var(--muted);text-align:center}
+@media(max-width:1050px){.layout{grid-template-columns:210px minmax(0,1fr)}.right{display:none}}
+@media(max-width:760px){
+ .header-inner{padding:12px 16px}.brand{display:none}.header-main{text-align:left}.layout{display:block;padding:18px}
+ .sidebar{display:none}.mobile-nav{display:block;background:var(--panel);border:1px solid var(--border);border-radius:10px;padding:10px;margin-bottom:18px}
+ .mobile-nav summary{cursor:pointer;font-weight:700;color:var(--accent)}
+ .toc ol{columns:1}.cap-grid{grid-template-columns:1fr}.hero h2{font-size:34px}
+}
+</style>
+</head>
+<body>
+<header class="header">
+ <div class="header-inner">
+  <div class="brand">AI ENGINEERING NOTES</div>
+  <div class="header-main">
+   <div class="kicker">PAGE 05 • MODEL EVALUATION</div>
+   <h1>LLM Benchmarking</h1>
+   <div class="progress">Benchmarks • Core Capabilities • Model Selection</div>
+  </div>
+  <div class="progress">05 / 20</div>
+ </div>
+</header>
+
+<div class="layout">
+<aside class="sidebar">
+ <h3>On This Page</h3>
+ <nav class="nav">
+  <a href="#overview">Overview</a><a href="#why">Why Model Evals?</a><a href="#definition">Definition</a>
+  <a href="#workflow">4-Step Evaluation</a><a href="#types">Benchmarks vs Custom Evals</a>
+  <a href="#case">Zomato Case Study</a><a href="#capabilities">8 Core Capabilities</a>
+  <a href="#knowledge">Knowledge & Reasoning</a><a href="#coding">Coding & SWE</a>
+  <a href="#math">Mathematics</a><a href="#longcontext">Long Context</a>
+  <a href="#multimodal">Vision & Multimodal</a><a href="#agents">Agentic & Tool Use</a>
+  <a href="#safety">Safety & Alignment</a><a href="#instruction">Instruction Following</a>
+  <a href="#interview">Interview Questions</a><a href="#revision">Quick Revision</a>
+ </nav>
+</aside>
+
+<main>
+<details class="mobile-nav"><summary>☰ Page Navigation</summary>
+<nav class="nav">
+<a href="#overview">Overview</a><a href="#why">Why Model Evals?</a><a href="#definition">Definition</a><a href="#workflow">4-Step Evaluation</a><a href="#types">Benchmark vs Custom</a><a href="#case">Case Study</a><a href="#capabilities">8 Capabilities</a><a href="#interview">Interview</a><a href="#revision">Revision</a>
+</nav></details>
+
+<section id="overview" class="hero">
+ <div class="page-label">PAGE 05</div>
+ <h2>LLM Benchmarking</h2>
+ <p class="subtitle">Understanding Model Evals, Standardized Benchmarks, Custom Evaluation, and the Eight Core LLM Capabilities.</p>
+ <div class="card">
+  <span class="tag">INTRODUCTION</span>
+  <p>LLM evaluation has two broad layers: <strong>Model Evals</strong>, which directly test an LLM's capabilities, and <strong>Application Evals</strong>, which test an LLM-powered application such as a RAG system or agent. This page moves from application-level evaluation into the model itself.</p>
+  <p>The central idea is simple: if an AI Engineer cannot measure a model's capabilities, it becomes difficult to choose the right model, compare new releases, assess safety, or justify deployment decisions.</p>
+ </div>
+ <div class="card">
+  <span class="tag">AT A GLANCE</span>
+  <div class="glance">
+   <div><strong>Model Eval</strong><br>Measures an LLM's capabilities and behavior.</div>
+   <div><strong>Benchmark</strong><br>Standardized shared test for model comparison.</div>
+   <div><strong>Custom Eval</strong><br>Evaluation built around your actual task/data.</div>
+   <div><strong>Core Capabilities</strong><br>Eight major capability areas organize most benchmarks.</div>
+  </div>
+ </div>
+</section>
+
+<section class="toc card">
+<h2>On This Page</h2>
+<ol>
+<li><a href="#why">Why AI Engineers Need Model Evals</a></li><li><a href="#definition">What Is a Model Eval?</a></li>
+<li><a href="#workflow">The Four-Step Evaluation Process</a></li><li><a href="#types">Benchmarks and Custom Evals</a></li>
+<li><a href="#case">Why Benchmarks Alone Are Not Enough</a></li><li><a href="#capabilities">The Eight Core Capabilities</a></li>
+<li><a href="#interview">Interview Questions</a></li><li><a href="#revision">Quick Revision</a></li>
+</ol>
+</section>
+
+<section id="why">
+<h2>1. Why Do AI Engineers Need Model Evals?</h2>
+<p>Model Evals exist to measure what an LLM can actually do. For an AI Engineer, however, the important question is not simply “Why do frontier labs evaluate models?” but <strong>“Why do I need model evaluation when my job is to build applications?”</strong></p>
+<div class="callout"><strong>Core principle:</strong> “If you can't measure, you can't improve.” Model Evals provide a mechanism for measuring different capabilities of an LLM.</div>
+<div class="card">
+<h3>Reason 1 — Compare Models and Select the Right One</h3>
+<p>Suppose a company is building a RAG application and must choose between two LLM providers. In a professional engineering discussion, “both are good” is not enough. The team needs concrete evidence showing which model performs better on the capabilities that matter for the application.</p>
+<p>Model Evals provide comparable scores that support a model-selection decision.</p>
+</div>
+<div class="card">
+<h3>Reason 2 — Track Whether New Models Actually Improve</h3>
+<p>Imagine an application is running on one model and a newer model is released. A manager may ask whether the team should migrate. Model evaluation provides numbers that can be used to compare the old and new models rather than relying on marketing claims or intuition.</p>
+</div>
+<div class="card">
+<h3>Reason 3 — Evaluate Safety and Reliability</h3>
+<p>Model Evals can test whether a model is safe enough for a particular use case. The lecture specifically highlights concerns such as hallucination, jailbreak susceptibility, and responsible behavior.</p>
+</div>
+<div class="card">
+<h3>Reason 4 — Decide Between Proprietary APIs and Self-Hosting</h3>
+<p>An AI Engineer may need to decide between using a proprietary model through an API and deploying an open-source model on company infrastructure. Capability, cost, and practical suitability must be compared. Model evaluation helps make this decision evidence-based.</p>
+</div>
+<div class="callout warning"><strong>Without Model Evals:</strong> model selection becomes largely guesswork. You are effectively “blind” to systematic capability differences.</div>
+</section>
+
+<section id="definition">
+<h2>2. What Is a Model Eval?</h2>
+<div class="card">
+<span class="tag">DEFINITION</span>
+<p>A <strong>Model Eval</strong> is a systematic process of measuring an underlying model's <strong>capabilities, behavior, reliability, and operational characteristics</strong> under controlled conditions.</p>
+</div>
+<h3>Simple Explanation</h3>
+<p>A model eval is essentially an exam for an LLM. You decide what capability you want to test, give the model a defined test, run it under controlled conditions, and then score and interpret the result.</p>
+<h3>Why There Is No Single “LLM IQ” Number</h3>
+<p>LLMs are general-purpose systems with many different capabilities. There is no single evaluation that fully describes all of them. Reasoning, coding, mathematics, long-context handling, multimodal understanding, tool use, safety, and instruction following can require different tests.</p>
+</section>
+
+<section id="workflow">
+<h2>3. The Four-Step Model Evaluation Process</h2>
+<div class="pipeline">
+ <div class="step">1. Select Capability</div><div class="arrow">→</div>
+ <div class="step">2. Bring a Test</div><div class="arrow">→</div>
+ <div class="step">3. Run Under Fixed Protocol</div><div class="arrow">→</div>
+ <div class="step">4. Score & Interpret</div>
+</div>
+<div class="card"><h3>Step 1 — Decide What to Test</h3><p>Choose the capability: reasoning, coding, safety, instruction following, or another target capability.</p></div>
+<div class="card"><h3>Step 2 — Bring a Test</h3><p>Select or construct a test mechanism that measures the chosen capability. This can be a standardized benchmark or a custom evaluation set.</p></div>
+<div class="card"><h3>Step 3 — Run the Model Under a Fixed Protocol</h3><p>Fix the relevant conditions so that the evaluation is repeatable. When comparing multiple models, comparable conditions are essential.</p></div>
+<div class="card"><h3>Step 4 — Score and Interpret</h3><p>After the test, calculate the score and interpret what it means for model capability and the intended decision.</p></div>
+</section>
+
+<section id="types">
+<h2>4. Two Types of Model Tests</h2>
+<div class="table-wrap">
+<table>
+<thead><tr><th>Type</th><th>What It Is</th><th>Primary Purpose</th></tr></thead>
+<tbody>
+<tr><td><strong>Benchmark</strong></td><td>A standardized, shared test used across models. Examples mentioned in the lecture include MMLU and SWE-bench.</td><td>Compare models on common ground and understand general capabilities.</td></tr>
+<tr><td><strong>Custom Evaluation</strong></td><td>A dataset/test assembled from the actual task the application cares about.</td><td>Measure suitability for a specific application rather than generic usefulness.</td></tr>
+</tbody>
+</table>
+</div>
+<div class="callout green"><strong>Key distinction:</strong> Benchmarks answer “How capable is this model generally?” Custom evals answer “How suitable is this model for our actual work?”</div>
+</section>
+
+<section id="case">
+<h2>5. Case Study — Why Custom Evals Matter</h2>
+<p>Consider an application that reads incoming emails and routes them into categories such as <strong>Billing, Technical, and Refund</strong>. Two model choices are available:</p>
+<div class="table-wrap">
+<table>
+<thead><tr><th>Property</th><th>Model A</th><th>Model B</th></tr></thead>
+<tbody>
+<tr><td>Model profile</td><td>Large, powerful, top-of-leaderboard</td><td>Smaller, cheaper, mid-table on public benchmarks</td></tr>
+<tr><td>Illustrative token cost</td><td>~$15 / 1M tokens</td><td>~$0.50 / 1M tokens</td></tr>
+<tr><td>Classification accuracy</td><td>94%</td><td>91%</td></tr>
+<tr><td>Urgency accuracy</td><td>88%</td><td>87%</td></tr>
+<tr><td>Illustrative latency</td><td>~4.1 s</td><td>~9 s</td></tr>
+</tbody>
+</table>
+</div>
+<p>The lecture's example then proposes building a <strong>golden dataset</strong> from roughly 200–500 historical emails, labeling each email according to the application's target categories, and evaluating both models on exactly that task.</p>
+<p>Although Model A wins on generic public benchmarks, Model B is only slightly behind on this particular application task while being substantially cheaper. The conclusion is therefore that <strong>Model B can be the better value proposition for this specific workload</strong>.</p>
+<div class="callout warning"><strong>Lesson:</strong> If the team had relied only on public benchmarks, it would likely have selected Model A. The custom evaluation exposed the application's actual trade-off.</div>
+</section>
+
+<section id="capabilities">
+<h2>6. The Eight Core LLM Capabilities</h2>
+<p>LLMs are general-purpose models. They can perform text generation, sentiment analysis, summarization, part-of-speech tagging, coding, and many other tasks. Because there is no single score that captures every capability, benchmarks are organized around specific capability areas.</p>
+<div class="cap-grid">
+<div class="cap"><div class="num">01</div><h3>Knowledge & Reasoning</h3><p>Factual knowledge and the ability to connect multiple facts to reach conclusions.</p></div>
+<div class="cap"><div class="num">02</div><h3>Coding & Software Engineering</h3><p>Code generation, debugging, testing, repository-level work, commands, and tool/API interaction.</p></div>
+<div class="cap"><div class="num">03</div><h3>Mathematics</h3><p>Accurate symbolic and numerical reasoning across difficulty levels.</p></div>
+<div class="cap"><div class="num">04</div><h3>Long Context</h3><p>Effective use of information contained in very large inputs.</p></div>
+<div class="cap"><div class="num">05</div><h3>Vision & Multimodal</h3><p>Understanding images, videos, and information beyond text.</p></div>
+<div class="cap"><div class="num">06</div><h3>Agentic & Tool Use</h3><p>Using tools, browsing, APIs, structured calls, and computer environments to perform actions.</p></div>
+<div class="cap"><div class="num">07</div><h3>Safety & Alignment</h3><p>Responsible behavior, resistance to harmful/adversarial use, truthfulness, and security-related behavior.</p></div>
+<div class="cap"><div class="num">08</div><h3>Instruction Following</h3><p>Following user-specified constraints, formats, styles, lengths, and clarification requirements.</p></div>
+</div>
+</section>
+
+<section id="knowledge">
+<h2>7. Capability 1 — Knowledge & Reasoning</h2>
+<h3>Definition</h3><p>This capability combines the amount of factual knowledge a model has with its ability to connect facts and reason over them.</p>
+<h3>What Is Measured?</h3>
+<ul>
+<li><strong>Factual recall:</strong> knowledge across areas such as biology, physics, chemistry, and history.</li>
+<li><strong>Multistep logical reasoning:</strong> connecting multiple facts in the correct sequence to reach a conclusion.</li>
+</ul>
+<div class="card"><span class="tag">BENCHMARK EXAMPLE</span><h3>MMLU</h3><p>The lecture cites MMLU as a benchmark evaluating models across <strong>57 subjects</strong>.</p></div>
+<h3>Example</h3><p>A task asking the model to connect a long chain of historical or scientific events and explain how those events contributed to the structure of modern society tests both factual knowledge and reasoning.</p>
+<h3>Why It Matters</h3><p>Strong performance is treated as an indicator of how intelligent or capable a model is. It is particularly relevant to research assistants, technical document analysis, professional assistants, and complex question answering.</p>
+</section>
+
+<section id="coding">
+<h2>8. Capability 2 — Coding & Software Engineering</h2>
+<p>This capability evaluates whether an LLM can perform useful programming and real software-engineering work, not merely produce code that looks plausible.</p>
+<h3>What Is Measured?</h3>
+<ul>
+<li>Generate functional code from natural-language requirements.</li>
+<li>Generate test cases.</li>
+<li>Improve code based on failing tests or errors.</li>
+<li>Find and fix bugs in an existing codebase.</li>
+<li>Perform multi-file and long-horizon engineering tasks.</li>
+<li>Refactor an entire codebase based on a requirement.</li>
+<li>Run multiple command-line operations.</li>
+<li>Install packages, configure servers, and set up environments.</li>
+<li>Use APIs and function calls effectively.</li>
+</ul>
+<div class="callout green"><strong>Real-world relevance:</strong> This capability is especially important for AI coding agents and software-engineering assistants.</div>
+</section>
+
+<section id="math">
+<h2>9. Capability 3 — Mathematics</h2>
+<p>Mathematics can be viewed as a structured form of reasoning in which a sequence of operations leads to a solution.</p>
+<h3>Levels Mentioned</h3>
+<ul>
+<li>Grade-school mathematics.</li>
+<li>Competition-level problem solving, including problems requiring creative thinking.</li>
+<li>Undergraduate mathematics.</li>
+<li>Research-level mathematical reasoning, including difficult or open-ended problems.</li>
+</ul>
+<h3>Real-World Relevance</h3>
+<p>Mathematical capability matters in scientific computing, financial modeling, engineering simulations, and data analysis.</p>
+</section>
+
+<section id="longcontext">
+<h2>10. Capability 4 — Long Context</h2>
+<p>Long-context evaluation measures whether a model can effectively use information from very large inputs, potentially containing hundreds of thousands of tokens.</p>
+<h3>What Is Tested?</h3>
+<ul>
+<li>Retrieve a small fact from a very large context.</li>
+<li>Find details about a specific person or entity in a large document.</li>
+<li>Summarize very large inputs.</li>
+<li>Maintain and use the context of a large codebase when acting as a coding agent.</li>
+</ul>
+<div class="callout"><strong>Important distinction:</strong> A stated context-window size does not automatically mean the model uses every part of that context equally well. Long-context evaluation tests actual effectiveness over large inputs.</div>
+</section>
+
+<section id="multimodal">
+<h2>11. Capability 5 — Vision & Multimodal</h2>
+<p>This capability moves beyond text and evaluates whether the model can understand information such as images and videos.</p>
+<h3>Why It Matters</h3>
+<p>Real-world interaction is multimodal. Examples include asking a model what can be prepared from items visible inside a refrigerator or asking it to identify a particular book from a visual environment.</p>
+<h3>Evaluation Focus</h3>
+<ul><li>Image understanding</li><li>Video understanding</li><li>Cross-modal reasoning</li></ul>
+</section>
+
+<section id="agents">
+<h2>12. Capability 6 — Agentic & Tool Use</h2>
+<p>Agentic AI requires models that can do more than generate text. They must interact with tools and external environments.</p>
+<h3>What Is Tested?</h3>
+<ul>
+<li>Web browsing.</li>
+<li>Structured tool calling.</li>
+<li>API interaction.</li>
+<li>Computer or desktop interaction.</li>
+<li>Executing multi-step actions using available tools.</li>
+</ul>
+<div class="pipeline">
+<div class="step">User Goal</div><div class="arrow">→</div><div class="step">LLM Reasoning</div><div class="arrow">→</div><div class="step">Tool Call</div><div class="arrow">→</div><div class="step">External Action</div><div class="arrow">→</div><div class="step">Result</div>
+</div>
+<p>This capability is increasingly important as agentic applications become more common.</p>
+</section>
+
+<section id="safety">
+<h2>13. Capability 7 — Safety & Alignment</h2>
+<p>Safety and alignment evaluate whether a model can be trusted to behave responsibly.</p>
+<h3>Areas Mentioned in the Lecture</h3>
+<ul>
+<li>Harmful-content generation.</li>
+<li>Resistance to adversarial attacks.</li>
+<li>Truthfulness versus excessive agreeableness or sycophancy.</li>
+<li>Cybersecurity-related skills and behavior.</li>
+<li>Capabilities involving cryptography, reverse engineering, and digital forensics.</li>
+</ul>
+<div class="callout warning"><strong>Why frontier labs care:</strong> Safety has regulatory, reputational, and product consequences. A serious safety incident can create substantial risk for a model provider.</div>
+</section>
+
+<section id="instruction">
+<h2>14. Capability 8 — Instruction Following</h2>
+<p>Instruction following measures whether the model does what the user requested and follows the requested constraints.</p>
+<h3>Examples</h3>
+<ul>
+<li>If the user requests a bullet list, does the model produce a bullet list?</li>
+<li>If the user asks for fewer than 200 words, does it respect the limit?</li>
+<li>If the user requests a friendly response, does it follow that style?</li>
+<li>If the instruction is ambiguous, does the model ask an appropriate clarifying question?</li>
+</ul>
+<div class="callout green"><strong>Product relevance:</strong> Poor instruction following directly affects user satisfaction. If the model repeatedly ignores user requirements, users may stop trusting the product.</div>
+</section>
+
+<section id="comparison">
+<h2>15. Benchmark vs Custom Evaluation — Final Comparison</h2>
+<div class="table-wrap">
+<table>
+<thead><tr><th>Dimension</th><th>Benchmark</th><th>Custom Evaluation</th></tr></thead>
+<tbody>
+<tr><td>Test design</td><td>Standardized/shared</td><td>Designed around your task</td></tr>
+<tr><td>Primary goal</td><td>General capability comparison</td><td>Application-specific suitability</td></tr>
+<tr><td>Comparability</td><td>High across models</td><td>High within your controlled setup</td></tr>
+<tr><td>Example</td><td>MMLU, SWE-bench</td><td>Historical labeled application data</td></tr>
+<tr><td>Best question answered</td><td>“How good is this model generally?”</td><td>“Which model is best for our workload?”</td></tr>
+</tbody>
+</table>
+</div>
+</section>
+
+<section id="interview">
+<h2>16. Interview Questions</h2>
+<div class="qa"><b>Q1. What is a Model Eval?</b><p>A systematic process for measuring an underlying model's capabilities, behavior, reliability, and operational characteristics under controlled conditions.</p></div>
+<div class="qa"><b>Q2. Why does an AI Engineer need Model Evals?</b><p>To compare models, select the right model, assess new model releases, evaluate safety/reliability, and support decisions such as API usage versus self-hosting.</p></div>
+<div class="qa"><b>Q3. What are the four steps of a model evaluation?</b><p>Select the capability → bring a test → run under a fixed protocol → score and interpret.</p></div>
+<div class="qa"><b>Q4. What is a benchmark?</b><p>A standardized shared test used to compare models on common ground.</p></div>
+<div class="qa"><b>Q5. Why are custom evals needed if benchmarks already exist?</b><p>Because public benchmarks measure generic capabilities. A custom eval measures performance on the actual task, data, constraints, cost, and latency requirements of your application.</p></div>
+<div class="qa"><b>Q6. Name the eight core capability categories discussed.</b><p>Knowledge & Reasoning; Coding & Software Engineering; Mathematics; Long Context; Vision & Multimodal; Agentic & Tool Use; Safety & Alignment; Instruction Following.</p></div>
+<div class="qa"><b>Q7. Why is a fixed protocol important?</b><p>It makes evaluation repeatable and ensures that models being compared are tested under comparable conditions.</p></div>
+<div class="qa"><b>Q8. Why can a smaller model be better than a stronger model?</b><p>If it provides sufficiently similar task performance while reducing cost and/or other operational burdens, it can be a better value proposition for the workload.</p></div>
+</section>
+
+<section id="revision">
+<h2>17. Quick Revision</h2>
+<div class="card">
+<ul>
+<li><strong>Model Evals</strong> directly test LLM capabilities; <strong>Application Evals</strong> test LLM-powered applications.</li>
+<li>AI Engineers need Model Evals for model comparison, selection, release tracking, safety assessment, and deployment strategy.</li>
+<li>A Model Eval follows four steps: <strong>Capability → Test → Fixed Protocol → Score & Interpret</strong>.</li>
+<li>Two major test approaches are <strong>standardized benchmarks</strong> and <strong>custom evaluations</strong>.</li>
+<li>Benchmarks provide common-ground comparison; custom evals provide application-specific evidence.</li>
+<li>The lecture's Zomato example demonstrates why benchmark leadership does not automatically mean best application fit.</li>
+<li>The eight core capabilities are: <strong>Knowledge & Reasoning, Coding & SWE, Mathematics, Long Context, Vision & Multimodal, Agentic & Tool Use, Safety & Alignment, Instruction Following.</strong></li>
+<li>There is no single universal “LLM IQ” score that captures every capability.</li>
+<li>Long context should be evaluated by actual information use, not only by the advertised context-window size.</li>
+<li>Instruction following is important because it directly affects user experience and product trust.</li>
+</ul>
+</div>
+<div class="card">
+<span class="tag">KEY TAKEAWAY</span>
+<h3>Think Like an AI Engineer</h3>
+<p>Do not ask only, <strong>“Which model is strongest?”</strong> Ask: <strong>“Which model performs well on the capabilities my application actually needs, under the cost and operational constraints I have?”</strong> Benchmarks help you understand general capability; custom evaluations help you make the final application decision.</p>
+</div>
+</section>
+
+<footer>AI Engineering Notes • LLM Evaluation Series • Page 05</footer>
+</main>
+
+<aside class="right">
+ <div class="card"><h3>Quick Facts</h3>
+  <div class="fact"><strong>2</strong><br>Model Eval approaches: Benchmark + Custom</div>
+  <div class="fact"><strong>4</strong><br>Core evaluation steps</div>
+  <div class="fact"><strong>8</strong><br>Core LLM capability categories</div>
+ </div>
+ <div class="card"><h3>Remember</h3><p class="fact">Benchmark = general comparison</p><p class="fact">Custom Eval = application fit</p><p class="fact">Measure before deciding</p></div>
+</aside>
+</div>
+</body>
+</html>

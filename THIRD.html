@@ -1,0 +1,1080 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>LLM Evaluations — Page 3 Complete Notes</title>
+<style>
+:root{
+  --bg:#0b1020;
+  --card:#121a2e;
+  --card2:#17213a;
+  --text:#e8edf7;
+  --muted:#aeb9ce;
+  --accent:#6ea8fe;
+  --accent2:#8ef0c2;
+  --border:#2a3755;
+  --danger:#ff8b8b;
+  --shadow:0 12px 35px rgba(0,0,0,.25);
+}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{
+  margin:0;
+  font-family:Inter,Segoe UI,Roboto,Arial,sans-serif;
+  background:linear-gradient(135deg,#080d1a,#10182b 45%,#0b1020);
+  color:var(--text);
+  line-height:1.75;
+}
+.container{max-width:1180px;margin:auto;padding:28px 22px 70px}
+.hero{
+  padding:42px 34px;
+  border:1px solid var(--border);
+  border-radius:24px;
+  background:linear-gradient(145deg,#17223d,#0f172b);
+  box-shadow:var(--shadow);
+  margin-bottom:28px;
+}
+.badge{
+  display:inline-block;padding:6px 12px;border:1px solid var(--border);
+  border-radius:999px;color:var(--accent2);font-size:.82rem;font-weight:700;
+  letter-spacing:.05em;text-transform:uppercase;
+}
+h1{font-size:clamp(2rem,5vw,3.5rem);line-height:1.15;margin:16px 0 12px}
+h2{font-size:2rem;margin-top:50px;color:#fff;border-bottom:1px solid var(--border);padding-bottom:10px}
+h3{font-size:1.35rem;color:var(--accent2);margin-top:30px}
+h4{color:var(--accent);margin-bottom:6px}
+p{margin:12px 0}
+strong{color:#fff}
+.quote{
+  margin:20px 0;padding:18px 22px;border-left:4px solid var(--accent);
+  background:#0d1527;border-radius:10px;font-size:1.05rem;
+}
+.card{
+  background:rgba(18,26,46,.9);border:1px solid var(--border);
+  border-radius:18px;padding:24px;margin:20px 0;box-shadow:0 8px 25px rgba(0,0,0,.14)
+}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:16px}
+.small-card{background:var(--card2);padding:18px;border-radius:14px;border:1px solid var(--border)}
+ul,ol{padding-left:25px}
+li{margin:7px 0}
+code,.code{
+  font-family:Consolas,Monaco,monospace;
+  background:#080d18;border:1px solid var(--border);
+  border-radius:8px;padding:2px 7px;color:#cfe0ff
+}
+.diagram{
+  background:#080d18;border:1px solid var(--border);border-radius:14px;
+  padding:22px;overflow:auto;font-family:Consolas,monospace;
+  white-space:pre;color:#dbe7ff;
+}
+table{width:100%;border-collapse:collapse;margin:20px 0;overflow:hidden;border-radius:12px}
+th,td{border:1px solid var(--border);padding:13px 14px;text-align:left;vertical-align:top}
+th{background:#1b2947;color:#fff}
+tr:nth-child(even){background:#10192c}
+.highlight{color:var(--accent2);font-weight:700}
+.warning{border-left:4px solid #ffb86b;background:#211b11;padding:17px 20px;border-radius:10px}
+.toc{
+  position:sticky;top:0;z-index:5;background:rgba(11,16,32,.94);
+  backdrop-filter:blur(10px);border:1px solid var(--border);
+  padding:14px 18px;border-radius:14px;margin-bottom:25px
+}
+.toc a{color:var(--accent);text-decoration:none;margin-right:15px;font-size:.92rem}
+.toc a:hover{text-decoration:underline}
+footer{margin-top:60px;text-align:center;color:var(--muted);padding:25px;border-top:1px solid var(--border)}
+@media(max-width:700px){
+  .container{padding:15px}
+  .hero{padding:28px 20px}
+  h2{font-size:1.55rem}
+  table{font-size:.88rem}
+  th,td{padding:9px}
+}
+</style>
+</head>
+
+<body>
+<div class="container">
+
+<header class="hero">
+  <span class="badge">LLM Evaluation • Page 3</span>
+  <h1>LLM Evals: What Exactly Are They?</h1>
+  <p><strong>Complete lecture notes — full content preserved and organized for study.</strong></p>
+  <p>This page covers what LLM evaluations are, their three defining characteristics, why an eval is more than a metric, the complete testing setup, practical questions answered by evaluations, Model Evals vs Application Evals, model capabilities and benchmarks, and why Application Evals are especially important for AI Engineers.</p>
+</header>
+
+<nav class="toc">
+  <a href="#definition">Definition</a>
+  <a href="#characteristics">3 Characteristics</a>
+  <a href="#metric">Eval ≠ Metric</a>
+  <a href="#questions">Practical Questions</a>
+  <a href="#types">Two Types</a>
+  <a href="#model">Model Evals</a>
+  <a href="#application">Application Evals</a>
+  <a href="#summary">Summary</a>
+</nav>
+
+<section id="definition">
+<h2>1. Definition of LLM Evaluations</h2>
+
+<p>Now that we understand why LLM evaluations are needed, why they are important, and how LLM evaluations are different from traditional software testing, we can move to the main topic:</p>
+
+<div class="quote">
+<strong>What exactly are LLM Evals?</strong>
+</div>
+
+<p>LLM Evals can be defined as:</p>
+
+<div class="quote">
+<strong>“LLM Evals are systematic, repeatable tests used to judge an LLM and LLM-powered systems against a clear criteria.”</strong>
+</div>
+
+<p>Basically, LLM evaluations are tests that we apply either to:</p>
+<ul>
+<li>LLMs themselves, or</li>
+<li>LLM-based applications.</li>
+</ul>
+
+<p>There are three main aspects or characteristics:</p>
+
+<div class="grid">
+  <div class="small-card"><strong>1. Systematic</strong><br>Tests should follow a proper, structured process.</div>
+  <div class="small-card"><strong>2. Repeatable</strong><br>The same evaluation should be runnable again on another version.</div>
+  <div class="small-card"><strong>3. Clear Criteria</strong><br>You must clearly define what you want to evaluate.</div>
+</div>
+</section>
+
+<section id="characteristics">
+<h2>2. The Three Core Characteristics</h2>
+
+<h3>2.1 Systematic</h3>
+
+<p>Systematic means that you are <strong>not doing vibe testing</strong>.</p>
+
+<p>Suppose five questions come to your mind. You ask those five questions, receive answers, and feel that everything looks correct. That is not proper LLM evaluation.</p>
+
+<p>Instead, what you do is create proper datasets. In those datasets, you try to cover different kinds of edge cases so that you can properly test your chatbot or LLM-based system.</p>
+
+<h3>Campus X Chatbot Example</h3>
+
+<p>Suppose I am building a Campus X chatbot.</p>
+
+<p>What I can do is randomly take around 100 real-user conversations with my system. I can create a database or dataset from those conversations and then perform testing on that dataset.</p>
+
+<p>This helps me understand the <strong>real-world behavior</strong> of my chatbot.</p>
+
+<div class="quote">
+<strong>Systematic evaluation = structured data + broad coverage + deliberate testing.</strong>
+</div>
+
+<h3>2.2 Repeatable</h3>
+
+<p>Repeatable means that tomorrow, if you change something in your system, you should still be able to evaluate the system in exactly the same way.</p>
+
+<p>You may change:</p>
+<ul>
+<li>The prompt</li>
+<li>The model</li>
+<li>The retriever</li>
+<li>The chunking strategy</li>
+<li>The embedding model</li>
+<li>The reranker</li>
+<li>Other application components</li>
+</ul>
+
+<p>Even after all these changes, you should be able to apply the same evaluation setup.</p>
+
+<p>Suppose you have a test dataset. You run Version 1 against it and get a certain performance. You then run Version 2 against the same dataset.</p>
+
+<table>
+<thead>
+<tr><th>Version</th><th>Same Evaluation Dataset</th><th>Result</th></tr>
+</thead>
+<tbody>
+<tr><td>Version 1</td><td>Yes</td><td>Performance of V1</td></tr>
+<tr><td>Version 2</td><td>Yes</td><td>Performance of V2</td></tr>
+</tbody>
+</table>
+
+<p>Now you can compare whether Version 1 or Version 2 is better.</p>
+
+<p>This is why repeatability is extremely important. The dataset and evaluation process need to remain sufficiently consistent so that you can determine whether the system is actually improving.</p>
+
+<div class="quote">
+<strong>Same evaluation setup + different system versions → meaningful comparison.</strong>
+</div>
+
+<h3>2.3 Clear Criteria</h3>
+
+<p>The third and most important characteristic is that LLM evaluations depend on <strong>what criteria you want to evaluate against</strong>.</p>
+
+<p>Suppose you are building a Campus X chatbot. There can be many criteria:</p>
+
+<ol>
+<li>The answer should be <strong>correct</strong>.</li>
+<li>The answer should contain a <strong>simple explanation</strong>.</li>
+<li>The explanation should come from the <strong>course content</strong>.</li>
+<li>The answer should be <strong>safe</strong>.</li>
+<li>It should not contain unsafe content.</li>
+<li>It should not contain abusive language.</li>
+<li>It should not use a threatening tone.</li>
+</ol>
+
+<p>You define these criteria and then evaluate the chatbot against them.</p>
+
+<div class="warning">
+<strong>Without criteria:</strong> You are essentially doing vibe testing.<br>
+<strong>With clear criteria:</strong> You are doing proper evaluation.
+</div>
+</section>
+
+<section id="metric">
+<h2>3. LLM Eval Is NOT Just a Metric</h2>
+
+<p>This is a very important clarification.</p>
+
+<p>If you come from Machine Learning or Deep Learning, you may initially think:</p>
+
+<div class="quote">
+<strong>Evaluation = Metrics such as Accuracy, Precision, Recall, F1, etc.</strong>
+</div>
+
+<p>In traditional ML, when someone asks how we evaluate a model, we often talk about metrics such as:</p>
+
+<ul>
+<li>Accuracy</li>
+<li>Precision</li>
+<li>Recall</li>
+<li>F1 Score</li>
+</ul>
+
+<p>Therefore, it is natural to think that LLM Evals are simply a set of metrics.</p>
+
+<p><strong>But that is not the correct mental model.</strong></p>
+
+<div class="quote">
+<strong>LLM Eval is not just a metric. It is the complete testing setup.</strong>
+</div>
+
+<h3>What is included in the complete testing setup?</h3>
+
+<ul>
+<li>What are we evaluating?</li>
+<li>Which component are we evaluating?</li>
+<li>What dataset are we using?</li>
+<li>What criteria are we using?</li>
+<li>When are we running the evaluation?</li>
+<li>Are we running it offline or after deployment?</li>
+<li>Which tools are we using?</li>
+<li>Which metrics or judges are we using?</li>
+<li>How are we interpreting the results?</li>
+</ul>
+
+<p>All these things together form the evaluation setup.</p>
+
+<h3>RAG Example</h3>
+
+<p>Suppose you have a RAG chatbot and you want to evaluate the retriever.</p>
+
+<p>The retriever becomes one component of your LLM evaluation setup.</p>
+
+<p>You might evaluate it using a criterion such as retrieval accuracy.</p>
+
+<p>The dataset you prepared for evaluation is also part of the evaluation setup.</p>
+
+<p>Whether you run the evaluation offline or after deployment is also part of the setup.</p>
+
+<p>If you use a tool such as <strong>Ragas</strong> because you are evaluating a RAG application, that tool is also part of your evaluation workflow.</p>
+
+<div class="quote">
+<strong>LLM Evals = the entire testing setup, not merely the metric.</strong>
+</div>
+</section>
+
+<section id="questions">
+<h2>4. What Questions Do LLM Evals Actually Answer?</h2>
+
+<p>The goal of an LLM eval is not simply to produce a score.</p>
+
+<p>The goal is to answer practical engineering questions.</p>
+
+<div class="grid">
+<div class="small-card"><strong>Model Selection</strong><br>Can the model be used for a particular task/application?</div>
+<div class="small-card"><strong>Production Readiness</strong><br>Is the system good enough to ship?</div>
+<div class="small-card"><strong>Prompt Optimization</strong><br>Did Prompt V2 improve over Prompt V1?</div>
+<div class="small-card"><strong>RAG Groundedness</strong><br>Is the RAG answer grounded in retrieved context?</div>
+<div class="small-card"><strong>Agent Performance</strong><br>Is the agent completing the task correctly?</div>
+<div class="small-card"><strong>Safety</strong><br>Is the chatbot safe for real users?</div>
+<div class="small-card"><strong>Performance</strong><br>Is latency under control?</div>
+</div>
+
+<p>Therefore, evaluation gives us answers that can directly influence engineering decisions.</p>
+
+<div class="quote">
+<strong>LLM Evals turn test results into practical product and engineering decisions.</strong>
+</div>
+</section>
+
+<section id="types">
+<h2>5. Two Types of LLM Evals</h2>
+
+<p>Before discussing exactly how LLM evaluations work, there is an important distinction that should be clear in your mind.</p>
+
+<p>Conceptually, LLM Evals can be divided into two parts:</p>
+
+<div class="diagram">
+                    LLM EVALUATIONS
+                           |
+             +-------------+-------------+
+             |                           |
+        MODEL EVALS                APPLICATION EVALS
+             |                           |
+     Evaluate the LLM             Evaluate the
+         itself                    LLM application
+</div>
+
+<h3>Model Evals</h3>
+<p>Model Evals are evaluations used to evaluate <strong>LLMs themselves</strong>.</p>
+
+<h3>Application Evals</h3>
+<p>Application Evals are evaluations used to evaluate <strong>LLM-based applications</strong>.</p>
+
+<div class="warning">
+<strong>Important terminology disclaimer:</strong> The terms “Model Evals” and “Application Evals” are being used here as a conceptual simplification. They are not necessarily official standardized industry terms. In industry, both may simply be referred to as “LLM Evals,” with the context making it clear whether the model or the application is being evaluated.
+</div>
+</section>
+
+<section id="model">
+<h2>6. Model Evals</h2>
+
+<p>Model Evals evaluate the model itself.</p>
+
+<div class="quote">
+<strong>Model Evals = tests and evaluations of the capabilities of an LLM.</strong>
+</div>
+
+<p>The main idea is to test and evaluate the capabilities of a model.</p>
+
+<p>When a new LLM is released, we want to know:</p>
+
+<ul>
+<li>What capabilities does it have?</li>
+<li>How capable is it?</li>
+<li>How does it compare with other models?</li>
+<li>Which benchmarks does it perform well on?</li>
+<li>Which benchmarks does it struggle with?</li>
+</ul>
+
+<p>You may have seen new LLM releases where people say:</p>
+
+<p>“This model ranked at the top on a particular benchmark or leaderboard.”</p>
+
+<p>What is happening there?</p>
+
+<p>There are evaluation datasets and benchmarks designed to measure particular capabilities. When a new model arrives, the model is tested against those benchmarks. The results are then documented and often published so that people can understand how capable the model is.</p>
+
+<h3>6.1 Eight Major Capability Categories</h3>
+
+<p>The lecture identifies eight major capability categories for evaluating modern LLMs.</p>
+
+<table>
+<thead>
+<tr><th>#</th><th>Capability</th><th>What Are We Asking?</th></tr>
+</thead>
+<tbody>
+<tr><td>1</td><td><strong>Reasoning</strong></td><td>Can the LLM reason through a problem and solve it step by step?</td></tr>
+<tr><td>2</td><td><strong>Knowledge</strong></td><td>Does the LLM have relevant world/general knowledge?</td></tr>
+<tr><td>3</td><td><strong>Basic Mathematics</strong></td><td>Can the LLM solve mathematical problems?</td></tr>
+<tr><td>4</td><td><strong>Coding</strong></td><td>Can the LLM understand and generate code?</td></tr>
+<tr><td>5</td><td><strong>Instruction Following</strong></td><td>Can the model follow multiple instructions and constraints correctly?</td></tr>
+<tr><td>6</td><td><strong>Long-Context Handling</strong></td><td>Can the LLM find and use the correct information inside a very large context?</td></tr>
+<tr><td>7</td><td><strong>Multimodal Understanding</strong></td><td>Can the LLM understand modalities such as text, images, and audio?</td></tr>
+<tr><td>8</td><td><strong>Tool Use</strong></td><td>Can the LLM properly utilize external tools?</td></tr>
+</tbody>
+</table>
+
+<h3>6.2 Reasoning</h3>
+<p>The first capability is <strong>reasoning</strong>.</p>
+
+<p>The question is:</p>
+<div class="quote">Can the LLM reason through a problem step by step and solve it correctly?</div>
+
+<h3>6.3 Knowledge</h3>
+<p>The second capability is <strong>knowledge</strong>.</p>
+
+<p>We want to know whether the model has basic world knowledge and general knowledge.</p>
+
+<p>This is also related to the concept of a <strong>knowledge cutoff date</strong>. The idea is that information available before the model's knowledge cutoff may be part of its learned knowledge, while information created after that cutoff may not be present in its pretrained knowledge.</p>
+
+<h3>6.4 Basic Mathematics</h3>
+<p>The third capability is <strong>basic mathematics</strong>.</p>
+
+<p>The question is:</p>
+<div class="quote">Can the LLM solve mathematical problems correctly?</div>
+
+<h3>6.5 Coding</h3>
+<p>The fourth capability is <strong>coding</strong>.</p>
+
+<p>The question is:</p>
+<div class="quote">Can the LLM understand, generate, modify, and solve coding problems?</div>
+
+<h3>6.6 Instruction Following</h3>
+<p>The fifth capability is <strong>instruction following</strong>.</p>
+
+<p>Suppose you give an LLM ten instructions. Can it follow all ten instructions correctly, one after another, while respecting the constraints?</p>
+
+<h3>6.7 Long-Context Handling</h3>
+<p>The next capability is <strong>long-context handling</strong>.</p>
+
+<p>The question is:</p>
+<div class="quote">Can the LLM correctly find and use information from a very large context?</div>
+
+<h3>6.8 Multimodal Understanding</h3>
+<p>Another capability is <strong>multimodal understanding</strong>.</p>
+
+<p>Depending on the model, this can involve understanding:</p>
+
+<ul>
+<li>Images</li>
+<li>Text</li>
+<li>Audio</li>
+<li>Other modalities</li>
+</ul>
+
+<p>It can also involve producing appropriate outputs based on multimodal inputs.</p>
+
+<h3>6.9 Tool Use</h3>
+<p>The final capability is <strong>tool use</strong>.</p>
+
+<p>The question is:</p>
+
+<div class="quote">
+Can the LLM properly utilize external tools?
+</div>
+
+<p>Examples include APIs, function calling, search, calculators, code execution, databases, and other external systems.</p>
+
+<h3>6.10 Benchmarks</h3>
+
+<p>These capabilities are evaluated using <strong>benchmarks</strong>.</p>
+
+<p>Some examples mentioned in the lecture are:</p>
+
+<table>
+<thead>
+<tr><th>Capability / Area</th><th>Example Benchmark</th><th>Purpose</th></tr>
+</thead>
+<tbody>
+<tr><td>General Knowledge / Reasoning</td><td><strong>MMLU</strong></td><td>Tests questions across many subjects such as science, history, law, medicine, and more.</td></tr>
+<tr><td>Mathematics</td><td><strong>GSM8K</strong></td><td>Tests grade-school mathematical word problems.</td></tr>
+<tr><td>Coding / Software Engineering</td><td><strong>SWE-bench</strong></td><td>Evaluates software engineering/code-related problem solving.</td></tr>
+<tr><td>Instruction Following</td><td><strong>IFEval</strong></td><td>Evaluates whether models follow specified instructions and constraints.</td></tr>
+<tr><td>Long Context</td><td><strong>Needle in a Haystack</strong></td><td>Tests whether relevant information can be found inside a large context.</td></tr>
+<tr><td>Multimodal</td><td><strong>MMMU</strong></td><td>Evaluates multimodal understanding across diverse tasks.</td></tr>
+</tbody>
+</table>
+
+<h3>6.11 How to Think About Benchmarks</h3>
+
+<div class="diagram">
+Capability
+    |
+    +---- Reasoning
+    |
+    +---- Knowledge
+    |
+    +---- Mathematics
+    |
+    +---- Coding
+    |
+    +---- Instruction Following
+    |
+    +---- Long Context
+    |
+    +---- Multimodal
+    |
+    +---- Tool Use
+             |
+             v
+        Benchmarks
+             |
+             v
+       Model Results
+             |
+             v
+    Capability Comparison
+</div>
+
+<h3>6.12 Why AI Engineers Need Model-Eval Literacy</h3>
+
+<p>If you are going to become an AI Engineer, you probably will not spend most of your time performing frontier-level model evaluations.</p>
+
+<p>Why?</p>
+
+<p>Imagine a new LLM is released. Evaluating that new model across many benchmarks, documenting the results, and publishing those evaluations is generally the work of large frontier labs and model developers.</p>
+
+<p>Your practical responsibility is more likely to be:</p>
+
+<ul>
+<li>Know what model evaluation means.</li>
+<li>Understand what benchmarks are.</li>
+<li>Know how to read benchmark results.</li>
+<li>Understand model strengths and weaknesses.</li>
+<li>Use benchmark information to make better model-selection decisions.</li>
+</ul>
+
+<p>For example, when starting a project, you may need to decide:</p>
+
+<ul>
+<li>Should I use an OpenAI model?</li>
+<li>Should I use an Anthropic model?</li>
+<li>Would an open-source LLM be sufficient?</li>
+<li>Which model is better for my particular application?</li>
+</ul>
+
+<p>Model evaluation knowledge can help you make these decisions.</p>
+
+<div class="quote">
+<strong>You may never personally perform frontier-model evaluation, but you should understand model evaluations and know how to read benchmark results.</strong>
+</div>
+</section>
+
+<section id="application">
+<h2>7. Application Evals</h2>
+
+<p>Now we come to the second category:</p>
+
+<div class="quote">
+<strong>Application Evals</strong>
+</div>
+
+<p>This is the category that is especially important for an AI Engineer.</p>
+
+<p>Your work as an AI Engineer is to build LLM-based applications. Therefore, evaluating those applications is also your responsibility.</p>
+
+<p>Application Evals are the main practical focus of this topic.</p>
+
+<h3>7.1 Why Application Evals Exist</h3>
+
+<p>LLM applications are not just the LLM.</p>
+
+<p>Especially for beginners, there is a tendency to think:</p>
+
+<div class="quote">
+“If the LLM is the brain, then everything about the application must be about the LLM.”
+</div>
+
+<p>But that is not true.</p>
+
+<p>As you gain experience in AI Engineering and start building larger applications, you realize that although the LLM is very important, many other components are required for the complete application to work correctly.</p>
+
+<h3>7.2 Components Around the LLM</h3>
+
+<p>An LLM-powered application may include:</p>
+
+<ul>
+<li>User Interface</li>
+<li>System Prompt</li>
+<li>Tools</li>
+<li>APIs</li>
+<li>Orchestration code</li>
+<li>LangGraph workflows</li>
+<li>Branching logic</li>
+<li>Parallel execution</li>
+<li>Guardrails</li>
+<li>Output parsers</li>
+<li>Memory</li>
+<li>Context management</li>
+<li>Retrieval system</li>
+<li>Embedding model</li>
+<li>Vector database</li>
+<li>Reranker</li>
+<li>Deployment infrastructure</li>
+<li>Monitoring</li>
+<li>Feedback loops</li>
+</ul>
+
+<p>Therefore, in a proper production-grade LLM application:</p>
+
+<div class="quote">
+<strong>The LLM is just one component.</strong>
+</div>
+
+<h3>7.3 RAG Example</h3>
+
+<p>Suppose you are building a RAG system.</p>
+
+<p>You may have:</p>
+
+<div class="diagram">
+                   RAG APPLICATION
+                         |
+        +----------------+----------------+
+        |                |                |
+     Retrieval        LLM            Application
+        |                |                |
+   Embeddings        Prompt          Guardrails
+   Vector DB        Generation       Monitoring
+   Reranker                           Feedback
+</div>
+
+<p>The retrieval system itself may have multiple components:</p>
+
+<ul>
+<li>Embedding model</li>
+<li>Vector database</li>
+<li>Retriever</li>
+<li>Reranker</li>
+<li>Chunking strategy</li>
+</ul>
+
+<p>Every one of these can affect the final quality of the application.</p>
+
+<h2>8. Smartphone Analogy</h2>
+
+<p>A very useful analogy is a smartphone.</p>
+
+<p>A smartphone may have a processor such as a Snapdragon or MediaTek chip.</p>
+
+<p>Chip manufacturers often publish benchmark scores to demonstrate how powerful their processors are.</p>
+
+<p>These benchmarks tell us something about the capability of the processor.</p>
+
+<p>But ask yourself:</p>
+
+<div class="quote">
+<strong>Does having a powerful processor guarantee that the smartphone is a good smartphone?</strong>
+</div>
+
+<p>Obviously, no.</p>
+
+<p>A smartphone also requires:</p>
+
+<ul>
+<li>Camera system</li>
+<li>Operating system</li>
+<li>Sound system</li>
+<li>Graphics capabilities</li>
+<li>Display</li>
+<li>Battery</li>
+<li>Connectivity</li>
+<li>Other hardware and software components</li>
+</ul>
+
+<p>All of these components need to work properly together.</p>
+
+<p>Similarly, if you have a powerful LLM, that does not automatically guarantee that your LLM application will be good.</p>
+
+<div class="diagram">
+Powerful Processor
+       |
+       v
+Does NOT automatically mean
+       |
+       v
+Excellent Smartphone
+
+
+Powerful LLM
+       |
+       v
+Does NOT automatically mean
+       |
+       v
+Excellent AI Application
+</div>
+
+<p>Just as you evaluate the battery, display, camera, processor, operating system, etc. of a smartphone, you need to evaluate the different components of an LLM application.</p>
+
+<p>The model evaluation is often performed by the model developers/frontier labs.</p>
+
+<p>But the evaluation of the complete system that you build around the model is your responsibility as an AI Engineer.</p>
+
+<h2>9. Definition of Application Evals</h2>
+
+<div class="quote">
+<strong>Application Evals assess the behavior and performance of an LLM-powered application, either at the level of the entire system or at the level of a specific component within it.</strong>
+</div>
+
+<p>This means application evaluation can happen at:</p>
+
+<h3>Component Level</h3>
+
+<ul>
+<li>Retriever</li>
+<li>Embedding model</li>
+<li>Reranker</li>
+<li>Prompt</li>
+<li>Guardrails</li>
+<li>Output parser</li>
+<li>Tool calling</li>
+<li>Memory</li>
+</ul>
+
+<h3>Entire System Level</h3>
+
+<ul>
+<li>Final response quality</li>
+<li>Correctness</li>
+<li>Groundedness</li>
+<li>Safety</li>
+<li>Latency</li>
+<li>Cost</li>
+<li>User experience</li>
+</ul>
+
+<h2>10. RAG Application: Component-Level Evaluation</h2>
+
+<p>Suppose you built a RAG chatbot.</p>
+
+<p>You can evaluate the entire chatbot:</p>
+
+<ul>
+<li>How good is the final response?</li>
+<li>How fast is the response?</li>
+<li>What is the cost per token?</li>
+<li>Is the final answer correct?</li>
+<li>Is it safe?</li>
+</ul>
+
+<p>But you can also evaluate individual components.</p>
+
+<p>For example:</p>
+
+<div class="grid">
+<div class="small-card"><strong>Retriever</strong><br>Is the correct information being retrieved?</div>
+<div class="small-card"><strong>Embedding Model</strong><br>Does it represent semantic meaning effectively?</div>
+<div class="small-card"><strong>Reranker</strong><br>Does it correctly reorder retrieved documents?</div>
+<div class="small-card"><strong>Prompt</strong><br>Does the prompt produce the desired behavior?</div>
+</div>
+
+<p>This is why application evaluation is broader than simply evaluating the LLM.</p>
+
+<h2>11. The Central Question: Model vs Application</h2>
+
+<h3>Model Evaluation asks:</h3>
+
+<div class="quote">
+<strong>“Can the model do this?”</strong>
+</div>
+
+<p>For example:</p>
+
+<ul>
+<li>Can it reason?</li>
+<li>Can it code?</li>
+<li>Can it solve math?</li>
+<li>Can it follow instructions?</li>
+<li>Can it handle long contexts?</li>
+<li>Can it use tools?</li>
+</ul>
+
+<h3>Application Evaluation asks:</h3>
+
+<div class="quote">
+<strong>“Will our product/system work correctly?”</strong>
+</div>
+
+<p>For a Campus X chatbot, application evaluation can answer:</p>
+
+<ul>
+<li>Was the student's question answered correctly?</li>
+<li>Was the course material properly used?</li>
+<li>Was the answer faithful to the retrieved content?</li>
+<li>Was the answer easy enough for a beginner?</li>
+<li>Did hallucination occur?</li>
+<li>Was the answer delivered quickly enough?</li>
+<li>Is the chatbot safe?</li>
+</ul>
+
+<h2>12. Campus X Chatbot — Complete Example</h2>
+
+<div class="card">
+<h3>Suppose we build a Campus X educational chatbot.</h3>
+
+<h4>Model Evaluation</h4>
+<p>We might ask:</p>
+<ul>
+<li>Can the underlying model reason?</li>
+<li>Can it follow instructions?</li>
+<li>Can it solve mathematics?</li>
+<li>Can it handle long context?</li>
+<li>Can it use tools?</li>
+</ul>
+
+<h4>Application Evaluation</h4>
+<p>We might ask:</p>
+<ul>
+<li>Did the chatbot answer the student's question correctly?</li>
+<li>Did it use the correct course material?</li>
+<li>Was the response grounded?</li>
+<li>Was the response easy for a beginner to understand?</li>
+<li>Did hallucination occur?</li>
+<li>Was the response safe?</li>
+<li>Was the response fast enough?</li>
+<li>Was the application reliable?</li>
+</ul>
+</div>
+
+<h2>13. Why Application Evals Are the Main Topic for AI Engineers</h2>
+
+<p>As an AI Engineer, your job is usually not to create the next frontier LLM.</p>
+
+<p>Your job is more likely to be building applications using existing LLMs.</p>
+
+<p>Examples include:</p>
+
+<ul>
+<li>RAG systems</li>
+<li>AI chatbots</li>
+<li>AI agents</li>
+<li>LLM-powered APIs</li>
+<li>Document question-answering systems</li>
+<li>AI assistants</li>
+<li>Enterprise AI applications</li>
+</ul>
+
+<p>Therefore, you need to know whether the system you built is actually working.</p>
+
+<p>This makes Application Evals extremely important.</p>
+
+<div class="quote">
+<strong>Model evaluation tells us how capable the underlying model is. Application evaluation tells us whether the actual product we built works correctly.</strong>
+</div>
+
+<h2>14. Practical Focus of the Course</h2>
+
+<p>The course will focus much more heavily on <strong>Application Evals</strong>.</p>
+
+<p>There is still value in understanding Model Evals because:</p>
+
+<ul>
+<li>You need to understand how models are benchmarked.</li>
+<li>You need to understand what benchmark scores mean.</li>
+<li>You need to understand model capabilities.</li>
+<li>You need to compare different available models.</li>
+<li>You need to make informed model-selection decisions.</li>
+</ul>
+
+<p>However, you may never personally need to perform large-scale frontier-model benchmarking.</p>
+
+<p>Application evaluation is much more likely to be part of your day-to-day work as an AI Engineer.</p>
+
+<h2>15. Important Rule When Watching Future LLM-Evaluation Content</h2>
+
+<p>When you watch future content on YouTube or elsewhere that says:</p>
+
+<div class="quote">“LLM Evaluation”</div>
+
+<p>you should understand that the term can refer to both model-level and application-level evaluation.</p>
+
+<p>In practical AI engineering content, a large amount of evaluation discussion is about evaluating the <strong>LLM-powered application</strong>, rather than performing frontier-model benchmark research.</p>
+
+<p>Always look at the context to determine which kind of evaluation is being discussed.</p>
+</section>
+
+<section id="summary">
+<h2>16. Complete Lecture Summary</h2>
+
+<p>Let's summarize the entire flow covered in this lecture.</p>
+
+<h3>Part 1 — WHY</h3>
+
+<p>We first discussed:</p>
+
+<ul>
+<li>Why LLM evaluations are needed.</li>
+<li>Why LLM evaluations are important.</li>
+<li>How LLM evaluation differs from traditional software testing.</li>
+</ul>
+
+<h3>Part 2 — WHAT</h3>
+
+<p>We then discussed:</p>
+
+<ul>
+<li>What LLM Evals are.</li>
+<li>The definition of LLM Evals.</li>
+<li>The three important characteristics:
+  <ul>
+    <li>Systematic</li>
+    <li>Repeatable</li>
+    <li>Clear criteria</li>
+  </ul>
+</li>
+<li>Why an LLM Eval is not just a metric.</li>
+<li>Why the entire testing setup matters.</li>
+<li>What practical questions LLM evaluations answer.</li>
+</ul>
+
+<h3>Part 3 — TYPES</h3>
+
+<p>We divided LLM Evals conceptually into:</p>
+
+<table>
+<thead>
+<tr><th>Type</th><th>Purpose</th></tr>
+</thead>
+<tbody>
+<tr><td><strong>Model Evals</strong></td><td>Evaluate the LLM itself and its capabilities.</td></tr>
+<tr><td><strong>Application Evals</strong></td><td>Evaluate the LLM-powered application/system.</td></tr>
+</tbody>
+</table>
+
+<h3>Part 4 — Model Evals</h3>
+
+<p>We learned that Model Evals evaluate the capabilities of an LLM.</p>
+
+<p>The eight capability categories discussed were:</p>
+
+<ol>
+<li>Reasoning</li>
+<li>Knowledge</li>
+<li>Basic Mathematics</li>
+<li>Coding</li>
+<li>Instruction Following</li>
+<li>Long-Context Handling</li>
+<li>Multimodal Understanding</li>
+<li>Tool Use</li>
+</ol>
+
+<p>We also saw benchmark examples including:</p>
+
+<ul>
+<li>MMLU</li>
+<li>GSM8K</li>
+<li>SWE-bench</li>
+<li>IFEval</li>
+<li>Needle in a Haystack</li>
+<li>MMMU</li>
+</ul>
+
+<h3>Part 5 — AI Engineer Relevance</h3>
+
+<p>We learned that an AI Engineer may not frequently perform frontier-model evaluations personally.</p>
+
+<p>However, an AI Engineer should understand:</p>
+
+<ul>
+<li>What model evaluation is.</li>
+<li>What benchmarks are.</li>
+<li>How to read benchmark results.</li>
+<li>Which models are strong in which capabilities.</li>
+<li>How benchmark information can help with model selection.</li>
+</ul>
+
+<h3>Part 6 — Application Evals</h3>
+
+<p>We then moved to Application Evals, which are especially important for AI Engineers.</p>
+
+<p>We learned that an LLM application is much more than the LLM itself.</p>
+
+<p>It can contain:</p>
+
+<ul>
+<li>UI</li>
+<li>Prompts</li>
+<li>Tools</li>
+<li>APIs</li>
+<li>Orchestration</li>
+<li>Agents</li>
+<li>Guardrails</li>
+<li>Output parsers</li>
+<li>Memory</li>
+<li>Context</li>
+<li>Retrieval</li>
+<li>Embeddings</li>
+<li>Vector databases</li>
+<li>Rerankers</li>
+<li>Monitoring</li>
+<li>Feedback loops</li>
+</ul>
+
+<p>Therefore, all these components can require evaluation.</p>
+
+<h3>Part 7 — Component + System Evaluation</h3>
+
+<p>Application Evals can happen at:</p>
+
+<ul>
+<li><strong>Component level</strong> — retriever, embeddings, reranker, prompt, guardrails, etc.</li>
+<li><strong>System level</strong> — final answer, correctness, groundedness, safety, latency, cost, and overall behavior.</li>
+</ul>
+
+<h3>Part 8 — The Core Difference</h3>
+
+<div class="diagram">
+MODEL EVAL
+    |
+    +--> "Can the model do X?"
+    |
+    +--> Evaluate model capabilities
+    |
+    +--> Benchmarks
+    |
+    +--> Model-level comparison
+
+
+APPLICATION EVAL
+    |
+    +--> "Does my product/system work correctly?"
+    |
+    +--> Evaluate application behavior
+    |
+    +--> Component + end-to-end evaluation
+    |
+    +--> Production readiness
+</div>
+
+<h2>17. Final Mental Model</h2>
+
+<div class="card">
+<h3>Remember These Four Lines</h3>
+
+<p class="highlight">1. LLM Evals are systematic, repeatable tests against clear criteria.</p>
+
+<p class="highlight">2. LLM Evals are not just metrics — they are the complete testing setup.</p>
+
+<p class="highlight">3. Model Evals tell us how capable the underlying LLM is.</p>
+
+<p class="highlight">4. Application Evals tell us whether the LLM-powered product actually works.</p>
+</div>
+
+<div class="quote">
+<strong>For an AI Engineer: Model Evals give you model literacy; Application Evals give you practical engineering control over the system you build.</strong>
+</div>
+
+<h2>18. Transition to the Next Topic — HOW</h2>
+
+<p>So far, we have covered:</p>
+
+<div class="grid">
+<div class="small-card"><strong>WHY</strong><br>Why do we need LLM evaluations?</div>
+<div class="small-card"><strong>WHAT</strong><br>What exactly are LLM Evals?</div>
+<div class="small-card"><strong>TYPES</strong><br>Model Evals and Application Evals.</div>
+</div>
+
+<p>Now we move toward:</p>
+
+<div class="quote">
+<strong>HOW are LLM evaluations actually performed?</strong>
+</div>
+
+<p>And there is one final important disclaimer:</p>
+
+<p>The upcoming “HOW” discussion is primarily going to be taught from the perspective of <strong>Application Evals</strong>, not from the perspective of frontier-level Model Evals.</p>
+
+<div class="card">
+<h3>End of Page 3</h3>
+<p><strong>Next:</strong> How Application-Level LLM Evaluations are actually performed — datasets, evaluation criteria, evaluators, metrics, workflows, and practical implementation.</p>
+</div>
+
+</section>
+
+<footer>
+  <p>LLM Evaluation Study Notes — Page 3</p>
+  <p>Complete structured notes based on the supplied lecture transcript.</p>
+</footer>
+
+</div>
+</body>
+</html>

@@ -1,0 +1,342 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>LLM Leaderboards — Detailed Study Notes</title>
+<style>
+:root{
+  --bg:#07111f;--card:#0d1b2d;--card2:#10243a;--text:#eaf2ff;
+  --muted:#a8bad0;--accent:#5eead4;--accent2:#60a5fa;--border:#203752;
+  --warn:#fbbf24;--danger:#fb7185;--good:#34d399;
+}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{margin:0;font-family:Inter,system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;
+background:linear-gradient(180deg,#06101d,#091728 45%,#06101d);color:var(--text);line-height:1.7}
+.container{max-width:1180px;margin:auto;padding:32px 22px 70px}
+.hero{padding:42px 34px;border:1px solid var(--border);border-radius:24px;
+background:linear-gradient(135deg,#10243a,#0b1728);box-shadow:0 20px 70px #0005}
+.badge{display:inline-block;padding:6px 12px;border:1px solid #2e526f;border-radius:999px;
+color:var(--accent);font-size:13px;font-weight:700;letter-spacing:.5px}
+h1{font-size:clamp(34px,5vw,58px);line-height:1.05;margin:16px 0}
+h2{font-size:30px;margin-top:55px;color:#fff}
+h3{font-size:21px;color:var(--accent);margin-top:30px}
+p{color:#d8e5f4}
+.lead{font-size:19px;color:#c8d8ea;max-width:920px}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:16px}
+.card{background:rgba(13,27,45,.88);border:1px solid var(--border);border-radius:16px;padding:20px}
+.card strong{color:#fff}
+.definition{border-left:4px solid var(--accent);padding:18px 22px;background:#0b2030;border-radius:10px;margin:20px 0}
+.quote{font-size:22px;font-weight:800;color:#fff;border:1px solid #315170;padding:22px;border-radius:15px;background:#0d2135}
+ul,ol{padding-left:25px}
+li{margin:8px 0;color:#d5e2f0}
+table{width:100%;border-collapse:collapse;margin:18px 0;background:#0b1828;border-radius:12px;overflow:hidden}
+th,td{border:1px solid var(--border);padding:13px;text-align:left;vertical-align:top}
+th{background:#112a43;color:var(--accent)}
+.small{font-size:14px;color:var(--muted)}
+.warning{border-left:4px solid var(--warn);background:#2b2410;padding:16px 20px;border-radius:10px}
+.danger{border-left:4px solid var(--danger);background:#2a121b;padding:16px 20px;border-radius:10px}
+.good{border-left:4px solid var(--good);background:#0b281f;padding:16px 20px;border-radius:10px}
+.toc{position:sticky;top:0;z-index:10;background:#07111feF;border-bottom:1px solid var(--border);backdrop-filter:blur(12px)}
+.toc-inner{max-width:1180px;margin:auto;padding:12px 22px;display:flex;gap:10px;overflow:auto;white-space:nowrap}
+.toc a{color:#c9d9eb;text-decoration:none;font-size:14px;padding:6px 9px;border-radius:8px}
+.toc a:hover{background:#17314c;color:#fff}
+.kpi{font-size:30px;font-weight:800;color:var(--accent2)}
+.tag{display:inline-block;margin:4px;padding:5px 9px;background:#132c46;border:1px solid #244968;border-radius:7px;font-size:13px}
+.step{display:flex;gap:18px;align-items:flex-start;margin:18px 0}
+.num{min-width:38px;height:38px;border-radius:50%;display:grid;place-items:center;
+background:#173957;color:var(--accent);font-weight:800}
+footer{margin-top:60px;padding-top:25px;border-top:1px solid var(--border);color:var(--muted)}
+@media(max-width:650px){.hero{padding:28px 20px}.container{padding:20px 14px 50px}h2{font-size:25px}}
+</style>
+</head>
+<body>
+
+<nav class="toc"><div class="toc-inner">
+<a href="#definition">Definition</a><a href="#why">Why</a><a href="#stakeholders">Stakeholders</a>
+<a href="#types">4 Types</a><a href="#limitations">Limitations</a><a href="#workflow">How to Read</a>
+<a href="#takeaway">Key Takeaway</a>
+</div></nav>
+
+<main class="container">
+<section class="hero">
+<span class="badge">LLM EVALUATION — STUDY NOTES</span>
+<h1>LLM Leaderboards</h1>
+<p class="lead">What leaderboards are, why they exist, who uses them, the four major types, their limitations, and how an AI Engineer should use them for model selection.</p>
+<div>
+<span class="tag">Benchmarks</span><span class="tag">Model Selection</span><span class="tag">Evaluation</span>
+<span class="tag">Human Preference</span><span class="tag">Application-Specific</span>
+</div>
+</section>
+
+<section id="definition">
+<h2>1. What Is an LLM Leaderboard?</h2>
+<div class="definition">
+<strong>Simple idea:</strong> A benchmark is the exam/test. The leaderboard is the place where the results are published and compared.
+</div>
+<p>After different LLMs take the same benchmark, their scores have to be displayed somewhere so we can compare them. That comparison table is the leaderboard.</p>
+<div class="quote">“An LLM leaderboard is a public ranking and comparison table that shows how different LLMs perform on a common set of evaluations.”</div>
+<p>A leaderboard therefore gives us a single place where different models can be compared on the same benchmark or set of evaluations.</p>
+
+<div class="grid">
+<div class="card"><div class="kpi">Benchmark</div><p>The test/exam used to evaluate a particular capability.</p></div>
+<div class="card"><div class="kpi">Result</div><p>The score a model obtains after taking the evaluation.</p></div>
+<div class="card"><div class="kpi">Leaderboard</div><p>The public ranking/comparison of those results.</p></div>
+</div>
+</section>
+
+<section id="why">
+<h2>2. Why Do LLM Leaderboards Exist?</h2>
+
+<h3>1. Compare Models Across Labs</h3>
+<p>Different labs can be compared using a common reference. If every model takes the same exam, the leaderboard tells us who performed first, second, last, etc.</p>
+<p>This gives users an immediate overview of which models perform best on a particular benchmark.</p>
+
+<h3>2. Provide Trust Through Third-Party Evaluation</h3>
+<p>Third-party leaderboards can be more trustworthy than a company simply publishing its own score. If a model provider says “our model scored very high,” users may naturally question the claim because the provider has an incentive to present its model positively.</p>
+<p>A third party evaluating multiple providers on the same benchmark creates a more independent comparison.</p>
+
+<h3>3. Guide Model Selection Without Running Every Evaluation</h3>
+<p>There are hundreds of models. Testing every model yourself can require enormous amounts of money, time, and effort.</p>
+<p>A practical strategy is to use a leaderboard to narrow a huge candidate pool to a small shortlist, and then run your own evaluations on those shortlisted models.</p>
+<div class="good"><strong>Key idea:</strong> Leaderboards reduce the search space. They help filter 100+ possible models down to perhaps 3–5 candidates.</div>
+
+<h3>4. Detect Benchmark Saturation</h3>
+<p>If many top models begin clustering around almost identical scores—for example, the top 10 models all scoring around 92–94—it may indicate that the benchmark is becoming saturated.</p>
+<p>Once a benchmark stops clearly separating strong models, it becomes less useful for distinguishing newer capabilities.</p>
+
+<h3>5. Discover New Models</h3>
+<p>Leaderboards are useful for discovering models beyond the usual top three or four frontier labs. Scrolling further down can reveal newer or smaller models that may not be the absolute best but could be useful for a particular application.</p>
+<p>These models can also be cheaper, making them interesting candidates for production applications.</p>
+</section>
+
+<section id="stakeholders">
+<h2>3. Who Uses LLM Leaderboards?</h2>
+<div class="grid">
+<div class="card"><h3>AI Engineers</h3><p>Use leaderboards for model shortlisting. They select candidate models from relevant leaderboards and then run custom evaluations.</p></div>
+<div class="card"><h3>Frontier Labs</h3><p>Monitor their position against competitors and use results to inform model release and iteration strategy.</p></div>
+<div class="card"><h3>Researchers</h3><p>Study benchmark saturation, identify trends, discover techniques, and find new research directions.</p></div>
+<div class="card"><h3>Policy Makers & Safety Institutes</h3><p>Monitor model capabilities and watch for models that may require attention or intervention.</p></div>
+<div class="card"><h3>Open-Source Community</h3><p>Use leaderboards for model discovery, publicity, visibility, and finding promising new research labs or models.</p></div>
+</div>
+
+<h3>Frontier-Lab Strategy</h3>
+<p>Leaderboards can reveal whether a new model iteration is actually competitive. If a new internal model cannot beat an existing competitor, a lab may choose not to release that iteration and continue improving it.</p>
+<p>The lecture also uses the “Nano Banana” example to illustrate how a model can initially appear under a hidden/stealth identity on an image leaderboard, attract attention by performing extremely well, and later be publicly identified.</p>
+</section>
+
+<section id="types">
+<h2>4. Four Types of LLM Leaderboards</h2>
+<table>
+<thead><tr><th>Type</th><th>What It Does</th><th>Main Question</th><th>Usefulness</th></tr></thead>
+<tbody>
+<tr><td><strong>1. Benchmark-Specific</strong></td><td>Ranks models using one benchmark.</td><td>Which model is best on this benchmark?</td><td>Narrow</td></tr>
+<tr><td><strong>2. Multi-Benchmark / General Capability</strong></td><td>Combines results across multiple benchmarks and dimensions.</td><td>Which model has the strongest overall combination?</td><td>Very high</td></tr>
+<tr><td><strong>3. Human-Preference Based</strong></td><td>Ranks models using human votes/comparisons.</td><td>Which model do humans prefer?</td><td>Popular, but subjective</td></tr>
+<tr><td><strong>4. Application-Specific</strong></td><td>Ranks models around a specific domain or task.</td><td>Which model is best for this application/domain?</td><td>High for the target use case</td></tr>
+</tbody>
+</table>
+
+<h3>Type 1 — Benchmark-Specific Leaderboards</h3>
+<p>These rankings are based on a single benchmark such as MMLU, HumanEval, GSM8K, or GPQA.</p>
+<p>The main advantage is simplicity: you can immediately see which model performs best on that benchmark.</p>
+<div class="warning"><strong>Limitation:</strong> The view is narrow. A model can be excellent on one benchmark without being the best overall model.</div>
+<p><strong>Example from the lecture:</strong> The Humanity’s Last Exam (HLE) leaderboard, which displays model performance on that particular benchmark.</p>
+
+<h3>Type 2 — Multi-Benchmark Leaderboards</h3>
+<p>These combine multiple benchmarks and evaluation dimensions to create a more comprehensive view.</p>
+<p>Possible dimensions can include knowledge, reasoning, mathematics, coding, instruction following, and data analysis.</p>
+<p><strong>Example discussed:</strong> LiveBench, described in the lecture as a contamination-free LLM benchmark with objective tasks across multiple categories, including reasoning, coding, and agentic coding.</p>
+<p>Such leaderboards can also provide operational information such as:</p>
+<div class="grid">
+<div class="card"><strong>Cost / token</strong><p>How expensive the model is to use.</p></div>
+<div class="card"><strong>Latency</strong><p>How quickly responses are produced.</p></div>
+<div class="card"><strong>Output speed</strong><p>How quickly the model generates output.</p></div>
+<div class="card"><strong>Context window</strong><p>How much input context the model can handle.</p></div>
+</div>
+<p>The lecture also discusses Artificial Analysis as an example of a platform providing many types of model leaderboards, including intelligence, speed, cost, coding agents, speech, image, audio, and hardware-related comparisons.</p>
+
+<h3>Type 3 — Human-Preference Leaderboards</h3>
+<p>These do not primarily rank models by a fixed benchmark score. Instead, users compare responses from two models and vote for the response they prefer.</p>
+<div class="step"><div class="num">A</div><div><strong>User asks a question.</strong><br>Two models generate responses.</div></div>
+<div class="step"><div class="num">B</div><div><strong>User compares the responses.</strong><br>The user chooses which answer is better.</div></div>
+<div class="step"><div class="num">C</div><div><strong>Votes accumulate.</strong><br>Large-scale preferences are aggregated into rankings.</div></div>
+<div class="step"><div class="num">D</div><div><strong>Leaderboard is produced.</strong><br>Models are ranked according to human preferences.</div></div>
+<p><strong>Famous example discussed:</strong> LM Arena, where users compare model responses and vote for the better one. The lecture notes that categories can include normal chat, coding, image, and video.</p>
+<div class="warning"><strong>Limitation:</strong> Human preference contains human bias. People may prefer answers that are longer, more confidently written, better formatted, or more entertaining—even when those properties do not necessarily mean the answer is objectively better.</div>
+
+<h3>Type 4 — Application-Specific Leaderboards</h3>
+<p>These are built around a particular domain, task, or application.</p>
+<ul>
+<li>Coding</li>
+<li>Agentic tasks</li>
+<li>SQL/query generation</li>
+<li>Medical questions</li>
+<li>Tool/function calling</li>
+</ul>
+<p><strong>Example discussed:</strong> Berkeley Function Calling Leaderboard, which focuses specifically on a model’s tool/function-calling capability.</p>
+<p>It can combine multiple benchmarks while remaining focused on one domain.</p>
+</section>
+
+<section id="limitations">
+<h2>5. Why You Cannot Blindly Trust Leaderboards</h2>
+<div class="danger"><strong>Core warning:</strong> A leaderboard is useful, but a leaderboard score is not automatically a prediction of real-world application performance.</div>
+
+<h3>1. Benchmark Performance May Not Transfer to Real Applications</h3>
+<p>A model scoring 80–90 on a benchmark does not mean it will deliver the same level of performance in your application.</p>
+<p>Benchmarks generally have cleaner data and clearer problem statements. Real applications are messy.</p>
+<ul>
+<li>Ambiguous requests</li>
+<li>Missing information</li>
+<li>Company-specific data</li>
+<li>Tool failures</li>
+<li>Unusual edge cases</li>
+</ul>
+<p>A model may perform extremely well on a clean benchmark while behaving differently in these real-world conditions.</p>
+
+<h3>2. Benchmark Contamination</h3>
+<p>If benchmark data becomes part of a model’s training data or is otherwise memorized, its benchmark score can become inflated.</p>
+<p>Therefore, a high leaderboard score is not automatically proof of genuine generalization.</p>
+
+<h3>3. Models Can Be Over-Optimized for the Leaderboard</h3>
+<p>When a leaderboard becomes a major target, organizations may optimize models specifically for that evaluation.</p>
+<p>For example, if a human-preference leaderboard rewards certain response styles, a model could be trained to produce answers that are more likely to receive votes without necessarily improving its underlying capability.</p>
+
+<div class="quote">“When a measure becomes a target, it becomes less useful as a measure.”</div>
+<p>The lecture refers to this as Goodhart’s Law.</p>
+
+<h3>4. Composite Leaderboards Hide Methodology</h3>
+<p>When a leaderboard combines multiple benchmarks, you need to understand:</p>
+<ul>
+<li>Which benchmarks are included?</li>
+<li>Which benchmarks are excluded?</li>
+<li>How are scores normalized?</li>
+<li>How much weight does each capability receive?</li>
+<li>How is the final composite score calculated?</li>
+</ul>
+<p>The more transparent the methodology, the more useful the leaderboard becomes.</p>
+
+<h3>5. Small Score Differences Do Not Necessarily Mean Meaningful Differences</h3>
+<p>Suppose one model scores 84.3 and another scores 84.1. A difference of 0.2 does not necessarily mean the first model is meaningfully better.</p>
+<p>Do not become overly focused on rank numbers. If two models are statistically or practically very close, the lower-ranked model could still be better for your application.</p>
+
+<h3>6. Human-Preference Leaderboards Have Human Bias</h3>
+<p>Human-preference rankings do not necessarily identify the objectively strongest model.</p>
+<p>Humans may favor:</p>
+<ul>
+<li>Longer answers</li>
+<li>More confident answers</li>
+<li>Better formatting</li>
+<li>More entertaining responses</li>
+<li>Answers that personally feel appealing</li>
+</ul>
+
+<h3>7. Leaderboard Scores Can Be Stale, Incomplete, or Self-Reported</h3>
+<p>Some leaderboards may not be updated immediately when new model versions are released. They may still show older model versions or discontinued models.</p>
+<p>Some results may also be self-reported by model providers. That makes it important to understand where the numbers came from and whether the evaluation process is independent.</p>
+</section>
+
+<section id="workflow">
+<h2>6. How an AI Engineer Should Read a Leaderboard</h2>
+
+<div class="definition"><strong>Goal:</strong> Do not start with “Who is #1?” Start with “What does my application actually require?”</div>
+
+<h3>Step 1 — Define Your Application Constraints</h3>
+<div class="grid">
+<div class="card"><strong>Application type</strong><p>What exactly are you building?</p></div>
+<div class="card"><strong>Latency</strong><p>How fast must the application respond?</p></div>
+<div class="card"><strong>Cost</strong><p>What inference cost can you afford?</p></div>
+<div class="card"><strong>Context needs</strong><p>How much context must the model handle?</p></div>
+<div class="card"><strong>Deployment</strong><p>Public API or on-premise deployment?</p></div>
+</div>
+
+<p>Writing these constraints first prevents you from automatically choosing the #1 model. For example, an on-premise requirement may eliminate models that are only available through a public API.</p>
+
+<h3>Step 2 — Choose the Relevant Leaderboard</h3>
+<p>Use a leaderboard that matches your application.</p>
+<table>
+<tr><th>Application</th><th>Relevant Leaderboard Direction</th></tr>
+<tr><td>General chatbot</td><td>Human-preference / chat-oriented leaderboards such as LM Arena</td></tr>
+<tr><td>Agent</td><td>Agent-related/application-specific leaderboard</td></tr>
+<tr><td>RAG</td><td>Relevant embedding/model leaderboards</td></tr>
+<tr><td>Cost-sensitive application</td><td>Cost + speed oriented leaderboards</td></tr>
+<tr><td>Tool calling</td><td>Function/tool-calling leaderboard</td></tr>
+</table>
+
+<h3>Step 3 — Read the Leaderboard Correctly</h3>
+<p>Do not only look at the score. Investigate the evaluation methodology.</p>
+<ul>
+<li>What exactly is being scored?</li>
+<li>How is it scored?</li>
+<li>Who evaluated it?</li>
+<li>What inference/reasoning budget was used?</li>
+<li>Was reasoning enabled?</li>
+<li>When was the evaluation dataset created?</li>
+<li>How frequently is the leaderboard updated?</li>
+<li>Is there a private test set?</li>
+<li>Has the benchmark become saturated?</li>
+<li>Are confidence intervals reported?</li>
+<li>How large is the evaluation dataset?</li>
+<li>For composite leaderboards, what weights are assigned to each capability?</li>
+</ul>
+
+<div class="warning"><strong>Rule:</strong> Read the methodology, definitions, FAQ, and evaluation details—not just the big ranking number.</div>
+
+<h3>Step 4 — Shortlist 3–5 Candidate Models</h3>
+<p>Use the leaderboard as a filtering mechanism. Based on your application constraints and the leaderboard methodology, select a small set of candidate models.</p>
+
+<h3>Step 5 — Run Your Own Custom Evaluations</h3>
+<p>This is the most important step. Take the 3–5 shortlisted models and run them on your own evaluation set and application-specific requirements.</p>
+<p>The model that performs best on your own evaluation becomes your production candidate.</p>
+</section>
+
+<section id="takeaway">
+<h2>7. Most Important Takeaway</h2>
+<div class="quote">
+Leaderboards are NOT a selection tool.<br>
+Leaderboards are a filtering tool, NOT a decision tool.
+</div>
+
+<p>Do not use a leaderboard to directly decide which model your application will use.</p>
+<div class="grid">
+<div class="card"><h3>100+ Models</h3><p>Start with the large model landscape.</p></div>
+<div class="card"><h3>Leaderboard</h3><p>Filter models using relevant benchmarks, cost, latency, and other constraints.</p></div>
+<div class="card"><h3>3–5 Candidates</h3><p>Create a manageable shortlist.</p></div>
+<div class="card"><h3>Custom Evals</h3><p>Test those candidates on your own evaluation set.</p></div>
+<div class="card"><h3>Final Model</h3><p>Select the model that performs best for your actual application.</p></div>
+</div>
+
+<h2>8. Session Flow</h2>
+<div class="step"><div class="num">1</div><div><strong>Benchmarks</strong><br>Understand what standardized tests are.</div></div>
+<div class="step"><div class="num">2</div><div><strong>Leaderboards</strong><br>Use benchmark results to compare and filter models.</div></div>
+<div class="step"><div class="num">3</div><div><strong>Custom Evaluations</strong><br>Run your own evaluations on shortlisted LLMs.</div></div>
+<div class="step"><div class="num">4</div><div><strong>Application Evaluations</strong><br>Move toward RAG evaluations and agent evaluations.</div></div>
+
+<h2>9. Quick Revision</h2>
+<table>
+<tr><th>Question</th><th>Answer</th></tr>
+<tr><td>What is a benchmark?</td><td>A test/evaluation used to measure a model capability.</td></tr>
+<tr><td>What is a leaderboard?</td><td>A ranking/comparison table showing model evaluation results.</td></tr>
+<tr><td>Why use leaderboards?</td><td>Comparison, trust, filtering, saturation detection, and model discovery.</td></tr>
+<tr><td>Most useful general category?</td><td>Multi-benchmark leaderboards that provide broad capability plus operational information.</td></tr>
+<tr><td>What is LM Arena?</td><td>An example of a human-preference based leaderboard.</td></tr>
+<tr><td>What is an application-specific leaderboard?</td><td>A leaderboard focused on a particular domain/task such as coding or tool calling.</td></tr>
+<tr><td>Can benchmark scores predict production performance?</td><td>Not necessarily.</td></tr>
+<tr><td>What is Goodhart’s Law?</td><td>When a measure becomes a target, it can become less useful as a measure.</td></tr>
+<tr><td>What should an AI Engineer do with leaderboards?</td><td>Use them to filter and shortlist models, then run custom evaluations.</td></tr>
+<tr><td>Final model-selection rule?</td><td>Leaderboard → shortlist → custom evals → select the best model for the application.</td></tr>
+</table>
+
+<div class="good">
+<strong>One-line memory trick:</strong><br>
+Benchmark = Exam → Score = Result → Leaderboard = Ranking → Shortlist = Filter → Custom Eval = Decision.
+</div>
+</section>
+
+<footer>
+<p>Study Notes: LLM Leaderboards • Prepared from the provided lecture transcript, preserving its concepts, examples, structure, and terminology.</p>
+</footer>
+</main>
+</body>
+</html>

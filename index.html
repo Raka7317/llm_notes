@@ -1,0 +1,634 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>LLM Evaluation — Study Hub</title>
+
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: Inter, Arial, sans-serif;
+            background:
+                radial-gradient(circle at top left, #1e3a8a 0%, transparent 35%),
+                radial-gradient(circle at bottom right, #581c87 0%, transparent 35%),
+                #070b16;
+            color: #f8fafc;
+            min-height: 100vh;
+        }
+
+        /* ================= HEADER ================= */
+
+        header {
+            padding: 70px 8% 45px;
+            text-align: center;
+        }
+
+        .badge {
+            display: inline-block;
+            padding: 8px 16px;
+            border: 1px solid rgba(255,255,255,0.15);
+            background: rgba(255,255,255,0.06);
+            border-radius: 50px;
+            color: #93c5fd;
+            font-size: 13px;
+            font-weight: 600;
+            margin-bottom: 20px;
+        }
+
+        h1 {
+            font-size: clamp(40px, 6vw, 72px);
+            line-height: 1.05;
+            font-weight: 800;
+            letter-spacing: -2px;
+        }
+
+        h1 span {
+            background: linear-gradient(90deg, #60a5fa, #a78bfa);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .subtitle {
+            max-width: 750px;
+            margin: 22px auto 0;
+            color: #94a3b8;
+            font-size: 17px;
+            line-height: 1.7;
+        }
+
+        /* ================= SEARCH ================= */
+
+        .search-container {
+            max-width: 650px;
+            margin: 0 auto 45px;
+            padding: 0 20px;
+        }
+
+        #searchBox {
+            width: 100%;
+            padding: 16px 20px;
+            border-radius: 14px;
+            border: 1px solid #263452;
+            outline: none;
+            background: rgba(17, 24, 39, 0.85);
+            color: white;
+            font-size: 15px;
+        }
+
+        #searchBox:focus {
+            border-color: #60a5fa;
+            box-shadow: 0 0 0 3px rgba(96,165,250,0.12);
+        }
+
+        /* ================= MAIN ================= */
+
+        main {
+            width: min(1200px, 90%);
+            margin: auto;
+            padding-bottom: 70px;
+        }
+
+        .section-title {
+            margin-bottom: 22px;
+            color: #cbd5e1;
+            font-size: 14px;
+            text-transform: uppercase;
+            letter-spacing: 1.5px;
+            font-weight: 700;
+        }
+
+        .pages-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 18px;
+        }
+
+        /* ================= CARD ================= */
+
+        .page-card {
+            position: relative;
+            display: block;
+            text-decoration: none;
+            color: inherit;
+
+            padding: 25px;
+
+            min-height: 190px;
+
+            border: 1px solid #263452;
+            border-radius: 18px;
+
+            background:
+                linear-gradient(
+                    145deg,
+                    rgba(24, 35, 61, 0.92),
+                    rgba(12, 18, 32, 0.92)
+                );
+
+            transition:
+                transform 0.25s ease,
+                border-color 0.25s ease,
+                box-shadow 0.25s ease;
+        }
+
+        .page-card:hover {
+            transform: translateY(-6px);
+            border-color: #60a5fa;
+            box-shadow:
+                0 15px 40px rgba(0,0,0,0.35),
+                0 0 30px rgba(96,165,250,0.08);
+        }
+
+        .number {
+            width: 42px;
+            height: 42px;
+
+            display: flex;
+            align-items: center;
+            justify-content: center;
+
+            border-radius: 11px;
+
+            background: linear-gradient(135deg, #2563eb, #7c3aed);
+
+            font-weight: 800;
+            font-size: 14px;
+
+            margin-bottom: 22px;
+        }
+
+        .page-card h2 {
+            font-size: 19px;
+            margin-bottom: 10px;
+            line-height: 1.35;
+        }
+
+        .page-card p {
+            color: #94a3b8;
+            font-size: 13px;
+            line-height: 1.6;
+        }
+
+        .open {
+            position: absolute;
+            right: 20px;
+            bottom: 20px;
+
+            color: #60a5fa;
+            font-size: 13px;
+            font-weight: 700;
+        }
+
+        /* ================= FOOTER ================= */
+
+        footer {
+            text-align: center;
+            padding: 35px 20px;
+            border-top: 1px solid #1e293b;
+            color: #64748b;
+            font-size: 13px;
+        }
+
+        /* ================= RESPONSIVE ================= */
+
+        @media (max-width: 900px) {
+            .pages-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+
+        @media (max-width: 600px) {
+            header {
+                padding-top: 45px;
+            }
+
+            .pages-grid {
+                grid-template-columns: 1fr;
+            }
+
+            h1 {
+                letter-spacing: -1px;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+<header>
+
+    <div class="badge">
+        📚 LLM EVALUATION STUDY HUB
+    </div>
+
+    <h1>
+        Master <span>LLM Evaluation</span>
+    </h1>
+
+    <p class="subtitle">
+        Your complete collection of LLM Evaluation study notes.
+        Select any lecture below to open the corresponding HTML study page.
+    </p>
+
+</header>
+
+
+<div class="search-container">
+
+    <input
+        type="text"
+        id="searchBox"
+        placeholder="🔍 Search lectures..."
+        onkeyup="searchPages()"
+    >
+
+</div>
+
+
+<main>
+
+    <div class="section-title">
+        12 Lecture Notes
+    </div>
+
+
+    <div class="pages-grid" id="pagesGrid">
+
+
+        <!-- ================= PAGE 01 ================= -->
+
+        <a
+            href="FIRST.html"
+            class="page-card"
+            data-title="LLM Evaluation Fundamentals"
+        >
+
+            <div class="number">01</div>
+
+            <h2>
+                LLM Evaluation Fundamentals
+            </h2>
+
+            <p>
+                Introduction to LLM evaluation, why evaluation is
+                important, and the fundamental concepts.
+            </p>
+
+            <div class="open">
+                Open →
+            </div>
+
+        </a>
+
+
+        <!-- ================= PAGE 02 ================= -->
+
+        <a
+            href="SECOND.html"
+            class="page-card"
+            data-title="Model Evaluation"
+        >
+
+            <div class="number">02</div>
+
+            <h2>
+                Model Evaluation
+            </h2>
+
+            <p>
+                Understanding model-level evaluation and standardized
+                benchmark-based evaluation.
+            </p>
+
+            <div class="open">
+                Open →
+            </div>
+
+        </a>
+
+
+        <!-- ================= PAGE 03 ================= -->
+
+        <a
+            href="THIRD.html"
+            class="page-card"
+            data-title="Knowledge and Benchmark Evaluation"
+        >
+
+            <div class="number">03</div>
+
+            <h2>
+                Knowledge & Benchmark Evaluation
+            </h2>
+
+            <p>
+                Model capabilities, knowledge evaluation, benchmarks,
+                and standardized evaluations.
+            </p>
+
+            <div class="open">
+                Open →
+            </div>
+
+        </a>
+
+
+        <!-- ================= PAGE 04 ================= -->
+
+        <a
+            href="FOURTH.html"
+            class="page-card"
+            data-title="Custom Model Evaluation"
+        >
+
+            <div class="number">04</div>
+
+            <h2>
+                Custom Model Evaluation
+            </h2>
+
+            <p>
+                Creating custom datasets and evaluating models
+                according to application requirements.
+            </p>
+
+            <div class="open">
+                Open →
+            </div>
+
+        </a>
+
+
+        <!-- ================= PAGE 05 ================= -->
+
+        <a
+            href="FIVE.html"
+            class="page-card"
+            data-title="RAG Evaluation Introduction"
+        >
+
+            <div class="number">05</div>
+
+            <h2>
+                RAG Evaluation Introduction
+            </h2>
+
+            <p>
+                Introduction to evaluating Retrieval-Augmented
+                Generation applications.
+            </p>
+
+            <div class="open">
+                Open →
+            </div>
+
+        </a>
+
+
+        <!-- ================= PAGE 06 ================= -->
+
+        <a
+            href="SIX.html"
+            class="page-card"
+            data-title="Retriever Evaluation"
+        >
+
+            <div class="number">06</div>
+
+            <h2>
+                Retriever Evaluation
+            </h2>
+
+            <p>
+                Evaluating retrieval quality using metrics such as
+                Recall and Precision.
+            </p>
+
+            <div class="open">
+                Open →
+            </div>
+
+        </a>
+
+
+        <!-- ================= PAGE 07 ================= -->
+
+        <a
+            href="SEVEN.html"
+            class="page-card"
+            data-title="Generator Evaluation"
+        >
+
+            <div class="number">07</div>
+
+            <h2>
+                Generator Evaluation
+            </h2>
+
+            <p>
+                Faithfulness, answer relevance, citation accuracy,
+                and generator-level evaluation.
+            </p>
+
+            <div class="open">
+                Open →
+            </div>
+
+        </a>
+
+
+        <!-- ================= PAGE 08 ================= -->
+
+        <a
+            href="EIGHT.html"
+            class="page-card"
+            data-title="RAG Triad"
+        >
+
+            <div class="number">08</div>
+
+            <h2>
+                RAG Triad
+            </h2>
+
+            <p>
+                Context Relevance, Faithfulness, and Answer Relevance
+                for pipeline-level evaluation.
+            </p>
+
+            <div class="open">
+                Open →
+            </div>
+
+        </a>
+
+
+        <!-- ================= PAGE 09 ================= -->
+
+        <a
+            href="NINE.html"
+            class="page-card"
+            data-title="Application Level Evaluation"
+        >
+
+            <div class="number">09</div>
+
+            <h2>
+                Application-Level Evaluation
+            </h2>
+
+            <p>
+                Correctness, completeness, style, safety, and
+                application-level quality evaluation.
+            </p>
+
+            <div class="open">
+                Open →
+            </div>
+
+        </a>
+
+
+        <!-- ================= PAGE 10 ================= -->
+
+        <a
+            href="TEN.html"
+            class="page-card"
+            data-title="Regression Testing"
+        >
+
+            <div class="number">10</div>
+
+            <h2>
+                Regression Testing
+            </h2>
+
+            <p>
+                Eval suites, baselines, experiment tracking,
+                regression testing, and deployment decisions.
+            </p>
+
+            <div class="open">
+                Open →
+            </div>
+
+        </a>
+
+
+        <!-- ================= PAGE 11 ================= -->
+
+        <a
+            href="ELEVEN.html"
+            class="page-card"
+            data-title="Online Evaluation"
+        >
+
+            <div class="number">11</div>
+
+            <h2>
+                Online Evaluation
+            </h2>
+
+            <p>
+                Production monitoring, tracing, latency, cost,
+                feedback, drift detection, and observability.
+            </p>
+
+            <div class="open">
+                Open →
+            </div>
+
+        </a>
+
+
+        <!-- ================= PAGE 12 ================= -->
+
+        <a
+            href="TWELVE.html"
+            class="page-card"
+            data-title="Complete RAG Evaluation Strategy"
+        >
+
+            <div class="number">12</div>
+
+            <h2>
+                Complete RAG Evaluation Strategy
+            </h2>
+
+            <p>
+                Complete framework for answering the interview question:
+                How do you evaluate your RAG chatbot?
+            </p>
+
+            <div class="open">
+                Open →
+            </div>
+
+        </a>
+
+
+    </div>
+
+</main>
+
+
+<footer>
+
+    LLM Evaluation Study Hub • 12 HTML Study Pages
+
+</footer>
+
+
+<script>
+
+function searchPages() {
+
+    const search =
+        document
+        .getElementById("searchBox")
+        .value
+        .toLowerCase();
+
+    const cards =
+        document.querySelectorAll(".page-card");
+
+    cards.forEach(card => {
+
+        const title =
+            card
+            .getAttribute("data-title")
+            .toLowerCase();
+
+        const text =
+            card
+            .innerText
+            .toLowerCase();
+
+        if (
+            title.includes(search) ||
+            text.includes(search)
+        ) {
+
+            card.style.display = "block";
+
+        } else {
+
+            card.style.display = "none";
+
+        }
+
+    });
+
+}
+
+</script>
+
+</body>
+</html>

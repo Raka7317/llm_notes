@@ -1,0 +1,1631 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>LLM Evaluation — Introduction & Roadmap</title>
+
+    <style>
+        :root {
+            --bg: #0b1020;
+            --surface: #11182d;
+            --surface-2: #17213b;
+            --border: #263453;
+            --text: #e8edf7;
+            --muted: #9ca9c2;
+            --primary: #7c8cff;
+            --primary-soft: rgba(124, 140, 255, 0.12);
+            --green: #4ade80;
+            --yellow: #facc15;
+            --red: #fb7185;
+            --cyan: #22d3ee;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        html {
+            scroll-behavior: smooth;
+        }
+
+        body {
+            font-family: Inter, Arial, Helvetica, sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            line-height: 1.75;
+        }
+
+        a {
+            color: inherit;
+            text-decoration: none;
+        }
+
+        /* =========================
+           SIDEBAR
+        ========================== */
+
+        .sidebar {
+            position: fixed;
+            left: 0;
+            top: 0;
+            width: 280px;
+            height: 100vh;
+            background: #0d1428;
+            border-right: 1px solid var(--border);
+            padding: 28px 20px;
+            overflow-y: auto;
+            z-index: 1000;
+        }
+
+        .logo {
+            font-size: 22px;
+            font-weight: 800;
+            margin-bottom: 8px;
+        }
+
+        .logo span {
+            color: var(--primary);
+        }
+
+        .sidebar-subtitle {
+            color: var(--muted);
+            font-size: 13px;
+            margin-bottom: 30px;
+        }
+
+        .nav-title {
+            color: #71809d;
+            font-size: 11px;
+            text-transform: uppercase;
+            letter-spacing: 1.5px;
+            margin: 24px 0 10px;
+        }
+
+        .nav a {
+            display: block;
+            padding: 9px 12px;
+            margin: 3px 0;
+            border-radius: 8px;
+            color: var(--muted);
+            font-size: 14px;
+            transition: 0.2s;
+        }
+
+        .nav a:hover {
+            background: var(--primary-soft);
+            color: var(--text);
+        }
+
+        /* =========================
+           MAIN
+        ========================== */
+
+        .main {
+            margin-left: 280px;
+            max-width: 1200px;
+            padding: 60px 70px;
+        }
+
+        .hero {
+            padding: 55px;
+            border: 1px solid var(--border);
+            border-radius: 24px;
+            background:
+                radial-gradient(circle at top right,
+                rgba(124, 140, 255, 0.18),
+                transparent 40%),
+                var(--surface);
+            margin-bottom: 45px;
+        }
+
+        .badge {
+            display: inline-block;
+            padding: 6px 12px;
+            border: 1px solid var(--border);
+            border-radius: 999px;
+            color: var(--primary);
+            background: var(--primary-soft);
+            font-size: 12px;
+            font-weight: 700;
+            margin-bottom: 20px;
+        }
+
+        h1 {
+            font-size: clamp(38px, 5vw, 64px);
+            line-height: 1.1;
+            margin-bottom: 20px;
+        }
+
+        .hero p {
+            color: var(--muted);
+            max-width: 850px;
+            font-size: 18px;
+        }
+
+        .section {
+            margin: 70px 0;
+            scroll-margin-top: 30px;
+        }
+
+        h2 {
+            font-size: 32px;
+            margin-bottom: 22px;
+        }
+
+        h3 {
+            font-size: 22px;
+            margin: 30px 0 12px;
+        }
+
+        p {
+            margin-bottom: 16px;
+        }
+
+        .muted {
+            color: var(--muted);
+        }
+
+        /* =========================
+           CARDS
+        ========================== */
+
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 20px;
+        }
+
+        .card {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            padding: 25px;
+        }
+
+        .card h3 {
+            margin-top: 0;
+        }
+
+        .card p {
+            color: var(--muted);
+        }
+
+        /* =========================
+           DEFINITION
+        ========================== */
+
+        .definition {
+            border-left: 4px solid var(--primary);
+            background: var(--primary-soft);
+            padding: 22px 25px;
+            border-radius: 10px;
+            margin: 25px 0;
+        }
+
+        .definition strong {
+            color: var(--primary);
+        }
+
+        /* =========================
+           COMPARISON
+        ========================== */
+
+        .comparison {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            margin-top: 25px;
+        }
+
+        .comparison-box {
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            padding: 25px;
+            background: var(--surface);
+        }
+
+        .comparison-box h3 {
+            margin-top: 0;
+        }
+
+        .traditional {
+            border-top: 3px solid var(--cyan);
+        }
+
+        .llm {
+            border-top: 3px solid var(--primary);
+        }
+
+        /* =========================
+           CASE STUDIES
+        ========================== */
+
+        .case-study {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 18px;
+            padding: 30px;
+            margin: 25px 0;
+        }
+
+        .case-number {
+            color: var(--red);
+            font-weight: 800;
+            font-size: 13px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .case-study h3 {
+            margin-top: 8px;
+        }
+
+        .lesson {
+            margin-top: 20px;
+            padding: 16px;
+            border-radius: 10px;
+            background: rgba(74, 222, 128, 0.08);
+            border-left: 3px solid var(--green);
+        }
+
+        /* =========================
+           TABLE
+        ========================== */
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 25px 0;
+            background: var(--surface);
+            border-radius: 12px;
+            overflow: hidden;
+        }
+
+        th,
+        td {
+            padding: 16px;
+            border-bottom: 1px solid var(--border);
+            text-align: left;
+            vertical-align: top;
+        }
+
+        th {
+            background: var(--surface-2);
+            color: var(--primary);
+        }
+
+        td {
+            color: var(--muted);
+        }
+
+        /* =========================
+           ROADMAP
+        ========================== */
+
+        .roadmap {
+            position: relative;
+            margin-top: 30px;
+        }
+
+        .roadmap-item {
+            position: relative;
+            padding: 22px 25px 22px 70px;
+            border-left: 2px solid var(--border);
+        }
+
+        .roadmap-number {
+            position: absolute;
+            left: -18px;
+            top: 20px;
+            width: 34px;
+            height: 34px;
+            border-radius: 50%;
+            background: var(--primary);
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 800;
+            font-size: 13px;
+        }
+
+        .roadmap-item h3 {
+            margin-top: 0;
+        }
+
+        .roadmap-item p {
+            color: var(--muted);
+        }
+
+        /* =========================
+           LIST
+        ========================== */
+
+        ul {
+            padding-left: 25px;
+            margin-bottom: 20px;
+        }
+
+        li {
+            margin: 8px 0;
+            color: var(--muted);
+        }
+
+        li strong {
+            color: var(--text);
+        }
+
+        /* =========================
+           TAKEAWAY
+        ========================== */
+
+        .takeaway {
+            background: linear-gradient(
+                135deg,
+                rgba(124, 140, 255, 0.13),
+                rgba(34, 211, 238, 0.07)
+            );
+            border: 1px solid var(--border);
+            border-radius: 20px;
+            padding: 35px;
+            margin-top: 30px;
+        }
+
+        .takeaway h3 {
+            margin-top: 0;
+        }
+
+        /* =========================
+           FOOTER
+        ========================== */
+
+        footer {
+            border-top: 1px solid var(--border);
+            padding: 35px 0;
+            color: var(--muted);
+            text-align: center;
+            margin-top: 80px;
+        }
+
+        /* =========================
+           RESPONSIVE
+        ========================== */
+
+        @media (max-width: 900px) {
+            .sidebar {
+                position: relative;
+                width: 100%;
+                height: auto;
+                border-right: none;
+                border-bottom: 1px solid var(--border);
+            }
+
+            .main {
+                margin-left: 0;
+                padding: 35px 22px;
+            }
+
+            .grid,
+            .comparison {
+                grid-template-columns: 1fr;
+            }
+
+            .hero {
+                padding: 30px;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+    <!-- =========================
+         SIDEBAR
+    ========================== -->
+
+    <aside class="sidebar">
+
+        <div class="logo">
+            LLM<span>Eval</span>
+        </div>
+
+        <div class="sidebar-subtitle">
+            LLM Evaluation Learning Hub
+        </div>
+
+        <div class="nav-title">Page 01</div>
+
+        <nav class="nav">
+            <a href="#introduction">Introduction</a>
+            <a href="#ai-engineer">AI Engineer</a>
+            <a href="#llm-evals">What Are LLM Evals?</a>
+            <a href="#why-important">Why Evaluation Matters</a>
+            <a href="#vibe-testing">Vibe Testing</a>
+            <a href="#case-studies">Real-World Failures</a>
+            <a href="#traditional-vs-llm">Traditional vs LLM Testing</a>
+            <a href="#dimensions">Evaluation Dimensions</a>
+            <a href="#roadmap">LLM Eval Roadmap</a>
+            <a href="#takeaways">Key Takeaways</a>
+        </nav>
+
+    </aside>
+
+
+    <!-- =========================
+         MAIN CONTENT
+    ========================== -->
+
+    <main class="main">
+
+        <!-- HERO -->
+
+        <section class="hero" id="introduction">
+
+            <span class="badge">
+                LLM EVALUATION • PAGE 01
+            </span>
+
+            <h1>
+                Introduction to<br>
+                LLM Evaluation
+            </h1>
+
+            <p>
+                Learn why evaluating LLM-based applications is essential,
+                why traditional software testing approaches are insufficient,
+                what real-world failures teach us, and what the complete
+                LLM Evaluation learning roadmap looks like.
+            </p>
+
+        </section>
+
+
+        <!-- =========================
+             AI ENGINEER
+        ========================== -->
+
+        <section class="section" id="ai-engineer">
+
+            <h2>1. What Is an AI Engineer?</h2>
+
+            <div class="definition">
+
+                <strong>AI Engineer:</strong>
+
+                Someone who builds applications and products
+                on top of foundation models such as Large Language Models (LLMs).
+                
+            </div>
+
+            <p>
+                Modern AI engineering is increasingly focused on building
+                real-world applications using foundation models rather than
+                training every model from scratch.
+            </p>
+
+            <p>
+                An AI Engineer may work with LLMs, RAG systems, agents,
+                prompt engineering, evaluation systems, orchestration
+                frameworks, and other technologies used to turn foundation
+                models into useful products.
+            </p>
+
+            <h3>Common AI Engineering Topics</h3>
+
+            <div class="grid">
+
+                <div class="card">
+                    <h3>LLM Applications</h3>
+                    <p>
+                        Building applications that use Large Language Models
+                        as their core intelligence layer.
+                    </p>
+                </div>
+
+                <div class="card">
+                    <h3>RAG</h3>
+                    <p>
+                        Retrieval-Augmented Generation systems that retrieve
+                        relevant information before generating an answer.
+                    </p>
+                </div>
+
+                <div class="card">
+                    <h3>AI Agents</h3>
+                    <p>
+                        Systems that allow LLMs to reason, use tools,
+                        perform tasks, and interact with external systems.
+                    </p>
+                </div>
+
+                <div class="card">
+                    <h3>Prompt Engineering</h3>
+                    <p>
+                        Designing instructions and context that improve
+                        the behavior of language models.
+                    </p>
+                </div>
+
+            </div>
+
+        </section>
+
+
+        <!-- =========================
+             WHAT ARE EVALS
+        ========================== -->
+
+        <section class="section" id="llm-evals">
+
+            <h2>2. What Are LLM Evaluations?</h2>
+
+            <div class="definition">
+
+                <strong>LLM Evaluation:</strong>
+
+                A systematic process used to measure and understand
+                how well an LLM or an LLM-powered application performs
+                against defined expectations.
+
+            </div>
+
+            <p>
+                Building an LLM application is only one part of AI engineering.
+                Before putting that application into production, we need to
+                determine whether it actually behaves correctly, reliably,
+                safely, efficiently, and consistently.
+            </p>
+
+            <p>
+                This is the problem that LLM Evaluation attempts to solve.
+            </p>
+
+            <h3>The Core Question</h3>
+
+            <p>
+                Instead of asking:
+            </p>
+
+            <div class="definition">
+                "Can I build an LLM application?"
+            </div>
+
+            <p>
+                We also need to ask:
+            </p>
+
+            <div class="definition">
+                "Is this application good enough, safe enough, reliable enough,
+                and predictable enough to deploy to real users?"
+            </div>
+
+        </section>
+
+
+        <!-- =========================
+             WHY IMPORTANT
+        ========================== -->
+
+        <section class="section" id="why-important">
+
+            <h2>3. Why Is LLM Evaluation Important?</h2>
+
+            <p>
+                Many developers successfully build LLM-based applications
+                but do not perform systematic evaluation before deployment.
+            </p>
+
+            <p>
+                A common development process looks like this:
+            </p>
+
+            <div class="card">
+
+                <p>
+                    Build application →
+                    Ask a few questions →
+                    Answers look good →
+                    Assume application works →
+                    Deploy
+                </p>
+
+            </div>
+
+            <p>
+                This approach may work for a small personal project,
+                but it becomes dangerous when the application is exposed
+                to real users.
+            </p>
+
+            <h3>Evaluation Provides Two Major Benefits</h3>
+
+            <div class="grid">
+
+                <div class="card">
+
+                    <h3>01 — Competitive Advantage</h3>
+
+                    <p>
+                        LLM Evaluation is less commonly studied than
+                        basic LLM application development. Understanding
+                        evaluation can therefore provide an advantage
+                        when preparing for AI Engineering roles.
+                    </p>
+
+                </div>
+
+                <div class="card">
+
+                    <h3>02 — Production Mindset</h3>
+
+                    <p>
+                        Evaluation changes the mindset from:
+                        "I built a project."
+                        to:
+                        "Can this system reliably serve millions of users?"
+                    </p>
+
+                </div>
+
+            </div>
+
+        </section>
+
+
+        <!-- =========================
+             VIBE TESTING
+        ========================== -->
+
+        <section class="section" id="vibe-testing">
+
+            <h2>4. What Is Vibe Testing?</h2>
+
+            <div class="definition">
+
+                <strong>Vibe Testing:</strong>
+
+                Casually trying an LLM application with a small number
+                of prompts and judging its performance based on intuition
+                or personal feeling rather than systematic metrics.
+
+            </div>
+
+            <p>
+                A typical example is:
+            </p>
+
+            <div class="card">
+
+                <p>
+                    "I asked the application 5–10 questions.
+                    The answers looked good.
+                    Therefore, I think it works."
+                </p>
+
+            </div>
+
+            <h3>Why Vibe Testing Is Attractive</h3>
+
+            <ul>
+
+                <li>
+                    <strong>Simple:</strong>
+                    No evaluation infrastructure is required.
+                </li>
+
+                <li>
+                    <strong>Fast:</strong>
+                    A developer can manually test the system within minutes.
+                </li>
+
+                <li>
+                    <strong>Useful for early experimentation:</strong>
+                    It can help during the initial development phase.
+                </li>
+
+            </ul>
+
+            <h3>Why Vibe Testing Is Not Enough</h3>
+
+            <ul>
+
+                <li>
+                    It is <strong>informal</strong>.
+                </li>
+
+                <li>
+                    It is <strong>subjective</strong>.
+                </li>
+
+                <li>
+                    It is generally <strong>not repeatable</strong>.
+                </li>
+
+                <li>
+                    Different developers may reach different conclusions.
+                </li>
+
+                <li>
+                    It does not provide reliable evidence for production deployment.
+                </li>
+
+                <li>
+                    It does not adequately test the huge space of possible
+                    user inputs.
+                </li>
+
+            </ul>
+
+            <div class="takeaway">
+
+                <h3>Key Insight</h3>
+
+                <p>
+                    Vibe testing may be acceptable for early experimentation,
+                    but it should not be treated as a production-grade
+                    evaluation methodology.
+                </p>
+
+            </div>
+
+        </section>
+
+
+        <!-- =========================
+             CASE STUDIES
+        ========================== -->
+
+        <section class="section" id="case-studies">
+
+            <h2>5. Real-World LLM Failures</h2>
+
+            <p>
+                Real-world incidents demonstrate why LLM applications
+                must be evaluated before deployment.
+            </p>
+
+
+            <!-- CASE 1 -->
+
+            <div class="case-study">
+
+                <div class="case-number">
+                    Case Study 01
+                </div>
+
+                <h3>Air Canada Chatbot</h3>
+
+                <p>
+                    A customer interacted with an Air Canada chatbot
+                    regarding a bereavement fare after the death of a
+                    family member.
+                </p>
+
+                <p>
+                    The chatbot provided incorrect information about
+                    the airline's policy and told the customer that
+                    they could purchase the ticket at the normal price
+                    and receive a refund later.
+                </p>
+
+                <p>
+                    According to the actual policy, the discount needed
+                    to be obtained before purchasing the ticket.
+                </p>
+
+                <p>
+                    The customer relied on the chatbot's response,
+                    purchased the ticket, and later discovered that
+                    the promised refund was not available.
+                </p>
+
+                <p>
+                    The dispute eventually became a legal issue, and
+                    the airline was held responsible for the chatbot's
+                    behavior.
+                </p>
+
+                <div class="lesson">
+
+                    <strong>Lesson:</strong>
+
+                    <p>
+                        A company cannot assume that an AI chatbot is
+                        separate from its product or business responsibility.
+                        Production AI systems need systematic evaluation
+                        before being exposed to customers.
+                    </p>
+
+                </div>
+
+            </div>
+
+
+            <!-- CASE 2 -->
+
+            <div class="case-study">
+
+                <div class="case-number">
+                    Case Study 02
+                </div>
+
+                <h3>Chevrolet Dealer Chatbot</h3>
+
+                <p>
+                    A Chevrolet dealership deployed a chatbot that
+                    interacted with customers.
+                </p>
+
+                <p>
+                    A user attempted to manipulate the chatbot using
+                    jailbreak-style instructions and convinced the
+                    chatbot to agree to the user's terms.
+                </p>
+
+                <p>
+                    The user then asked whether a vehicle could be
+                    purchased for an extremely low price, around $1.
+                </p>
+
+                <p>
+                    The chatbot agreed and generated what appeared
+                    to be a binding offer.
+                </p>
+
+                <p>
+                    The conversation was documented and shared publicly,
+                    creating significant negative publicity.
+                </p>
+
+                <div class="lesson">
+
+                    <strong>Lesson:</strong>
+
+                    <p>
+                        AI applications must be tested against adversarial
+                        and unexpected user behavior, not just normal
+                        user questions.
+                    </p>
+
+                </div>
+
+            </div>
+
+
+            <!-- CASE 3 -->
+
+            <div class="case-study">
+
+                <div class="case-number">
+                    Case Study 03
+                </div>
+
+                <h3>AI-Generated Fake Legal Cases</h3>
+
+                <p>
+                    In another incident, a lawyer used an LLM to search
+                    for previous legal cases involving airline injuries.
+                </p>
+
+                <p>
+                    The model generated fictional cases and fabricated
+                    details such as case names, dates, and other specifics.
+                </p>
+
+                <p>
+                    The lawyer failed to independently verify the
+                    generated information and presented it in court.
+                </p>
+
+                <p>
+                    The fabricated cases were later discovered,
+                    resulting in serious professional and legal
+                    consequences.
+                </p>
+
+                <div class="lesson">
+
+                    <strong>Lesson:</strong>
+
+                    <p>
+                        LLM outputs can appear highly confident while
+                        still being completely incorrect. High-confidence
+                        output must never automatically be interpreted
+                        as reliable output.
+                    </p>
+
+                </div>
+
+            </div>
+
+
+            <div class="takeaway">
+
+                <h3>Common Pattern Across All Three Cases</h3>
+
+                <p>
+                    The common failure is not simply "the model made a mistake."
+                    The deeper problem is that the system was trusted without
+                    adequate validation, evaluation, safeguards, or verification.
+                </p>
+
+            </div>
+
+        </section>
+
+
+        <!-- =========================
+             TRADITIONAL VS LLM
+        ========================== -->
+
+        <section class="section" id="traditional-vs-llm">
+
+            <h2>6. Traditional Software Testing vs LLM Evaluation</h2>
+
+            <p>
+                LLM-based applications are more difficult to evaluate
+                than traditional deterministic software for two major reasons.
+            </p>
+
+
+            <div class="comparison">
+
+                <div class="comparison-box traditional">
+
+                    <h3>Traditional Software</h3>
+
+                    <p>
+                        Traditional software is usually deterministic.
+                    </p>
+
+                    <p>
+                        Given the same input, the system is expected
+                        to produce the same output.
+                    </p>
+
+                    <div class="definition">
+
+                        <strong>Example:</strong><br>
+
+                        Input: 2 + 2<br>
+                        Expected Output: 4
+
+                    </div>
+
+                    <p>
+                        Correctness is often the primary evaluation criterion.
+                    </p>
+
+                </div>
+
+
+                <div class="comparison-box llm">
+
+                    <h3>LLM Applications</h3>
+
+                    <p>
+                        LLM-based applications are probabilistic.
+                    </p>
+
+                    <p>
+                        The same input can produce different valid outputs.
+                    </p>
+
+                    <div class="definition">
+
+                        <strong>Example:</strong><br>
+
+                        Prompt: "What is overfitting in machine learning?"
+
+                    </div>
+
+                    <p>
+                        Different valid explanations may be generated
+                        at different times or for different users.
+                    </p>
+
+                </div>
+
+            </div>
+
+        </section>
+
+
+        <!-- =========================
+             PROBABILISTIC
+        ========================== -->
+
+        <section class="section">
+
+            <h2>7. The Probabilistic Nature of LLMs</h2>
+
+            <p>
+                One of the biggest differences between conventional
+                software and LLM applications is that LLM outputs are
+                not necessarily fixed.
+            </p>
+
+            <p>
+                For example, asking an LLM:
+            </p>
+
+            <div class="card">
+
+                <p>
+                    "What is overfitting in machine learning?"
+                </p>
+
+            </div>
+
+            <p>
+                can produce multiple different explanations.
+            </p>
+
+            <p>
+                These answers can all be correct even though they
+                are different from one another.
+            </p>
+
+            <div class="takeaway">
+
+                <h3>Evaluation Challenge #1</h3>
+
+                <p>
+                    Because LLM outputs can vary, evaluation cannot
+                    simply check whether the output exactly matches
+                    one predetermined string.
+                </p>
+
+            </div>
+
+        </section>
+
+
+        <!-- =========================
+             MULTIDIMENSIONAL
+        ========================== -->
+
+        <section class="section" id="dimensions">
+
+            <h2>8. LLM Evaluation Is Multidimensional</h2>
+
+            <p>
+                Traditional software testing often focuses heavily
+                on correctness. LLM applications require a much
+                broader evaluation framework.
+            </p>
+
+            <p>
+                For example, consider a RAG chatbot.
+                We cannot simply ask whether an answer "looks good."
+                We may need to evaluate multiple dimensions.
+            </p>
+
+            <table>
+
+                <thead>
+
+                    <tr>
+                        <th>Dimension</th>
+                        <th>What It Measures</th>
+                    </tr>
+
+                </thead>
+
+                <tbody>
+
+                    <tr>
+                        <td><strong>Factuality</strong></td>
+                        <td>
+                            Whether the information provided is factually correct.
+                        </td>
+                    </tr>
+
+                    <tr>
+                        <td><strong>Completeness</strong></td>
+                        <td>
+                            Whether the response adequately covers the required information.
+                        </td>
+                    </tr>
+
+                    <tr>
+                        <td><strong>Tonality</strong></td>
+                        <td>
+                            Whether the response uses an appropriate tone and style.
+                        </td>
+                    </tr>
+
+                    <tr>
+                        <td><strong>Groundedness</strong></td>
+                        <td>
+                            Whether the response is supported by the available source/context.
+                        </td>
+                    </tr>
+
+                    <tr>
+                        <td><strong>Latency</strong></td>
+                        <td>
+                            How long the system takes to generate a response.
+                        </td>
+                    </tr>
+
+                    <tr>
+                        <td><strong>Cost</strong></td>
+                        <td>
+                            How much it costs to generate the response.
+                        </td>
+                    </tr>
+
+                </tbody>
+
+            </table>
+
+            <p>
+                The important point is that the relevant dimensions
+                depend on the application.
+            </p>
+
+            <p>
+                A customer-support chatbot, medical assistant,
+                coding agent, RAG system, and autonomous agent may
+                all require different evaluation criteria.
+            </p>
+
+        </section>
+
+
+        <!-- =========================
+             EVAL CHALLENGES
+        ========================== -->
+
+        <section class="section">
+
+            <h2>9. Two Core Challenges in LLM Evaluation</h2>
+
+            <div class="grid">
+
+                <div class="card">
+
+                    <h3>Challenge 01 — Non-Determinism</h3>
+
+                    <p>
+                        The same input may produce different outputs.
+                        Therefore, exact string matching is often insufficient.
+                    </p>
+
+                </div>
+
+                <div class="card">
+
+                    <h3>Challenge 02 — Multiple Dimensions</h3>
+
+                    <p>
+                        An output can be factually correct but incomplete,
+                        poorly grounded, too expensive, too slow, or
+                        inappropriate in tone.
+                    </p>
+
+                </div>
+
+            </div>
+
+        </section>
+
+
+        <!-- =========================
+             ROADMAP
+        ========================== -->
+
+        <section class="section" id="roadmap">
+
+            <h2>10. LLM Evaluation Learning Roadmap</h2>
+
+            <p>
+                The playlist is designed to progress from the fundamentals
+                of LLM evaluation to production-level evaluation systems.
+            </p>
+
+
+            <div class="roadmap">
+
+
+                <div class="roadmap-item">
+
+                    <div class="roadmap-number">1</div>
+
+                    <h3>What Exactly Are LLM Evals?</h3>
+
+                    <p>
+                        Understand the fundamental concept of LLM evaluations
+                        using practical examples.
+                    </p>
+
+                </div>
+
+
+                <div class="roadmap-item">
+
+                    <div class="roadmap-number">2</div>
+
+                    <h3>The LLM Evaluation Landscape</h3>
+
+                    <p>
+                        Understand the different evaluation techniques,
+                        approaches, tools, and terminology used in the field.
+                    </p>
+
+                </div>
+
+
+                <div class="roadmap-item">
+
+                    <div class="roadmap-number">3</div>
+
+                    <h3>LLM / Model Evaluation</h3>
+
+                    <p>
+                        Learn how the underlying language models themselves
+                        are evaluated using different benchmark categories.
+                    </p>
+
+                </div>
+
+
+                <div class="roadmap-item">
+
+                    <div class="roadmap-number">4</div>
+
+                    <h3>LLM Application Evaluation</h3>
+
+                    <p>
+                        Learn how to evaluate complete applications built
+                        on top of LLMs.
+                    </p>
+
+                </div>
+
+
+                <div class="roadmap-item">
+
+                    <div class="roadmap-number">5</div>
+
+                    <h3>Building an Evaluation Pipeline</h3>
+
+                    <p>
+                        Build an evaluation pipeline using a curated
+                        golden dataset and custom evaluation rubrics.
+                    </p>
+
+                </div>
+
+
+                <div class="roadmap-item">
+
+                    <div class="roadmap-number">6</div>
+
+                    <h3>RAG Evaluation</h3>
+
+                    <p>
+                        Learn how to evaluate Retrieval-Augmented Generation
+                        systems and their individual components.
+                    </p>
+
+                </div>
+
+
+                <div class="roadmap-item">
+
+                    <div class="roadmap-number">7</div>
+
+                    <h3>Agent Evaluation</h3>
+
+                    <p>
+                        Learn how to evaluate agent-based and agentic AI systems.
+                    </p>
+
+                </div>
+
+
+                <div class="roadmap-item">
+
+                    <div class="roadmap-number">8</div>
+
+                    <h3>Safety Evaluation</h3>
+
+                    <p>
+                        Learn how to evaluate AI systems for safety-related
+                        behaviors and failure modes.
+                    </p>
+
+                </div>
+
+
+                <div class="roadmap-item">
+
+                    <div class="roadmap-number">9</div>
+
+                    <h3>Operational Evaluation</h3>
+
+                    <p>
+                        Learn how to evaluate deployed systems using
+                        production-oriented operational metrics.
+                    </p>
+
+                </div>
+
+
+                <div class="roadmap-item">
+
+                    <div class="roadmap-number">10</div>
+
+                    <h3>Production Monitoring & Evaluation</h3>
+
+                    <p>
+                        Continue evaluation after deployment by monitoring
+                        metrics such as latency, tokens per second,
+                        time to first token, and system load.
+                    </p>
+
+                </div>
+
+            </div>
+
+        </section>
+
+
+        <!-- =========================
+             OPERATIONAL METRICS
+        ========================== -->
+
+        <section class="section">
+
+            <h2>11. Evaluation Does Not End After Deployment</h2>
+
+            <p>
+                A common misconception is that evaluation is something
+                performed only before launching an application.
+            </p>
+
+            <p>
+                In reality, production systems also need continuous
+                monitoring and evaluation.
+            </p>
+
+            <div class="grid">
+
+                <div class="card">
+                    <h3>Latency</h3>
+                    <p>
+                        How quickly does the system respond?
+                    </p>
+                </div>
+
+                <div class="card">
+                    <h3>Time to First Token</h3>
+                    <p>
+                        How long does the user wait before the first
+                        generated token appears?
+                    </p>
+                </div>
+
+                <div class="card">
+                    <h3>Tokens per Second</h3>
+                    <p>
+                        How quickly can the system generate tokens?
+                    </p>
+                </div>
+
+                <div class="card">
+                    <h3>System Load</h3>
+                    <p>
+                        How does the application behave under real user traffic?
+                    </p>
+                </div>
+
+            </div>
+
+            <div class="takeaway">
+
+                <h3>Production Principle</h3>
+
+                <p>
+                    Deployment is not the end of evaluation.
+                    Production systems require continuous observation,
+                    measurement, and improvement.
+                </p>
+
+            </div>
+
+        </section>
+
+
+        <!-- =========================
+             KEY TAKEAWAYS
+        ========================== -->
+
+        <section class="section" id="takeaways">
+
+            <h2>12. Key Takeaways</h2>
+
+            <div class="takeaway">
+
+                <ul>
+
+                    <li>
+                        <strong>Building an LLM application is not enough.</strong>
+                        You must also determine whether it works reliably.
+                    </li>
+
+                    <li>
+                        <strong>Vibe testing is insufficient for production.</strong>
+                        Manually asking a few questions cannot provide
+                        systematic evidence of application quality.
+                    </li>
+
+                    <li>
+                        <strong>LLMs are probabilistic.</strong>
+                        The same input can result in different outputs.
+                    </li>
+
+                    <li>
+                        <strong>LLM evaluation is multidimensional.</strong>
+                        Correctness is only one part of the evaluation.
+                    </li>
+
+                    <li>
+                        Important dimensions can include factuality,
+                        completeness, tonality, groundedness, latency,
+                        and cost.
+                    </li>
+
+                    <li>
+                        <strong>Real-world failures can have serious consequences.</strong>
+                        Incorrect chatbot responses, jailbreaks, and hallucinated
+                        information can result in financial, legal, and
+                        reputational damage.
+                    </li>
+
+                    <li>
+                        <strong>Evaluation criteria depend on the application.</strong>
+                        There is no single universal metric that works for
+                        every LLM application.
+                    </li>
+
+                    <li>
+                        <strong>Evaluation continues after deployment.</strong>
+                        Production systems require continuous monitoring
+                        and operational evaluation.
+                    </li>
+
+                    <li>
+                        <strong>LLM Evaluation is an important AI Engineering skill.</strong>
+                        It moves the developer's mindset from building demos
+                        toward building reliable production systems.
+                    </li>
+
+                </ul>
+
+            </div>
+
+        </section>
+
+
+        <!-- =========================
+             MENTAL MODEL
+        ========================== -->
+
+        <section class="section">
+
+            <h2>13. The Mental Model</h2>
+
+            <div class="card">
+
+                <h3>Traditional AI Project Mindset</h3>
+
+                <p>
+                    "Can I build an LLM application?"
+                </p>
+
+            </div>
+
+            <div style="text-align:center; padding:25px; font-size:28px;">
+                ↓
+            </div>
+
+            <div class="card">
+
+                <h3>LLM Evaluation Mindset</h3>
+
+                <p>
+                    "Can I prove that my LLM application behaves correctly
+                    and reliably across realistic situations?"
+                </p>
+
+            </div>
+
+            <div style="text-align:center; padding:25px; font-size:28px;">
+                ↓
+            </div>
+
+            <div class="card">
+
+                <h3>Production AI Engineering Mindset</h3>
+
+                <p>
+                    "Can this system safely, reliably, efficiently,
+                    and consistently serve a large number of real users?"
+                </p>
+
+            </div>
+
+        </section>
+
+
+        <!-- =========================
+             FINAL SUMMARY
+        ========================== -->
+
+        <section class="section">
+
+            <h2>14. Final Summary</h2>
+
+            <p>
+                LLM Evaluation is the discipline of systematically
+                determining whether an LLM or LLM-powered application
+                performs according to the requirements of its intended use.
+            </p>
+
+            <p>
+                Unlike traditional deterministic software, LLM applications
+                are probabilistic and can produce multiple valid or invalid
+                outputs for similar inputs. Their quality therefore cannot
+                always be determined using simple correctness checks.
+            </p>
+
+            <p>
+                Production-grade evaluation requires multiple dimensions,
+                carefully designed datasets, evaluation criteria, metrics,
+                safety checks, and operational monitoring.
+            </p>
+
+            <p>
+                The ultimate goal is to move from simply building
+                LLM applications to building applications that can be
+                trusted at production scale.
+            </p>
+
+            <div class="definition">
+
+                <strong>Core Principle:</strong>
+
+                Build → Evaluate → Improve → Deploy → Monitor → Evaluate Again
+
+            </div>
+
+        </section>
+
+
+        <!-- =========================
+             FOOTER
+        ========================== -->
+
+        <footer>
+
+            <p>
+                LLM Evaluation Learning Hub
+            </p>
+
+            <p>
+                Page 01 — Introduction to LLM Evaluation
+            </p>
+
+        </footer>
+
+    </main>
+
+</body>
+</html>
