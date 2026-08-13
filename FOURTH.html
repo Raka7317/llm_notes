@@ -1,0 +1,2685 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>LLM Evaluations - Multiple Evaluation Pipelines</title>
+
+    <meta name="description"
+          content="Detailed study notes on why LLM applications require multiple evaluation pipelines, including component, workflow, application, risk categories, RAG, agents, safety and operations.">
+
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        html {
+            scroll-behavior: smooth;
+        }
+
+        body {
+            font-family:
+                Inter,
+                system-ui,
+                -apple-system,
+                BlinkMacSystemFont,
+                "Segoe UI",
+                sans-serif;
+
+            line-height: 1.7;
+            background: #f5f7fb;
+            color: #172033;
+        }
+
+        /* =========================
+           HEADER
+        ========================= */
+
+        header {
+            background:
+                linear-gradient(135deg, #111827, #1e3a8a);
+
+            color: white;
+            padding: 60px 20px;
+        }
+
+        .hero {
+            max-width: 1150px;
+            margin: auto;
+        }
+
+        .hero-badge {
+            display: inline-block;
+            padding: 7px 14px;
+            border: 1px solid rgba(255,255,255,0.25);
+            border-radius: 999px;
+            background: rgba(255,255,255,0.08);
+            font-size: 0.85rem;
+            margin-bottom: 18px;
+        }
+
+        .hero h1 {
+            font-size: clamp(2rem, 5vw, 4rem);
+            line-height: 1.1;
+            margin-bottom: 20px;
+        }
+
+        .hero p {
+            max-width: 850px;
+            font-size: 1.1rem;
+            color: #dbeafe;
+        }
+
+        /* =========================
+           NAVIGATION
+        ========================= */
+
+        .toc-container {
+            max-width: 1150px;
+            margin: 25px auto;
+            padding: 0 20px;
+        }
+
+        .toc {
+            background: white;
+            border-radius: 18px;
+            padding: 25px;
+            box-shadow: 0 10px 30px rgba(15,23,42,0.07);
+        }
+
+        .toc h2 {
+            margin-bottom: 15px;
+        }
+
+        .toc ul {
+            list-style: none;
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            gap: 8px;
+        }
+
+        .toc a {
+            text-decoration: none;
+            color: #2563eb;
+            padding: 8px 10px;
+            display: block;
+            border-radius: 8px;
+        }
+
+        .toc a:hover {
+            background: #eff6ff;
+        }
+
+        /* =========================
+           MAIN
+        ========================= */
+
+        main {
+            max-width: 1150px;
+            margin: 30px auto;
+            padding: 0 20px;
+        }
+
+        section {
+            background: white;
+            margin-bottom: 28px;
+            padding: clamp(22px, 4vw, 40px);
+            border-radius: 20px;
+            box-shadow: 0 8px 25px rgba(15,23,42,0.06);
+        }
+
+        h2 {
+            color: #172554;
+            font-size: clamp(1.5rem, 3vw, 2.2rem);
+            margin-bottom: 20px;
+        }
+
+        h3 {
+            color: #1e40af;
+            margin-top: 25px;
+            margin-bottom: 12px;
+            font-size: 1.3rem;
+        }
+
+        h4 {
+            color: #334155;
+            margin-top: 18px;
+            margin-bottom: 8px;
+        }
+
+        p {
+            margin-bottom: 14px;
+        }
+
+        ul,
+        ol {
+            padding-left: 25px;
+            margin-bottom: 18px;
+        }
+
+        li {
+            margin-bottom: 8px;
+        }
+
+        strong {
+            color: #111827;
+        }
+
+        /* =========================
+           CARDS
+        ========================= */
+
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 18px;
+            margin: 20px 0;
+        }
+
+        .card {
+            border: 1px solid #e2e8f0;
+            border-radius: 15px;
+            padding: 22px;
+            background: #fafcff;
+        }
+
+        .card h3 {
+            margin-top: 0;
+        }
+
+        .number-card {
+            position: relative;
+            overflow: hidden;
+        }
+
+        .number {
+            font-size: 2rem;
+            font-weight: 800;
+            color: #2563eb;
+            margin-bottom: 5px;
+        }
+
+        /* =========================
+           CALLOUTS
+        ========================= */
+
+        .callout {
+            border-left: 5px solid #2563eb;
+            background: #eff6ff;
+            padding: 18px 20px;
+            border-radius: 10px;
+            margin: 20px 0;
+        }
+
+        .warning {
+            border-left-color: #dc2626;
+            background: #fef2f2;
+        }
+
+        .success {
+            border-left-color: #16a34a;
+            background: #f0fdf4;
+        }
+
+        .important {
+            border-left-color: #9333ea;
+            background: #faf5ff;
+        }
+
+        /* =========================
+           CODE
+        ========================= */
+
+        code {
+            background: #eef2ff;
+            color: #3730a3;
+            padding: 2px 6px;
+            border-radius: 5px;
+            font-family: Consolas, monospace;
+        }
+
+        pre {
+            background: #0f172a;
+            color: #e2e8f0;
+            padding: 20px;
+            border-radius: 12px;
+            overflow-x: auto;
+            margin: 18px 0;
+            font-family: Consolas, monospace;
+            font-size: 0.9rem;
+        }
+
+        /* =========================
+           TABLE
+        ========================= */
+
+        .table-wrapper {
+            overflow-x: auto;
+            margin: 20px 0;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            min-width: 650px;
+        }
+
+        th,
+        td {
+            border: 1px solid #e2e8f0;
+            padding: 13px 15px;
+            text-align: left;
+            vertical-align: top;
+        }
+
+        th {
+            background: #172554;
+            color: white;
+        }
+
+        tr:nth-child(even) {
+            background: #f8fafc;
+        }
+
+        /* =========================
+           FLOW
+        ========================= */
+
+        .flow {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-wrap: wrap;
+            gap: 12px;
+            margin: 25px 0;
+        }
+
+        .flow-box {
+            background: #eff6ff;
+            border: 2px solid #3b82f6;
+            padding: 14px 18px;
+            border-radius: 12px;
+            text-align: center;
+            font-weight: 700;
+        }
+
+        .arrow {
+            font-size: 1.5rem;
+            color: #64748b;
+        }
+
+        /* =========================
+           LEVELS
+        ========================= */
+
+        .level {
+            border: 2px solid #e2e8f0;
+            border-radius: 16px;
+            padding: 25px;
+            margin: 18px 0;
+        }
+
+        .level-title {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 15px;
+        }
+
+        .level-number {
+            width: 42px;
+            height: 42px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 50%;
+            background: #2563eb;
+            color: white;
+            font-weight: 800;
+        }
+
+        /* =========================
+           CHECKLIST
+        ========================= */
+
+        .checklist {
+            list-style: none;
+            padding-left: 0;
+        }
+
+        .checklist li {
+            padding: 10px 12px;
+            margin-bottom: 7px;
+            background: #f8fafc;
+            border-radius: 8px;
+        }
+
+        .checklist li::before {
+            content: "✓";
+            font-weight: 800;
+            color: #16a34a;
+            margin-right: 10px;
+        }
+
+        /* =========================
+           SUMMARY
+        ========================= */
+
+        .summary-box {
+            background:
+                linear-gradient(135deg, #eff6ff, #f5f3ff);
+
+            border: 2px solid #bfdbfe;
+            border-radius: 18px;
+            padding: 28px;
+        }
+
+        .big-idea {
+            font-size: clamp(1.15rem, 2vw, 1.4rem);
+            font-weight: 700;
+            color: #172554;
+            line-height: 1.6;
+        }
+
+        /* =========================
+           FOOTER
+        ========================= */
+
+        footer {
+            text-align: center;
+            padding: 35px 20px;
+            background: #111827;
+            color: #cbd5e1;
+        }
+
+        /* =========================
+           MOBILE
+        ========================= */
+
+        @media (max-width: 700px) {
+
+            header {
+                padding: 45px 18px;
+            }
+
+            main,
+            .toc-container {
+                padding: 0 12px;
+            }
+
+            section {
+                padding: 22px 18px;
+                border-radius: 15px;
+            }
+
+            .flow {
+                flex-direction: column;
+            }
+
+            .arrow {
+                transform: rotate(90deg);
+            }
+
+            table {
+                font-size: 0.88rem;
+            }
+
+            pre {
+                font-size: 0.8rem;
+                padding: 15px;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+<header>
+    <div class="hero">
+
+        <span class="hero-badge">
+            LLM Evaluation Course • Session 2
+        </span>
+
+        <h1>
+            Why LLM Applications Need Multiple Evaluation Pipelines
+        </h1>
+
+        <p>
+            Detailed English notes covering multiple failure points,
+            component-level evaluation, workflow-level evaluation,
+            application-level evaluation, risk categories, RAG,
+            agents, safety, and operational evaluation.
+        </p>
+
+    </div>
+</header>
+
+
+<div class="toc-container">
+    <nav class="toc">
+
+        <h2>Table of Contents</h2>
+
+        <ul>
+            <li><a href="#recap">1. Previous Session Recap</a></li>
+            <li><a href="#multiple">2. Why Multiple Evaluation Pipelines?</a></li>
+            <li><a href="#rag">3. RAG Example</a></li>
+            <li><a href="#component">4. Component-Level Evaluation</a></li>
+            <li><a href="#workflow">5. Workflow-Level Evaluation</a></li>
+            <li><a href="#reranking">6. Reranking Example</a></li>
+            <li><a href="#application">7. Application-Level Evaluation</a></li>
+            <li><a href="#three-levels">8. Three Evaluation Levels</a></li>
+            <li><a href="#risk">9. Risk Categories</a></li>
+            <li><a href="#quality">10. Application Quality</a></li>
+            <li><a href="#rag-risks">11. RAG Risks</a></li>
+            <li><a href="#agent-risks">12. Agent Risks</a></li>
+            <li><a href="#chatbot-risks">13. Multi-Turn Chatbot Risks</a></li>
+            <li><a href="#safety">14. Safety Risks</a></li>
+            <li><a href="#operations">15. Operational Risks</a></li>
+            <li><a href="#framework">16. Overall Evaluation Framework</a></li>
+            <li><a href="#summary">17. Final Summary</a></li>
+        </ul>
+
+    </nav>
+</div>
+
+
+<main>
+
+    <!-- =========================================
+         SECTION 1
+    ========================================== -->
+
+    <section id="recap">
+
+        <h2>1. Previous Session Recap</h2>
+
+        <p>
+            Before starting the current topic, let us quickly recap what was
+            covered in the previous LLM Evaluation session.
+        </p>
+
+        <div class="grid">
+
+            <div class="card number-card">
+                <div class="number">01</div>
+
+                <h3>Why LLM Evals?</h3>
+
+                <p>
+                    We discussed why evaluation is necessary before deploying
+                    an LLM-based application into production.
+                </p>
+
+                <p>
+                    Without proper evaluation, an application may produce
+                    incorrect, unsafe, irrelevant, or unreliable results.
+                </p>
+            </div>
+
+
+            <div class="card number-card">
+                <div class="number">02</div>
+
+                <h3>What Are LLM Evals?</h3>
+
+                <p>
+                    LLM evaluations are systematic and reliable ways of
+                    evaluating LLMs and LLM-based applications against
+                    clearly defined criteria.
+                </p>
+            </div>
+
+
+            <div class="card number-card">
+                <div class="number">03</div>
+
+                <h3>How Are Evals Performed?</h3>
+
+                <p>
+                    We introduced the idea of an evaluation pipeline:
+                    a step-by-step process used to measure whether a
+                    system is behaving correctly.
+                </p>
+            </div>
+
+        </div>
+
+
+        <h3>Model Evaluation vs Application Evaluation</h3>
+
+        <div class="table-wrapper">
+
+            <table>
+
+                <thead>
+                    <tr>
+                        <th>Type</th>
+                        <th>What Is Evaluated?</th>
+                        <th>Typical Usage</th>
+                    </tr>
+                </thead>
+
+                <tbody>
+
+                    <tr>
+                        <td><strong>Model Evaluation</strong></td>
+
+                        <td>
+                            The underlying LLM itself.
+                        </td>
+
+                        <td>
+                            Benchmarks are used to measure capabilities
+                            such as reasoning, knowledge, coding, mathematics,
+                            instruction following, etc.
+                        </td>
+                    </tr>
+
+                    <tr>
+                        <td><strong>Application Evaluation</strong></td>
+
+                        <td>
+                            An application built using one or more models.
+                        </td>
+
+                        <td>
+                            Evaluates whether the complete application
+                            performs its intended job correctly.
+                        </td>
+                    </tr>
+
+                </tbody>
+
+            </table>
+
+        </div>
+
+
+        <div class="callout important">
+
+            <strong>Important:</strong>
+
+            <p>
+                As an AI Engineer, you will generally spend much more time
+                evaluating applications than evaluating frontier models.
+            </p>
+
+            <p>
+                Frontier AI labs typically perform model-level evaluations.
+                Application developers need to understand model evaluations
+                mainly so they can select an appropriate model for their
+                application.
+            </p>
+
+        </div>
+
+    </section>
+
+
+    <!-- =========================================
+         SECTION 2
+    ========================================== -->
+
+    <section id="multiple">
+
+        <h2>2. Why Do We Need Multiple Evaluation Pipelines?</h2>
+
+        <div class="callout">
+
+            <p class="big-idea">
+                One LLM-based application can have multiple evaluation
+                pipelines because it can have multiple failure points
+                and multiple categories of risk.
+            </p>
+
+        </div>
+
+
+        <p>
+            A common misconception is that if we evaluate the complete
+            application once, that should be enough.
+        </p>
+
+        <p>
+            In reality, an LLM application is usually composed of multiple
+            components that interact with each other. Each component can fail,
+            the interaction between components can fail, and the complete
+            application can fail to satisfy production requirements.
+        </p>
+
+
+        <div class="grid">
+
+            <div class="card">
+
+                <h3>Reason 1</h3>
+
+                <p>
+                    <strong>Multiple Failure Points</strong>
+                </p>
+
+                <p>
+                    Different components and workflows can fail independently.
+                </p>
+
+            </div>
+
+
+            <div class="card">
+
+                <h3>Reason 2</h3>
+
+                <p>
+                    <strong>Multiple Risk Categories</strong>
+                </p>
+
+                <p>
+                    A system can be correct but unsafe, safe but too expensive,
+                    or accurate but too slow.
+                </p>
+
+            </div>
+
+        </div>
+
+    </section>
+
+
+    <!-- =========================================
+         SECTION 3
+    ========================================== -->
+
+    <section id="rag">
+
+        <h2>3. RAG Example: Understanding Failure Points</h2>
+
+        <p>
+            Consider a Retrieval-Augmented Generation (RAG) chatbot built
+            for a company, school, or college.
+        </p>
+
+
+        <h3>Basic RAG Architecture</h3>
+
+        <div class="flow">
+
+            <div class="flow-box">
+                User Query
+            </div>
+
+            <div class="arrow">→</div>
+
+            <div class="flow-box">
+                Retriever
+            </div>
+
+            <div class="arrow">→</div>
+
+            <div class="flow-box">
+                Vector Database
+            </div>
+
+            <div class="arrow">→</div>
+
+            <div class="flow-box">
+                Relevant Documents
+            </div>
+
+            <div class="arrow">→</div>
+
+            <div class="flow-box">
+                Generator / LLM
+            </div>
+
+            <div class="arrow">→</div>
+
+            <div class="flow-box">
+                Answer
+            </div>
+
+        </div>
+
+
+        <h3>How the RAG Flow Works</h3>
+
+        <ol>
+
+            <li>
+                A user submits a query.
+            </li>
+
+            <li>
+                The retriever receives the query.
+            </li>
+
+            <li>
+                The retriever searches the vector database.
+            </li>
+
+            <li>
+                Relevant documents are retrieved.
+            </li>
+
+            <li>
+                The query and retrieved context are passed to the generator.
+            </li>
+
+            <li>
+                The generator, usually an LLM, produces the final answer.
+            </li>
+
+        </ol>
+
+
+        <h3>Two Obvious Failure Points</h3>
+
+        <div class="grid">
+
+            <div class="card">
+
+                <h3>Failure Point 1 — Retriever</h3>
+
+                <p>
+                    The retriever may return irrelevant or incorrect documents.
+                </p>
+
+                <p>
+                    If the wrong documents are retrieved, the generator may
+                    receive incorrect context.
+                </p>
+
+            </div>
+
+
+            <div class="card">
+
+                <h3>Failure Point 2 — Generator</h3>
+
+                <p>
+                    Even when the retriever provides correct context,
+                    the generator may ignore the context or hallucinate.
+                </p>
+
+            </div>
+
+        </div>
+
+    </section>
+
+
+    <!-- =========================================
+         SECTION 4
+    ========================================== -->
+
+    <section id="component">
+
+        <h2>4. Component-Level Evaluation</h2>
+
+        <p>
+            Because individual components can fail, we need evaluation
+            pipelines for individual components.
+        </p>
+
+
+        <h3>Retriever Evaluation</h3>
+
+        <p>
+            The primary responsibility of a retriever is:
+        </p>
+
+        <div class="callout success">
+
+            <strong>
+                Given a query, retrieve the correct and relevant documents.
+            </strong>
+
+        </div>
+
+        <p>
+            Therefore, a retriever evaluation pipeline should check whether
+            the documents returned for a given query are relevant.
+        </p>
+
+
+        <h3>Generator Evaluation</h3>
+
+        <p>
+            The generator receives a query and context and generates an answer.
+        </p>
+
+        <p>
+            One important quality dimension is
+            <strong>faithfulness</strong>, also called
+            <strong>groundedness</strong>.
+        </p>
+
+
+        <div class="callout">
+
+            <strong>Groundedness / Faithfulness</strong>
+
+            <p>
+                The generated answer should be supported by the provided
+                context rather than introducing unsupported facts.
+            </p>
+
+        </div>
+
+
+        <h3>Example of Groundedness</h3>
+
+        <p>
+            Suppose the user asks:
+        </p>
+
+        <pre>What is the duration of the Machine Learning course?</pre>
+
+        <p>
+            The retrieved document says:
+        </p>
+
+        <pre>The Machine Learning course duration is 3 weeks.</pre>
+
+        <p>
+            A grounded answer would be:
+        </p>
+
+        <pre>The Machine Learning course duration is 3 weeks.</pre>
+
+        <p>
+            The model should not add unrelated information such as:
+        </p>
+
+        <pre>
+It is a great course.
+You can also purchase the Python course.
+The Python course lasts 4 weeks.
+        </pre>
+
+        <p>
+            Those additional statements are not supported by the provided
+            context.
+        </p>
+
+    </section>
+
+
+    <!-- =========================================
+         SECTION 5
+    ========================================== -->
+
+    <section id="workflow">
+
+        <h2>5. Workflow-Level Evaluation</h2>
+
+        <p>
+            Now comes the important question:
+        </p>
+
+        <div class="callout warning">
+
+            <strong>
+                If the retriever is working correctly and the generator is
+                working correctly, does that guarantee that the RAG
+                application is correct?
+            </strong>
+
+        </div>
+
+        <p>
+            <strong>No.</strong>
+        </p>
+
+        <p>
+            The interaction between independently correct components can
+            still produce an incorrect result.
+        </p>
+
+
+        <h3>The Key Idea</h3>
+
+        <p>
+            We therefore need to evaluate not only individual components,
+            but also the workflow formed by those components.
+        </p>
+
+
+        <div class="callout important">
+
+            <p>
+                <strong>Component-level correctness ≠ Workflow-level correctness</strong>
+            </p>
+
+            <p>
+                A retriever may work correctly in isolation and a generator
+                may work correctly in isolation, while their combination
+                still produces incorrect answers.
+            </p>
+
+        </div>
+
+    </section>
+
+
+    <!-- =========================================
+         SECTION 6
+    ========================================== -->
+
+    <section id="reranking">
+
+        <h2>6. RAG Failure Example: K = 5</h2>
+
+        <p>
+            Assume the retriever uses:
+        </p>
+
+        <pre>K = 5</pre>
+
+        <p>
+            Here, <strong>K</strong> means that the retriever returns the
+            top 5 retrieved documents.
+        </p>
+
+
+        <h3>Retrieved Documents</h3>
+
+        <div class="table-wrapper">
+
+            <table>
+
+                <thead>
+
+                    <tr>
+                        <th>Rank</th>
+                        <th>Document</th>
+                        <th>Content</th>
+                    </tr>
+
+                </thead>
+
+                <tbody>
+
+                    <tr>
+                        <td>D1</td>
+                        <td>First document</td>
+                        <td>Some unrelated information.</td>
+                    </tr>
+
+                    <tr>
+                        <td>D2</td>
+                        <td>Second document</td>
+                        <td>Some unrelated information.</td>
+                    </tr>
+
+                    <tr>
+                        <td>D3</td>
+                        <td>Third document</td>
+                        <td>Some unrelated information.</td>
+                    </tr>
+
+                    <tr>
+                        <td>D4</td>
+                        <td>Fourth document</td>
+                        <td>Some unrelated information.</td>
+                    </tr>
+
+                    <tr>
+                        <td><strong>D5</strong></td>
+                        <td><strong>Fifth document</strong></td>
+                        <td>
+                            <strong>
+                                The Machine Learning course duration is 8 weeks.
+                            </strong>
+                        </td>
+                    </tr>
+
+                </tbody>
+
+            </table>
+
+        </div>
+
+
+        <h3>Did the Retriever Do Its Job?</h3>
+
+        <p>
+            <strong>Yes.</strong>
+        </p>
+
+        <p>
+            The correct document was included within the top-5 results.
+        </p>
+
+        <p>
+            The retriever successfully retrieved the required information
+            within its configured K results.
+        </p>
+
+
+        <h3>What Happens Next?</h3>
+
+        <p>
+            The query and all five retrieved documents are passed to the
+            generator.
+        </p>
+
+        <p>
+            Suppose the system prompt tells the generator to prioritize
+            higher-ranked documents.
+        </p>
+
+        <p>
+            In that case, the generator may focus more heavily on
+            <strong>D1, D2, D3, and D4</strong>.
+        </p>
+
+
+        <p>
+            Imagine one of those documents says:
+        </p>
+
+        <pre>The Python course duration is 6 weeks.</pre>
+
+        <p>
+            The generator might incorrectly combine information and produce:
+        </p>
+
+        <pre>The Machine Learning course duration is 6 weeks.</pre>
+
+
+        <h3>Is the Final Answer Correct?</h3>
+
+        <p>
+            <strong>No.</strong>
+        </p>
+
+
+        <h3>Did the Generator Necessarily Fail?</h3>
+
+        <p>
+            Not necessarily.
+        </p>
+
+        <p>
+            The generator followed its instructions and used information
+            provided in the retrieved context. It did not necessarily
+            hallucinate the number from nowhere.
+        </p>
+
+        <p>
+            The problem was that the correct information was ranked too low,
+            while incorrect or irrelevant information had higher priority.
+        </p>
+
+
+        <div class="callout warning">
+
+            <p class="big-idea">
+                The retriever was correct independently.
+                The generator was correct independently.
+                Yet the complete RAG workflow produced a wrong answer.
+            </p>
+
+        </div>
+
+
+        <h3>Workflow-Level Evaluation Detects the Problem</h3>
+
+        <p>
+            A workflow-level evaluator can identify that the final answer
+            is incorrect even though the individual component evaluations
+            passed.
+        </p>
+
+
+        <h3>Possible Solution: Reranking</h3>
+
+        <p>
+            A reranker can reorder the retrieved documents after the initial
+            retrieval step.
+        </p>
+
+        <div class="flow">
+
+            <div class="flow-box">
+                Initial Retrieval
+            </div>
+
+            <div class="arrow">→</div>
+
+            <div class="flow-box">
+                Reranker
+            </div>
+
+            <div class="arrow">→</div>
+
+            <div class="flow-box">
+                Better Document Ordering
+            </div>
+
+            <div class="arrow">→</div>
+
+            <div class="flow-box">
+                Generator
+            </div>
+
+        </div>
+
+
+        <p>
+            In this example, the reranker could recognize that D5 is the most
+            relevant document and move it to the top.
+        </p>
+
+
+        <div class="table-wrapper">
+
+            <table>
+
+                <thead>
+                    <tr>
+                        <th>Before Reranking</th>
+                        <th>After Reranking</th>
+                    </tr>
+                </thead>
+
+                <tbody>
+
+                    <tr>
+                        <td>D1</td>
+                        <td><strong>D5</strong></td>
+                    </tr>
+
+                    <tr>
+                        <td>D2</td>
+                        <td>D1</td>
+                    </tr>
+
+                    <tr>
+                        <td>D3</td>
+                        <td>D2</td>
+                    </tr>
+
+                    <tr>
+                        <td>D4</td>
+                        <td>D3</td>
+                    </tr>
+
+                    <tr>
+                        <td><strong>D5</strong></td>
+                        <td>D4</td>
+                    </tr>
+
+                </tbody>
+
+            </table>
+
+        </div>
+
+
+        <div class="callout success">
+
+            <strong>Core lesson:</strong>
+
+            <p>
+                Evaluating individual components is necessary, but it is not
+                sufficient. The interaction between components must also be
+                evaluated.
+            </p>
+
+        </div>
+
+    </section>
+
+
+    <!-- =========================================
+         SECTION 7
+    ========================================== -->
+
+    <section id="application">
+
+        <h2>7. Application-Level Evaluation</h2>
+
+        <p>
+            Now suppose we have three successful evaluations:
+        </p>
+
+        <ol>
+            <li>Retriever evaluation passes.</li>
+            <li>Generator evaluation passes.</li>
+            <li>Retriever + Generator workflow evaluation passes.</li>
+        </ol>
+
+        <p>
+            Does this guarantee that the application is production-ready?
+        </p>
+
+        <p>
+            <strong>No.</strong>
+        </p>
+
+
+        <h3>Example: Latency</h3>
+
+        <p>
+            Suppose the complete RAG pipeline takes:
+        </p>
+
+        <pre>10 seconds per user query</pre>
+
+        <p>
+            Technically, the system may produce correct answers.
+        </p>
+
+        <p>
+            However, if users have to wait 10 seconds for every response,
+            the application may not provide an acceptable production
+            experience.
+        </p>
+
+
+        <div class="callout warning">
+
+            <strong>
+                Correctness alone does not make an application production-ready.
+            </strong>
+
+            <p>
+                Production systems must also satisfy operational requirements.
+            </p>
+
+        </div>
+
+
+        <h3>Application-Level Metrics</h3>
+
+        <ul class="checklist">
+
+            <li>Overall latency</li>
+
+            <li>Time to First Token (TTFT)</li>
+
+            <li>Cost per request</li>
+
+            <li>Token efficiency</li>
+
+            <li>Error/failure rate</li>
+
+            <li>Latency under load</li>
+
+            <li>Overall reliability</li>
+
+        </ul>
+
+    </section>
+
+
+    <!-- =========================================
+         SECTION 8
+    ========================================== -->
+
+    <section id="three-levels">
+
+        <h2>8. Three Levels Where Failure Can Occur</h2>
+
+        <p>
+            An LLM-based application can have failure points at three broad
+            levels.
+        </p>
+
+
+        <div class="level">
+
+            <div class="level-title">
+
+                <div class="level-number">1</div>
+
+                <h3>Component Level</h3>
+
+            </div>
+
+            <p>
+                Individual components can fail.
+            </p>
+
+            <p>
+                Examples include:
+            </p>
+
+            <ul>
+
+                <li>System prompt</li>
+
+                <li>Retriever</li>
+
+                <li>Reranker</li>
+
+                <li>Query rewriter</li>
+
+                <li>Embedding model</li>
+
+                <li>Vector database</li>
+
+                <li>Output parser</li>
+
+                <li>Agent tool selector</li>
+
+                <li>Memory</li>
+
+                <li>Guardrails</li>
+
+            </ul>
+
+            <p>
+                Each important component can have its own evaluation pipeline.
+            </p>
+
+        </div>
+
+
+        <div class="level">
+
+            <div class="level-title">
+
+                <div class="level-number">2</div>
+
+                <h3>Workflow Level</h3>
+
+            </div>
+
+            <p>
+                Even when individual components work correctly, their
+                interaction may fail.
+            </p>
+
+            <p>
+                Examples:
+            </p>
+
+            <ul>
+
+                <li>Retriever + Generator workflow in RAG</li>
+
+                <li>Agent planning + tool execution workflow</li>
+
+                <li>Multi-step agent workflow</li>
+
+                <li>Multi-turn chatbot workflow</li>
+
+            </ul>
+
+        </div>
+
+
+        <div class="level">
+
+            <div class="level-title">
+
+                <div class="level-number">3</div>
+
+                <h3>Application Level</h3>
+
+            </div>
+
+            <p>
+                The complete application may fail to meet production
+                requirements even if its components and workflows are
+                functioning correctly.
+            </p>
+
+            <p>
+                Examples include:
+            </p>
+
+            <ul>
+
+                <li>High latency</li>
+
+                <li>High cost</li>
+
+                <li>High error rate</li>
+
+                <li>Poor performance under load</li>
+
+                <li>Slow time to first token</li>
+
+                <li>Poor overall user experience</li>
+
+            </ul>
+
+        </div>
+
+
+        <div class="callout important">
+
+            <p class="big-idea">
+                Component → Workflow → Application
+            </p>
+
+            <p>
+                Evaluation must operate at all three levels.
+            </p>
+
+        </div>
+
+    </section>
+
+
+    <!-- =========================================
+         SECTION 9
+    ========================================== -->
+
+    <section id="risk">
+
+        <h2>9. Second Reason for Multiple Evals: Risk Categories</h2>
+
+        <p>
+            Multiple failure points are only one reason for having multiple
+            evaluation pipelines.
+        </p>
+
+        <p>
+            The second major reason is:
+        </p>
+
+        <div class="callout">
+
+            <p class="big-idea">
+                Different parts of an LLM application have multiple
+                associated risk categories.
+            </p>
+
+        </div>
+
+
+        <p>
+            For example, consider a RAG chatbot.
+        </p>
+
+        <p>
+            A generated answer should not only be correct. It should also
+            be safe and operationally efficient.
+        </p>
+
+
+        <div class="grid">
+
+            <div class="card">
+
+                <h3>Application Quality</h3>
+
+                <p>
+                    Does the application actually perform its intended job?
+                </p>
+
+            </div>
+
+
+            <div class="card">
+
+                <h3>Safety</h3>
+
+                <p>
+                    Does the application avoid harmful, unsafe,
+                    biased, or private information?
+                </p>
+
+            </div>
+
+
+            <div class="card">
+
+                <h3>Operations</h3>
+
+                <p>
+                    Can the application run quickly, cheaply,
+                    reliably, and efficiently?
+                </p>
+
+            </div>
+
+        </div>
+
+    </section>
+
+
+    <!-- =========================================
+         SECTION 10
+    ========================================== -->
+
+    <section id="quality">
+
+        <h2>10. Application Quality Risk Categories</h2>
+
+        <p>
+            Application quality focuses on whether the application
+            actually performs its intended task well.
+        </p>
+
+
+        <div class="callout">
+
+            <strong>
+                Application Quality = Does the application do its actual job well?
+            </strong>
+
+        </div>
+
+
+        <h3>General LLM Application</h3>
+
+        <p>
+            Consider a text summarization application.
+        </p>
+
+        <p>
+            The user provides a long piece of text and the system generates
+            a concise summary.
+        </p>
+
+
+        <div class="table-wrapper">
+
+            <table>
+
+                <thead>
+
+                    <tr>
+                        <th>Risk Category</th>
+                        <th>What It Checks</th>
+                    </tr>
+
+                </thead>
+
+                <tbody>
+
+                    <tr>
+                        <td><strong>Correctness / Accuracy</strong></td>
+
+                        <td>
+                            Is the generated output factually correct
+                            and accurate?
+                        </td>
+                    </tr>
+
+                    <tr>
+                        <td><strong>Relevance</strong></td>
+
+                        <td>
+                            Does the answer address the user's actual query?
+                        </td>
+                    </tr>
+
+                    <tr>
+                        <td><strong>Completeness</strong></td>
+
+                        <td>
+                            Were all important parts of the user's request
+                            addressed?
+                        </td>
+                    </tr>
+
+                    <tr>
+                        <td><strong>Instruction Following</strong></td>
+
+                        <td>
+                            Did the model follow requested format,
+                            structure, length, and other instructions?
+                        </td>
+                    </tr>
+
+                </tbody>
+
+            </table>
+
+        </div>
+
+    </section>
+
+
+    <!-- =========================================
+         SECTION 11
+    ========================================== -->
+
+    <section id="rag-risks">
+
+        <h2>11. RAG-Specific Risk Categories</h2>
+
+        <p>
+            RAG systems introduce additional risks because they contain
+            retrieval and context-generation workflows.
+        </p>
+
+
+        <div class="table-wrapper">
+
+            <table>
+
+                <thead>
+
+                    <tr>
+                        <th>Risk</th>
+                        <th>Meaning</th>
+                    </tr>
+
+                </thead>
+
+                <tbody>
+
+                    <tr>
+
+                        <td>
+                            <strong>Context Relevance</strong>
+                        </td>
+
+                        <td>
+                            Are the retrieved documents relevant to the query?
+                        </td>
+
+                    </tr>
+
+
+                    <tr>
+
+                        <td>
+                            <strong>Retriever Recall</strong>
+                        </td>
+
+                        <td>
+                            Did the retriever successfully retrieve the
+                            required relevant information?
+                        </td>
+
+                    </tr>
+
+
+                    <tr>
+
+                        <td>
+                            <strong>Groundedness</strong>
+                        </td>
+
+                        <td>
+                            Is the generated answer supported by the
+                            retrieved context?
+                        </td>
+
+                    </tr>
+
+
+                    <tr>
+
+                        <td>
+                            <strong>Faithfulness</strong>
+                        </td>
+
+                        <td>
+                            Did the answer remain faithful to the supplied
+                            evidence instead of inventing unsupported facts?
+                        </td>
+
+                    </tr>
+
+
+                    <tr>
+
+                        <td>
+                            <strong>Citation Accuracy</strong>
+                        </td>
+
+                        <td>
+                            Are claims correctly supported by the documents
+                            cited as their sources?
+                        </td>
+
+                    </tr>
+
+                </tbody>
+
+            </table>
+
+        </div>
+
+
+        <div class="callout success">
+
+            <strong>Important RAG distinction:</strong>
+
+            <p>
+                Retrieval quality asks whether the right information was
+                retrieved.
+            </p>
+
+            <p>
+                Groundedness asks whether the final answer was actually
+                based on the retrieved information.
+            </p>
+
+        </div>
+
+    </section>
+
+
+    <!-- =========================================
+         SECTION 12
+    ========================================== -->
+
+    <section id="agent-risks">
+
+        <h2>12. Agent-Specific Risk Categories</h2>
+
+        <p>
+            Agentic AI systems introduce additional evaluation dimensions
+            because agents must decide what actions to take.
+        </p>
+
+
+        <div class="table-wrapper">
+
+            <table>
+
+                <thead>
+
+                    <tr>
+                        <th>Risk Category</th>
+                        <th>Question to Evaluate</th>
+                    </tr>
+
+                </thead>
+
+                <tbody>
+
+                    <tr>
+
+                        <td>
+                            <strong>Tool Selection</strong>
+                        </td>
+
+                        <td>
+                            Did the agent select the correct tool for the task?
+                        </td>
+
+                    </tr>
+
+
+                    <tr>
+
+                        <td>
+                            <strong>Parameter Correctness</strong>
+                        </td>
+
+                        <td>
+                            Did the agent pass the correct parameters
+                            to the selected tool?
+                        </td>
+
+                    </tr>
+
+
+                    <tr>
+
+                        <td>
+                            <strong>Task Completion</strong>
+                        </td>
+
+                        <td>
+                            Did the agent successfully complete the task?
+                        </td>
+
+                    </tr>
+
+
+                    <tr>
+
+                        <td>
+                            <strong>Error Recovery</strong>
+                        </td>
+
+                        <td>
+                            If something went wrong during execution,
+                            could the agent recover appropriately?
+                        </td>
+
+                    </tr>
+
+                </tbody>
+
+            </table>
+
+        </div>
+
+
+        <div class="callout">
+
+            <strong>
+                Agent evaluation is not only about the final answer.
+            </strong>
+
+            <p>
+                We also need to evaluate the decisions and actions taken
+                during the workflow.
+            </p>
+
+        </div>
+
+    </section>
+
+
+    <!-- =========================================
+         SECTION 13
+    ========================================== -->
+
+    <section id="chatbot-risks">
+
+        <h2>13. Multi-Turn Chatbot Risk Categories</h2>
+
+        <p>
+            A multi-turn chatbot has additional risks because conversations
+            extend across multiple user interactions.
+        </p>
+
+
+        <div class="grid">
+
+            <div class="card">
+
+                <h3>Context Retention</h3>
+
+                <p>
+                    Can the chatbot correctly remember and use relevant
+                    information from previous turns?
+                </p>
+
+            </div>
+
+
+            <div class="card">
+
+                <h3>Clarification Behavior</h3>
+
+                <p>
+                    If the user's request is ambiguous or unclear,
+                    does the chatbot ask an appropriate clarification
+                    question instead of making an incorrect assumption?
+                </p>
+
+            </div>
+
+        </div>
+
+    </section>
+
+
+    <!-- =========================================
+         SECTION 14
+    ========================================== -->
+
+    <section id="safety">
+
+        <h2>14. Safety Risk Categories</h2>
+
+        <p>
+            Correctness and helpfulness are not enough.
+        </p>
+
+        <p>
+            An LLM application must also be safe.
+        </p>
+
+
+        <div class="callout warning">
+
+            <p class="big-idea">
+                A correct answer can still be an unacceptable answer
+                if it violates safety or privacy requirements.
+            </p>
+
+        </div>
+
+
+        <h3>Example: Private Information Leakage</h3>
+
+        <p>
+            Imagine a chatbot gives a user another user's phone number,
+            email address, credit-card information, or other private data.
+        </p>
+
+        <p>
+            Even if the information is factually correct, the application
+            has failed its safety requirements.
+        </p>
+
+
+        <div class="table-wrapper">
+
+            <table>
+
+                <thead>
+
+                    <tr>
+                        <th>Safety Risk</th>
+                        <th>What It Checks</th>
+                    </tr>
+
+                </thead>
+
+                <tbody>
+
+                    <tr>
+
+                        <td>
+                            <strong>Toxicity</strong>
+                        </td>
+
+                        <td>
+                            Does the model produce toxic or abusive content?
+                        </td>
+
+                    </tr>
+
+
+                    <tr>
+
+                        <td>
+                            <strong>Harmful Content</strong>
+                        </td>
+
+                        <td>
+                            Does it generate dangerous or prohibited
+                            information?
+                        </td>
+
+                    </tr>
+
+
+                    <tr>
+
+                        <td>
+                            <strong>Bias</strong>
+                        </td>
+
+                        <td>
+                            Does the system behave unfairly or differently
+                            toward different groups or users?
+                        </td>
+
+                    </tr>
+
+
+                    <tr>
+
+                        <td>
+                            <strong>Privacy / PII Leakage</strong>
+                        </td>
+
+                        <td>
+                            Does the application expose personal or
+                            confidential information?
+                        </td>
+
+                    </tr>
+
+
+                    <tr>
+
+                        <td>
+                            <strong>Prompt Injection Resistance</strong>
+                        </td>
+
+                        <td>
+                            Can malicious instructions manipulate the
+                            application into violating its intended behavior?
+                        </td>
+
+                    </tr>
+
+
+                    <tr>
+
+                        <td>
+                            <strong>Jailbreak Resistance</strong>
+                        </td>
+
+                        <td>
+                            Can users bypass the model's safety restrictions
+                            using adversarial prompts?
+                        </td>
+
+                    </tr>
+
+                </tbody>
+
+            </table>
+
+        </div>
+
+
+        <h3>Examples of Harmful Content Categories</h3>
+
+        <ul>
+
+            <li>Self-harm related content</li>
+
+            <li>Weapons-related content</li>
+
+            <li>Illegal activity assistance</li>
+
+            <li>Privacy violations</li>
+
+            <li>Other unsafe or restricted content</li>
+
+        </ul>
+
+    </section>
+
+
+    <!-- =========================================
+         SECTION 15
+    ========================================== -->
+
+    <section id="operations">
+
+        <h2>15. Operational Risk Categories</h2>
+
+        <p>
+            Operational evaluation focuses on whether the system can run
+            effectively in production.
+        </p>
+
+
+        <div class="callout">
+
+            <strong>
+                Production systems should be fast, cheap, reliable,
+                and efficient.
+            </strong>
+
+        </div>
+
+
+        <div class="table-wrapper">
+
+            <table>
+
+                <thead>
+
+                    <tr>
+                        <th>Operational Metric</th>
+                        <th>What It Measures</th>
+                    </tr>
+
+                </thead>
+
+                <tbody>
+
+                    <tr>
+
+                        <td>
+                            <strong>Latency</strong>
+                        </td>
+
+                        <td>
+                            How long does the system take to produce a response?
+                        </td>
+
+                    </tr>
+
+
+                    <tr>
+
+                        <td>
+                            <strong>Time to First Token</strong>
+                        </td>
+
+                        <td>
+                            How quickly does the first generated token appear?
+                        </td>
+
+                    </tr>
+
+
+                    <tr>
+
+                        <td>
+                            <strong>Cost per Request</strong>
+                        </td>
+
+                        <td>
+                            How much does it cost to answer a user query?
+                        </td>
+
+                    </tr>
+
+
+                    <tr>
+
+                        <td>
+                            <strong>Token Efficiency</strong>
+                        </td>
+
+                        <td>
+                            How efficiently does the application use tokens?
+                        </td>
+
+                    </tr>
+
+
+                    <tr>
+
+                        <td>
+                            <strong>Error / Failure Rate</strong>
+                        </td>
+
+                        <td>
+                            How frequently does the system fail?
+                        </td>
+
+                    </tr>
+
+
+                    <tr>
+
+                        <td>
+                            <strong>Latency Under Load</strong>
+                        </td>
+
+                        <td>
+                            Does performance remain acceptable when many
+                            users send requests simultaneously?
+                        </td>
+
+                    </tr>
+
+                </tbody>
+
+            </table>
+
+        </div>
+
+    </section>
+
+
+    <!-- =========================================
+         SECTION 16
+    ========================================== -->
+
+    <section id="framework">
+
+        <h2>16. Overall Evaluation Framework</h2>
+
+        <p>
+            We can now combine the entire discussion into one framework.
+        </p>
+
+
+        <h3>Level 1 — Components</h3>
+
+        <p>
+            Evaluate individual components.
+        </p>
+
+        <pre>
+Retriever
+Reranker
+Query Rewriter
+Embedding Model
+Vector Database
+Generator
+Output Parser
+Tool Selector
+Memory
+Guardrails
+System Prompt
+        </pre>
+
+
+        <h3>Level 2 — Workflows</h3>
+
+        <p>
+            Evaluate how multiple components interact.
+        </p>
+
+        <pre>
+RAG Workflow
+Retriever → Reranker → Generator
+
+Agent Workflow
+Planner → Tool Selection → Tool Execution → Observation → Next Action
+
+Multi-Turn Workflow
+User Turn → Memory → Model → Response → Next Turn
+        </pre>
+
+
+        <h3>Level 3 — Complete Application</h3>
+
+        <p>
+            Evaluate the entire product from a production perspective.
+        </p>
+
+        <pre>
+User Request
+      ↓
+Complete Application
+      ↓
+Final Response
+      ↓
+Quality + Safety + Operations
+        </pre>
+
+
+        <h3>Risk Categories Across the System</h3>
+
+        <div class="table-wrapper">
+
+            <table>
+
+                <thead>
+
+                    <tr>
+                        <th>Evaluation Level</th>
+                        <th>Quality</th>
+                        <th>Safety</th>
+                        <th>Operations</th>
+                    </tr>
+
+                </thead>
+
+                <tbody>
+
+                    <tr>
+
+                        <td>
+                            <strong>Component</strong>
+                        </td>
+
+                        <td>
+                            Retriever relevance,
+                            generator faithfulness,
+                            tool selection
+                        </td>
+
+                        <td>
+                            Prompt injection,
+                            unsafe tool usage
+                        </td>
+
+                        <td>
+                            Component latency,
+                            resource usage
+                        </td>
+
+                    </tr>
+
+
+                    <tr>
+
+                        <td>
+                            <strong>Workflow</strong>
+                        </td>
+
+                        <td>
+                            End-to-end correctness,
+                            groundedness,
+                            task completion
+                        </td>
+
+                        <td>
+                            Safety throughout
+                            multi-step execution
+                        </td>
+
+                        <td>
+                            Workflow latency,
+                            workflow cost
+                        </td>
+
+                    </tr>
+
+
+                    <tr>
+
+                        <td>
+                            <strong>Application</strong>
+                        </td>
+
+                        <td>
+                            Correctness,
+                            relevance,
+                            completeness,
+                            instruction following
+                        </td>
+
+                        <td>
+                            Toxicity,
+                            harmful content,
+                            bias,
+                            privacy,
+                            jailbreak resistance
+                        </td>
+
+                        <td>
+                            Latency,
+                            cost,
+                            reliability,
+                            error rate,
+                            scalability
+                        </td>
+
+                    </tr>
+
+                </tbody>
+
+            </table>
+
+        </div>
+
+
+        <h3>The Evaluation Pipeline Concept</h3>
+
+        <div class="flow">
+
+            <div class="flow-box">
+                LLM Application
+            </div>
+
+            <div class="arrow">→</div>
+
+            <div class="flow-box">
+                Identify Failure Points
+            </div>
+
+            <div class="arrow">→</div>
+
+            <div class="flow-box">
+                Identify Risk Categories
+            </div>
+
+            <div class="arrow">→</div>
+
+            <div class="flow-box">
+                Build Evaluation Pipelines
+            </div>
+
+            <div class="arrow">→</div>
+
+            <div class="flow-box">
+                Measure & Improve
+            </div>
+
+        </div>
+
+
+        <h3>Example: One RAG Application Can Have Multiple Evals</h3>
+
+        <ul class="checklist">
+
+            <li>Retriever relevance evaluation</li>
+
+            <li>Retriever recall evaluation</li>
+
+            <li>Reranker evaluation</li>
+
+            <li>Generator groundedness evaluation</li>
+
+            <li>Faithfulness evaluation</li>
+
+            <li>Citation accuracy evaluation</li>
+
+            <li>End-to-end RAG workflow evaluation</li>
+
+            <li>Safety evaluation</li>
+
+            <li>Latency evaluation</li>
+
+            <li>Cost evaluation</li>
+
+            <li>Error-rate evaluation</li>
+
+        </ul>
+
+
+        <div class="callout important">
+
+            <p class="big-idea">
+                The same application can therefore have many evaluation
+                pipelines, each measuring a different dimension of system
+                quality or risk.
+            </p>
+
+        </div>
+
+    </section>
+
+
+    <!-- =========================================
+         SECTION 17
+    ========================================== -->
+
+    <section id="summary">
+
+        <h2>17. Final Summary</h2>
+
+        <div class="summary-box">
+
+            <p class="big-idea">
+                The central idea of this session is:
+            </p>
+
+            <p class="big-idea">
+                An LLM application usually requires multiple evaluation
+                pipelines because it contains multiple failure points and
+                multiple risk categories.
+            </p>
+
+        </div>
+
+
+        <h3>The Two Main Reasons</h3>
+
+        <div class="grid">
+
+            <div class="card">
+
+                <div class="number">01</div>
+
+                <h3>Multiple Failure Points</h3>
+
+                <p>
+                    Failure can happen at:
+                </p>
+
+                <ul>
+
+                    <li>Component level</li>
+
+                    <li>Workflow level</li>
+
+                    <li>Application level</li>
+
+                </ul>
+
+            </div>
+
+
+            <div class="card">
+
+                <div class="number">02</div>
+
+                <h3>Multiple Risk Categories</h3>
+
+                <p>
+                    Each part of the system can have different risks:
+                </p>
+
+                <ul>
+
+                    <li>Application quality</li>
+
+                    <li>Safety</li>
+
+                    <li>Operations</li>
+
+                </ul>
+
+            </div>
+
+        </div>
+
+
+        <h3>Most Important Concept</h3>
+
+        <div class="callout warning">
+
+            <p class="big-idea">
+                Passing component-level evaluations does NOT guarantee that
+                the workflow will work correctly.
+            </p>
+
+            <p class="big-idea">
+                Passing workflow-level evaluations does NOT guarantee that
+                the complete application is production-ready.
+            </p>
+
+        </div>
+
+
+        <h3>Think in Three Layers</h3>
+
+        <pre>
+┌─────────────────────────────────────────────┐
+│             APPLICATION LEVEL               │
+│                                             │
+│ Quality + Safety + Operations               │
+│                                             │
+├─────────────────────────────────────────────┤
+│              WORKFLOW LEVEL                 │
+│                                             │
+│ Component Interaction & End-to-End Behavior │
+│                                             │
+├─────────────────────────────────────────────┤
+│             COMPONENT LEVEL                 │
+│                                             │
+│ Retriever / LLM / Tool / Memory / Parser   │
+│                                             │
+└─────────────────────────────────────────────┘
+        </pre>
+
+
+        <h3>Think in Three Risk Categories</h3>
+
+        <pre>
+APPLICATION QUALITY
+        ↓
+Correctness
+Accuracy
+Relevance
+Completeness
+Instruction Following
+
+SAFETY
+        ↓
+Toxicity
+Harmful Content
+Bias
+Privacy / PII
+Prompt Injection
+Jailbreak Resistance
+
+OPERATIONS
+        ↓
+Latency
+Cost
+Token Efficiency
+Error Rate
+Reliability
+Performance Under Load
+        </pre>
+
+
+        <h3>RAG Example in One Sentence</h3>
+
+        <div class="callout success">
+
+            <p class="big-idea">
+                A retriever can retrieve the correct document and a generator
+                can correctly follow its instructions, yet the complete RAG
+                system can still generate the wrong answer because the
+                interaction between the components is flawed.
+            </p>
+
+        </div>
+
+
+        <h3>Final Mental Model</h3>
+
+        <ol>
+
+            <li>
+                <strong>Find the failure points.</strong>
+            </li>
+
+            <li>
+                <strong>Identify the risk categories.</strong>
+            </li>
+
+            <li>
+                <strong>Create evaluations for individual components.</strong>
+            </li>
+
+            <li>
+                <strong>Evaluate the interaction between components.</strong>
+            </li>
+
+            <li>
+                <strong>Evaluate the complete application.</strong>
+            </li>
+
+            <li>
+                <strong>Continuously monitor quality, safety, and operations.</strong>
+            </li>
+
+        </ol>
+
+
+        <div class="callout important">
+
+            <p class="big-idea">
+                99.99% of the time, a serious LLM application will require
+                more than one evaluation pipeline.
+            </p>
+
+            <p>
+                The goal is not to create evaluations just for the sake of
+                having more evaluations. Each evaluation should correspond
+                to a meaningful failure point or risk that matters to the
+                application.
+            </p>
+
+        </div>
+
+    </section>
+
+</main>
+
+
+<footer>
+
+    <p>
+        LLM Evaluations — Multiple Evaluation Pipelines
+    </p>
+
+    <p>
+        Study Notes • AI Engineering • RAG • Agents • LLM Evaluation
+    </p>
+
+</footer>
+
+
+</body>
+</html>
