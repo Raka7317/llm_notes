@@ -1,0 +1,400 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>LLM Leaderboards — Cheat Sheet</title>
+<style>
+  :root{
+    --bg:#07111f;
+    --panel:#0d1b2d;
+    --panel-2:#10243a;
+    --line:#203752;
+    --text:#eaf2ff;
+    --dim:#a8bad0;
+    --accent:#5eead4;
+    --accent-2:#60a5fa;
+    --good:#34d399;
+    --warn:#fbbf24;
+    --danger:#fb7185;
+    --mono:"JetBrains Mono","SFMono-Regular",Consolas,Menlo,monospace;
+    --sans:Inter,Arial,Helvetica,sans-serif;
+  }
+  *{box-sizing:border-box;}
+  body{
+    margin:0; background:var(--bg); color:var(--text);
+    font-family:var(--sans); font-size:12.5px; line-height:1.42;
+  }
+  .page{
+    max-width:1580px; margin:0 auto; padding:16px 18px 18px;
+  }
+
+  .head{
+    display:flex; justify-content:space-between; align-items:flex-end;
+    flex-wrap:wrap; gap:10px;
+    border-bottom:2px solid var(--accent);
+    padding-bottom:10px; margin-bottom:12px;
+  }
+  .head h1{
+    font-size:20px; margin:0 0 3px; letter-spacing:-0.5px;
+  }
+  .head h1 span{color:var(--accent);}
+  .head p{margin:0; color:var(--dim); font-size:11px;}
+  .head .tag{
+    font-family:var(--mono); font-size:10px; color:var(--bg);
+    background:var(--accent); padding:3px 9px; border-radius:4px;
+    font-weight:700; letter-spacing:0.05em; height:fit-content;
+  }
+
+  .board{
+    columns: 6 250px;
+    column-gap: 12px;
+  }
+  @media (max-width: 1500px){ .board{ columns: 5 250px; } }
+  @media (max-width: 1280px){ .board{ columns: 4 250px; } }
+  @media (max-width: 980px){ .board{ columns: 3 250px; } }
+  @media (max-width: 700px){ .board{ columns: 2 250px; } }
+  @media (max-width: 460px){ .board{ columns: 1; } }
+
+  .card{
+    break-inside: avoid;
+    background:var(--panel);
+    border:1px solid var(--line);
+    border-radius:8px;
+    padding:10px 11px;
+    margin:0 0 12px;
+  }
+  .card h2{
+    font-size:10.5px; margin:0 0 7px;
+    text-transform:uppercase; letter-spacing:0.06em;
+    color:var(--accent);
+    display:flex; align-items:center; gap:6px;
+  }
+  .card h2 .n{
+    font-family:var(--mono); font-size:9px; color:var(--bg);
+    background:var(--accent-2); width:16px; height:16px; border-radius:4px;
+    display:inline-flex; align-items:center; justify-content:center;
+    flex-shrink:0;
+  }
+  .card p{margin:0 0 6px; color:var(--text);}
+  .card p.d{color:var(--dim); font-size:10.5px;}
+
+  .card.good h2{color:var(--good);}
+  .card.good h2 .n{background:var(--good); color:#032015;}
+  .card.warn h2{color:var(--warn);}
+  .card.warn h2 .n{background:var(--warn); color:#211800;}
+  .card.danger h2{color:var(--danger);}
+  .card.danger h2 .n{background:var(--danger); color:#210509;}
+  .card.accent2 h2{color:var(--accent-2);}
+  .card.accent2 h2 .n{background:var(--accent-2); color:#020814;}
+
+  ul.tight{margin:0; padding-left:14px;}
+  ul.tight li{margin-bottom:3px; color:var(--text); font-size:10.5px;}
+  ul.tight li b{color:var(--accent);}
+  ul.tight.dim li{color:var(--dim);}
+
+  .def{
+    background:var(--panel-2); border-left:3px solid var(--accent-2);
+    border-radius:5px; padding:7px 9px; font-size:10.5px; margin:6px 0;
+  }
+  .def b{color:var(--accent-2);}
+  .def.g{border-left-color:var(--good);}
+  .def.g b{color:var(--good);}
+  .def.w{border-left-color:var(--warn);}
+  .def.w b{color:var(--warn);}
+  .def.d{border-left-color:var(--danger);}
+  .def.d b{color:var(--danger);}
+
+  table.mini{
+    width:100%; border-collapse:collapse; font-size:10px; margin-top:4px;
+  }
+  table.mini th, table.mini td{
+    text-align:left; padding:3px 4px; border-bottom:1px solid var(--line);
+    vertical-align:top;
+  }
+  table.mini th{color:var(--accent-2); font-weight:600;}
+  table.mini td{color:var(--dim);}
+  table.mini td b{color:var(--text); font-weight:600;}
+
+  .chips{display:flex; flex-wrap:wrap; gap:4px;}
+  .chip{
+    font-family:var(--mono); font-size:9px; color:var(--text);
+    background:var(--panel-2); border:1px solid var(--line);
+    padding:3px 6px; border-radius:5px;
+  }
+
+  .flow{font-size:9.5px; color:var(--dim); display:flex; flex-wrap:wrap; gap:4px; align-items:center;}
+  .flow .step{
+    color:var(--text); font-weight:600; background:var(--panel-2);
+    border:1px solid var(--line); padding:2px 5px; border-radius:5px;
+  }
+  .flow .arrow{color:var(--accent);}
+
+  .split{display:grid; grid-template-columns:1fr 1fr; gap:6px; margin-top:6px;}
+  .split .c{
+    background:var(--panel-2); border:1px solid var(--line); border-radius:5px;
+    padding:6px 7px; font-size:10px; color:var(--dim);
+  }
+  .split .c b{color:var(--text); display:block; font-size:10.5px; margin-bottom:2px;}
+  .split .c.hl b{color:var(--accent);}
+  .split .c.hl2 b{color:var(--accent-2);}
+
+  ol.steps{list-style:none; margin:6px 0 0; padding:0; counter-reset:step;}
+  ol.steps li{
+    counter-increment:step; display:flex; gap:6px; padding:3px 0;
+    font-size:10.5px; color:var(--text);
+  }
+  ol.steps li::before{
+    content:counter(step); font-family:var(--mono); font-weight:700;
+    color:var(--bg); background:var(--accent); border-radius:50%;
+    width:14px; height:14px; flex:0 0 auto; font-size:8.5px;
+    display:flex; align-items:center; justify-content:center; margin-top:1px;
+  }
+
+  footer{
+    text-align:center; color:var(--dim); font-size:10px;
+    margin-top:10px; padding-top:8px; border-top:1px solid var(--line);
+  }
+
+  @media print{
+    body{background:#fff; color:#111;}
+    .page{padding:6px;}
+    .card{background:#fafafa; border-color:#ccc; break-inside:avoid;}
+    .head{border-color:#111;}
+    .head .tag{background:#111; color:#fff;}
+    .card h2{color:#111;}
+    .card h2 .n{background:#111; color:#fff;}
+  }
+</style>
+</head>
+<body>
+<div class="page">
+
+  <div class="head">
+    <div>
+      <h1>LLM Leaderboards — <span>Cheat Sheet</span></h1>
+      <p>Quick-reference · 4 Leaderboard Types · Limitations · Reading Method · Filter, Don't Decide</p>
+    </div>
+    <div class="tag">1-PAGE REFERENCE</div>
+  </div>
+
+  <div class="board">
+
+    <div class="card">
+      <h2><span class="n">1</span>What Is a Leaderboard?</h2>
+      <div class="def"><b>Simple idea:</b> Benchmark = the exam. Leaderboard = where results get published & compared.</div>
+      <div class="flow">
+        <span class="step">Benchmark</span><span class="arrow">→</span><span class="step">Result</span><span class="arrow">→</span><span class="step">Leaderboard</span>
+      </div>
+    </div>
+
+    <div class="card">
+      <h2><span class="n">2</span>Why Leaderboards Exist</h2>
+      <ul class="tight">
+        <li><b>Compare</b> models across labs</li>
+        <li><b>Trust</b> — 3rd-party vs self-reported</li>
+        <li><b>Filter</b> 100+ models → shortlist</li>
+        <li><b>Detect saturation</b> — top scores clustering</li>
+        <li><b>Discover</b> smaller/cheaper models</li>
+      </ul>
+    </div>
+
+    <div class="card good">
+      <h2><span class="n">3</span>Filtering, Not Deciding</h2>
+      <div class="def g"><b>Key idea:</b> leaderboards narrow 100+ models to ~3–5 candidates you then test yourself.</div>
+    </div>
+
+    <div class="card">
+      <h2><span class="n">4</span>Who Uses Leaderboards</h2>
+      <table class="mini">
+        <tr><td><b>AI Engineers</b></td><td>Shortlist → custom evals</td></tr>
+        <tr><td><b>Frontier Labs</b></td><td>Track competitive position</td></tr>
+        <tr><td><b>Researchers</b></td><td>Saturation, trends, techniques</td></tr>
+        <tr><td><b>Policy/Safety</b></td><td>Monitor capabilities</td></tr>
+        <tr><td><b>OSS Community</b></td><td>Discovery, visibility</td></tr>
+      </table>
+    </div>
+
+    <div class="card">
+      <h2><span class="n">5</span>"Nano Banana" Example</h2>
+      <p class="d">A model appeared under a stealth identity on an image leaderboard, performed extremely well, then was publicly identified — shows leaderboards as discovery tools for labs too.</p>
+    </div>
+
+    <div class="card accent2">
+      <h2><span class="n">6</span>4 Leaderboard Types</h2>
+      <table class="mini">
+        <tr><th>Type</th><th>Question</th></tr>
+        <tr><td><b>Benchmark-Specific</b></td><td>Best on this one benchmark?</td></tr>
+        <tr><td><b>Multi-Benchmark</b></td><td>Best overall combination?</td></tr>
+        <tr><td><b>Human-Preference</b></td><td>Which do humans prefer?</td></tr>
+        <tr><td><b>Application-Specific</b></td><td>Best for this domain/task?</td></tr>
+      </table>
+    </div>
+
+    <div class="card">
+      <h2><span class="n">7</span>Type 1 — Benchmark-Specific</h2>
+      <p class="d">Single benchmark (MMLU, HumanEval, GSM8K, GPQA). Simple, but narrow.</p>
+      <div class="def w"><b>Limit:</b> excellent on one test ≠ best overall model.</div>
+      <p class="d" style="margin-top:5px;">Ex: Humanity's Last Exam (HLE).</p>
+    </div>
+
+    <div class="card">
+      <h2><span class="n">8</span>Type 2 — Multi-Benchmark</h2>
+      <p class="d">Combines dimensions: knowledge, reasoning, math, coding, instr. following.</p>
+      <div class="chips">
+        <span class="chip">Cost/token</span><span class="chip">Latency</span><span class="chip">Output speed</span><span class="chip">Context window</span>
+      </div>
+      <p class="d" style="margin-top:5px;">Ex: LiveBench (contamination-free), Artificial Analysis (intelligence/speed/cost/coding/speech/image/audio).</p>
+    </div>
+
+    <div class="card">
+      <h2><span class="n">9</span>Type 3 — Human-Preference</h2>
+      <div class="flow">
+        <span class="step">2 models answer</span><span class="arrow">→</span><span class="step">User votes better</span><span class="arrow">→</span><span class="step">Votes aggregate</span><span class="arrow">→</span><span class="step">Ranking</span>
+      </div>
+      <p class="d" style="margin-top:5px;">Ex: LM Arena — chat, coding, image, video categories.</p>
+      <div class="def w" style="margin-top:5px;"><b>Bias:</b> humans favor longer/confident/well-formatted/entertaining answers — not necessarily "correct."</div>
+    </div>
+
+    <div class="card">
+      <h2><span class="n">10</span>Type 4 — Application-Specific</h2>
+      <div class="chips">
+        <span class="chip">Coding</span><span class="chip">Agentic</span><span class="chip">SQL</span><span class="chip">Medical</span><span class="chip">Tool calling</span>
+      </div>
+      <p class="d" style="margin-top:5px;">Ex: Berkeley Function Calling Leaderboard.</p>
+    </div>
+
+    <div class="card danger">
+      <h2><span class="n">11</span>Core Warning</h2>
+      <div class="def d"><b>Rule:</b> a leaderboard score is not a prediction of real-world app performance.</div>
+    </div>
+
+    <div class="card">
+      <h2><span class="n">12</span>Limit 1 — Doesn't Transfer</h2>
+      <p class="d">Benchmarks = clean data, clear problems. Real apps are messy:</p>
+      <div class="chips">
+        <span class="chip">Ambiguous requests</span><span class="chip">Missing info</span><span class="chip">Company data</span><span class="chip">Tool failures</span><span class="chip">Edge cases</span>
+      </div>
+    </div>
+
+    <div class="card">
+      <h2><span class="n">13</span>Limit 2 — Contamination</h2>
+      <p class="d">If benchmark data leaks into training data, score gets inflated — not proof of real generalization.</p>
+    </div>
+
+    <div class="card warn">
+      <h2><span class="n">14</span>Limit 3 — Goodhart's Law</h2>
+      <div class="def w"><b>"When a measure becomes a target, it becomes less useful as a measure."</b></div>
+      <p class="d">Models can get over-optimized for leaderboard-specific reward patterns instead of real capability.</p>
+    </div>
+
+    <div class="card">
+      <h2><span class="n">15</span>Limit 4 — Hidden Methodology</h2>
+      <ul class="tight dim">
+        <li>Which benchmarks included/excluded?</li>
+        <li>How are scores normalized?</li>
+        <li>What weight per capability?</li>
+        <li>How is composite computed?</li>
+      </ul>
+    </div>
+
+    <div class="card">
+      <h2><span class="n">16</span>Limit 5 — Small Diffs Don't Matter</h2>
+      <p class="d">84.3 vs 84.1 ≈ noise, not meaningful superiority. Don't fixate on rank position alone.</p>
+    </div>
+
+    <div class="card">
+      <h2><span class="n">17</span>Limit 6 & 7</h2>
+      <div class="split">
+        <div class="c hl"><b>Human bias</b>Prefers style over correctness</div>
+        <div class="c hl2"><b>Stale/self-reported</b>Old versions, unverified numbers</div>
+      </div>
+    </div>
+
+    <div class="card accent2">
+      <h2><span class="n">18</span>How to Read a Leaderboard</h2>
+      <div class="def"><b>Start with:</b> "What does my app need?" — not "who is #1?"</div>
+    </div>
+
+    <div class="card">
+      <h2><span class="n">19</span>Step 1 — Define Constraints</h2>
+      <div class="chips">
+        <span class="chip">App type</span><span class="chip">Latency</span><span class="chip">Cost</span><span class="chip">Context needs</span><span class="chip">Deployment (API/on-prem)</span>
+      </div>
+    </div>
+
+    <div class="card">
+      <h2><span class="n">20</span>Step 2 — Match Leaderboard</h2>
+      <table class="mini">
+        <tr><th>App</th><th>Leaderboard</th></tr>
+        <tr><td>Chatbot</td><td>Human-preference (LM Arena)</td></tr>
+        <tr><td>Agent</td><td>Agent-specific</td></tr>
+        <tr><td>RAG</td><td>Embedding/model leaderboards</td></tr>
+        <tr><td>Cost-sensitive</td><td>Cost + speed oriented</td></tr>
+        <tr><td>Tool calling</td><td>Function-calling leaderboard</td></tr>
+      </table>
+    </div>
+
+    <div class="card">
+      <h2><span class="n">21</span>Step 3 — Read Methodology</h2>
+      <ul class="tight dim">
+        <li>What & how is scored, by whom?</li>
+        <li>Inference/reasoning budget used?</li>
+        <li>Dataset age, update frequency</li>
+        <li>Private test set? Saturated?</li>
+        <li>Confidence intervals, dataset size</li>
+        <li>Composite weighting per capability</li>
+      </ul>
+    </div>
+
+    <div class="card good">
+      <h2><span class="n">22</span>Step 4 & 5 — Shortlist & Test</h2>
+      <ol class="steps">
+        <li>Filter to 3–5 candidates</li>
+        <li>Run your own custom evals</li>
+        <li>Best on YOUR eval = production choice</li>
+      </ol>
+    </div>
+
+    <div class="card accent2">
+      <h2><span class="n">23</span>Full Selection Funnel</h2>
+      <div class="flow">
+        <span class="step">100+ Models</span><span class="arrow">→</span><span class="step">Leaderboard Filter</span><span class="arrow">→</span><span class="step">3–5 Candidates</span><span class="arrow">→</span><span class="step">Custom Evals</span><span class="arrow">→</span><span class="step">Final Model</span>
+      </div>
+    </div>
+
+    <div class="card">
+      <h2><span class="n">24</span>Session Flow</h2>
+      <div class="flow">
+        <span class="step">Benchmarks</span><span class="arrow">→</span><span class="step">Leaderboards</span><span class="arrow">→</span><span class="step">Custom Evals</span><span class="arrow">→</span><span class="step">App Evals (RAG/Agent)</span>
+      </div>
+    </div>
+
+    <div class="card">
+      <h2><span class="n">25</span>Cheat Table</h2>
+      <table class="mini">
+        <tr><td><b>Benchmark</b></td><td>The test/exam</td></tr>
+        <tr><td><b>Leaderboard</b></td><td>Ranking/comparison table</td></tr>
+        <tr><td><b>LM Arena</b></td><td>Human-preference example</td></tr>
+        <tr><td><b>Goodhart's Law</b></td><td>Measure → target → less useful</td></tr>
+        <tr><td><b>Benchmark score → prod?</b></td><td>Not necessarily</td></tr>
+        <tr><td><b>Engineer's role</b></td><td>Filter → shortlist → custom eval</td></tr>
+      </table>
+    </div>
+
+    <div class="card">
+      <h2><span class="n">26</span>Memory Trick</h2>
+      <div class="flow">
+        <span class="step">Benchmark = Exam</span><span class="arrow">→</span><span class="step">Score = Result</span><span class="arrow">→</span><span class="step">Leaderboard = Ranking</span><span class="arrow">→</span><span class="step">Shortlist = Filter</span><span class="arrow">→</span><span class="step">Custom Eval = Decision</span>
+      </div>
+    </div>
+
+  </div>
+
+  <footer>
+    LLM Leaderboards — condensed cheat sheet · prepared from lecture notes
+  </footer>
+
+</div>
+</body>
+</html>

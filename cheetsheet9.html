@@ -1,0 +1,330 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>RAG Retriever Evaluation — Cheat Sheet</title>
+<style>
+  :root{
+    --bg:#0c0a14;
+    --panel:#15111f;
+    --panel-2:#1b1628;
+    --line:#2c2440;
+    --text:#ece8f7;
+    --dim:#a79cc2;
+    --accent:#a78bfa;
+    --accent-2:#60a5fa;
+    --good:#4ade80;
+    --warn:#facc15;
+    --danger:#fb7185;
+    --mono:"JetBrains Mono","SFMono-Regular",Consolas,Menlo,monospace;
+    --sans:Inter,Arial,Helvetica,sans-serif;
+  }
+  *{box-sizing:border-box;}
+  body{
+    margin:0; background:var(--bg); color:var(--text);
+    font-family:var(--sans); font-size:12.5px; line-height:1.42;
+  }
+  .page{
+    max-width:1560px; margin:0 auto; padding:16px 18px 18px;
+  }
+
+  .head{
+    display:flex; justify-content:space-between; align-items:flex-end;
+    flex-wrap:wrap; gap:10px;
+    border-bottom:2px solid var(--accent);
+    padding-bottom:10px; margin-bottom:12px;
+  }
+  .head h1{
+    font-size:20px; margin:0 0 3px; letter-spacing:-0.5px;
+  }
+  .head h1 span{color:var(--accent);}
+  .head p{margin:0; color:var(--dim); font-size:11px;}
+  .head .tag{
+    font-family:var(--mono); font-size:10px; color:var(--bg);
+    background:var(--accent); padding:3px 9px; border-radius:4px;
+    font-weight:700; letter-spacing:0.05em; height:fit-content;
+  }
+
+  .board{
+    columns: 5 260px;
+    column-gap: 12px;
+  }
+  @media (max-width: 1400px){ .board{ columns: 4 260px; } }
+  @media (max-width: 1080px){ .board{ columns: 3 260px; } }
+  @media (max-width: 760px){ .board{ columns: 2 260px; } }
+  @media (max-width: 480px){ .board{ columns: 1; } }
+
+  .card{
+    break-inside: avoid;
+    background:var(--panel);
+    border:1px solid var(--line);
+    border-radius:8px;
+    padding:10px 12px;
+    margin:0 0 12px;
+  }
+  .card h2{
+    font-size:11px; margin:0 0 7px;
+    text-transform:uppercase; letter-spacing:0.06em;
+    color:var(--accent);
+    display:flex; align-items:center; gap:6px;
+  }
+  .card h2 .n{
+    font-family:var(--mono); font-size:9.5px; color:var(--bg);
+    background:var(--accent-2); width:16px; height:16px; border-radius:4px;
+    display:inline-flex; align-items:center; justify-content:center;
+    flex-shrink:0;
+  }
+  .card p{margin:0 0 6px; color:var(--text);}
+  .card p.d{color:var(--dim); font-size:11px;}
+
+  .card.good h2{color:var(--good);}
+  .card.good h2 .n{background:var(--good); color:#04180c;}
+  .card.warn h2{color:var(--warn);}
+  .card.warn h2 .n{background:var(--warn); color:#1c1600;}
+  .card.danger h2{color:var(--danger);}
+  .card.danger h2 .n{background:var(--danger); color:#1c060a;}
+  .card.accent2 h2{color:var(--accent-2);}
+  .card.accent2 h2 .n{background:var(--accent-2); color:#020814;}
+
+  ul.tight{margin:0; padding-left:14px;}
+  ul.tight li{margin-bottom:3px; color:var(--text); font-size:11px;}
+  ul.tight li b{color:var(--accent);}
+  ul.tight.dim li{color:var(--dim);}
+
+  .def{
+    background:var(--panel-2); border-left:3px solid var(--accent-2);
+    border-radius:5px; padding:7px 9px; font-size:11px; margin:6px 0;
+  }
+  .def b{color:var(--accent-2);}
+  .def.g{border-left-color:var(--good);}
+  .def.g b{color:var(--good);}
+  .def.w{border-left-color:var(--warn);}
+  .def.w b{color:var(--warn);}
+
+  table.mini{
+    width:100%; border-collapse:collapse; font-size:10.5px; margin-top:4px;
+  }
+  table.mini th, table.mini td{
+    text-align:left; padding:3px 5px; border-bottom:1px solid var(--line);
+    vertical-align:top;
+  }
+  table.mini th{color:var(--accent-2); font-weight:600;}
+  table.mini td{color:var(--dim);}
+  table.mini td b{color:var(--text); font-weight:600;}
+
+  .chips{display:flex; flex-wrap:wrap; gap:4px;}
+  .chip{
+    font-family:var(--mono); font-size:9.5px; color:var(--text);
+    background:var(--panel-2); border:1px solid var(--line);
+    padding:3px 6px; border-radius:5px;
+  }
+
+  .flow{font-size:10px; color:var(--dim); display:flex; flex-wrap:wrap; gap:4px; align-items:center;}
+  .flow .step{
+    color:var(--text); font-weight:600; background:var(--panel-2);
+    border:1px solid var(--line); padding:2px 6px; border-radius:5px;
+  }
+  .flow .arrow{color:var(--accent);}
+
+  .split{display:grid; grid-template-columns:1fr 1fr; gap:6px; margin-top:6px;}
+  .split .c{
+    background:var(--panel-2); border:1px solid var(--line); border-radius:5px;
+    padding:6px 7px; font-size:10.5px; color:var(--dim);
+  }
+  .split .c b{color:var(--text); display:block; font-size:11px; margin-bottom:2px;}
+  .split .c.hl b{color:var(--accent);}
+  .split .c.hl2 b{color:var(--accent-2);}
+
+  .formula{
+    font-family:var(--mono); background:var(--panel-2); border:1px solid var(--line);
+    border-radius:6px; padding:7px 9px; font-size:10.5px; text-align:center; margin:6px 0;
+    color:var(--text);
+  }
+  .formula .res{color:var(--warn);}
+
+  ol.steps{list-style:none; margin:6px 0 0; padding:0; counter-reset:step;}
+  ol.steps li{
+    counter-increment:step; display:flex; gap:6px; padding:3px 0;
+    font-size:10.5px; color:var(--text);
+  }
+  ol.steps li::before{
+    content:counter(step); font-family:var(--mono); font-weight:700;
+    color:var(--bg); background:var(--accent); border-radius:50%;
+    width:14px; height:14px; flex:0 0 auto; font-size:8.5px;
+    display:flex; align-items:center; justify-content:center; margin-top:1px;
+  }
+
+  .code{
+    background:#08060c; border:1px solid var(--line); border-radius:6px;
+    padding:7px 8px; font-family:var(--mono); font-size:8.8px; color:#d6cdec;
+    line-height:1.4; overflow-x:auto; margin-top:4px;
+  }
+
+  footer{
+    text-align:center; color:var(--dim); font-size:10px;
+    margin-top:10px; padding-top:8px; border-top:1px solid var(--line);
+  }
+
+  @media print{
+    body{background:#fff; color:#111;}
+    .page{padding:6px;}
+    .card{background:#fafafa; border-color:#ccc; break-inside:avoid;}
+    .head{border-color:#111;}
+    .head .tag{background:#111; color:#fff;}
+    .card h2{color:#111;}
+    .card h2 .n{background:#111; color:#fff;}
+  }
+</style>
+</head>
+<body>
+<div class="page">
+
+  <div class="head">
+    <div>
+      <h1>RAG Retriever Evaluation — <span>Cheat Sheet</span></h1>
+      <p>Quick-reference · Contextual Recall · Contextual Precision · Golden Datasets · Component Workflow</p>
+    </div>
+    <div class="tag">1-PAGE REFERENCE</div>
+  </div>
+
+  <div class="board">
+
+    <div class="card">
+      <h2><span class="n">1</span>Goal: RAG Eval Suite</h2>
+      <p class="d">3 levels: <b style="color:var(--text)">component</b>, <b style="color:var(--text)">pipeline/workflow</b>, <b style="color:var(--text)">application</b>. Reusable for regression testing.</p>
+      <div class="split">
+        <div class="c hl"><b>Retriever</b>Fetches context from vector DB</div>
+        <div class="c hl2"><b>Generator</b>Uses question + context → answer</div>
+      </div>
+    </div>
+
+    <div class="card">
+      <h2><span class="n">2</span>Project Setup</h2>
+      <div class="chips">
+        <span class="chip">data/</span><span class="chip">src/</span><span class="chip">evals/</span><span class="chip">goldens/</span>
+      </div>
+      <div class="def" style="margin-top:6px;"><b>Principle:</b> evaluate as you build — retriever → generator → pipeline → app.</div>
+    </div>
+
+    <div class="card">
+      <h2><span class="n">3</span>How the Retriever Works</h2>
+      <div class="flow">
+        <span class="step">Query</span><span class="arrow">→</span><span class="step">Embed</span><span class="arrow">→</span><span class="step">Search vector DB</span><span class="arrow">→</span><span class="step">Top-k chunks</span>
+      </div>
+      <p class="d" style="margin-top:6px;">Build: load docs → chunk → embed → store → expose retriever.</p>
+    </div>
+
+    <div class="card warn">
+      <h2><span class="n">4</span>Two Failure Modes</h2>
+      <div class="split">
+        <div class="c hl"><b>Miss relevant context</b>Needed info exists but not retrieved → measured by <b>recall</b></div>
+        <div class="c hl2"><b>Retrieve noise</b>Irrelevant chunks distract generator → measured by <b>precision</b></div>
+      </div>
+      <div class="def w" style="margin-top:6px;"><b>Trade-off:</b> raising K usually ↑ recall but ↓ precision.</div>
+    </div>
+
+    <div class="card accent2">
+      <h2><span class="n">5</span>Why Reference-Based</h2>
+      <p class="d">Need a golden reference per query to know if retrieval was correct.</p>
+      <div class="def"><b>Old way:</b> label exact relevant chunks — brittle, breaks on re-chunking.</div>
+      <div class="def g"><b>Better way:</b> store an <b>ideal answer</b> per question; LLM judge breaks it into atomic claims & checks context support.</div>
+    </div>
+
+    <div class="card">
+      <h2><span class="n">6</span>Contextual Recall</h2>
+      <div class="formula">Supported ideal-answer claims ÷ <span class="res">Total ideal-answer claims</span></div>
+      <p class="d">Judge decomposes ideal answer into claims, checks which are covered by retrieved chunks. 1 of 2 claims → 0.5.</p>
+      <div class="def" style="margin-top:6px;"><b>vs Recall@K:</b> Recall@K needs pre-labeled chunks; contextual recall uses ideal answer + judge — resilient to re-chunking.</div>
+    </div>
+
+    <div class="card">
+      <h2><span class="n">7</span>Contextual Precision</h2>
+      <p class="d">Rank-aware: are useful chunks retrieved <b style="color:var(--text)">early</b>, without noise?</p>
+      <p class="d">Judge inspects each chunk in rank order → marks helpful/not.</p>
+      <div class="def"><b>Score ↑:</b> relevant chunks near top. <b>Score ↓:</b> irrelevant chunks near top.</div>
+    </div>
+
+    <div class="card">
+      <h2><span class="n">8</span>Recall vs Precision Reading</h2>
+      <div class="split">
+        <div class="c hl"><b>High recall, low precision</b>Correct material exists, buried in noisy context</div>
+        <div class="c hl2"><b>High precision, low recall</b>Chunks look relevant but omit key facts</div>
+      </div>
+    </div>
+
+    <div class="card">
+      <h2><span class="n">9</span>Failure Mode → Metric → Fix</h2>
+      <table class="mini">
+        <tr><th>Symptom</th><th>Metric</th><th>Fix</th></tr>
+        <tr><td>Answer not grounded</td><td>Low recall</td><td>Better retrieval/chunking/embeddings, careful K↑</td></tr>
+        <tr><td>Relevant buried in noise</td><td>Low precision</td><td>Better ranking/filter, K↓, reranker</td></tr>
+      </table>
+    </div>
+
+    <div class="card good">
+      <h2><span class="n">10</span>Creating the Golden Dataset</h2>
+      <p class="d">Min: question + ideal answer. Four ways to build it:</p>
+      <div class="chips">
+        <span class="chip">Manual writing</span><span class="chip">LLM-generated</span>
+        <span class="chip">Synthetic-data tool</span><span class="chip">Mine prod logs</span>
+      </div>
+      <p class="d" style="margin-top:5px;">This course: LLM-assisted + manual QC, small batches, human-sounding questions.</p>
+    </div>
+
+    <div class="card">
+      <h2><span class="n">11</span>Component-Level Workflow</h2>
+      <ol class="steps">
+        <li>Prepare documents</li>
+        <li>Build retriever (chunk, embed, index)</li>
+        <li>Create goldens (Q + ideal answer)</li>
+        <li>Retrieve context per golden Q</li>
+        <li>Judge claims (recall + precision)</li>
+        <li>Analyze & iterate</li>
+      </ol>
+    </div>
+
+    <div class="card">
+      <h2><span class="n">12</span>Running the Evaluation</h2>
+      <p class="d">For every golden row: send Q → retriever, collect chunks, score recall+precision, aggregate.</p>
+      <div class="def"><b>Don't stop at the average</b> — inspect low-scoring cases to find if chunk size, embeddings, K, filters, or source docs need fixing.</div>
+    </div>
+
+    <div class="card accent2">
+      <h2><span class="n">13</span>Eval Pseudocode</h2>
+      <div class="code">for row in golden_dataset:<br>&nbsp;&nbsp;ctx = retriever.retrieve(row.q, k=K)<br>&nbsp;&nbsp;recall = contextual_recall(<br>&nbsp;&nbsp;&nbsp;&nbsp;q, row.ideal_answer, ctx)<br>&nbsp;&nbsp;precision = contextual_precision(<br>&nbsp;&nbsp;&nbsp;&nbsp;q, row.ideal_answer, ctx)<br>report(mean(recall), mean(precision))</div>
+    </div>
+
+    <div class="card">
+      <h2><span class="n">14</span>Golden-Dataset Guidance</h2>
+      <ul class="tight dim">
+        <li>Real user-like language & intent</li>
+        <li>Ideal answer &gt; exact chunk IDs (survives re-chunking)</li>
+        <li>Generate in small batches, review manually</li>
+        <li>Expand w/ real production interactions over time</li>
+        <li>Treat suite as regression test — compare versions before release</li>
+      </ul>
+    </div>
+
+    <div class="card">
+      <h2><span class="n">15</span>Cheat Table</h2>
+      <table class="mini">
+        <tr><td><b>Retriever</b></td><td>Fetches top-k chunks from vector DB</td></tr>
+        <tr><td><b>Recall miss</b></td><td>Relevant info exists but not retrieved</td></tr>
+        <tr><td><b>Precision noise</b></td><td>Irrelevant chunks retrieved</td></tr>
+        <tr><td><b>Contextual Recall</b></td><td>Claims supported ÷ total claims</td></tr>
+        <tr><td><b>Contextual Precision</b></td><td>Rank-aware relevance, low noise</td></tr>
+        <tr><td><b>Ideal answer</b></td><td>Robust golden label vs chunk IDs</td></tr>
+        <tr><td><b>K trade-off</b></td><td>K↑ → recall↑, precision↓ (usually)</td></tr>
+      </table>
+    </div>
+
+  </div>
+
+  <footer>
+    RAG Retriever Evaluation — condensed cheat sheet · prepared from lecture notes
+  </footer>
+
+</div>
+</body>
+</html>

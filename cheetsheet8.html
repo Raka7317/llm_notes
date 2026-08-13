@@ -1,0 +1,374 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>LLM Benchmarking — Cheat Sheet</title>
+<style>
+  :root{
+    --bg:#07101b;
+    --panel:#0d1826;
+    --panel-2:#111f30;
+    --line:#213247;
+    --text:#e8eef6;
+    --dim:#9aabbd;
+    --accent:#58c7ff;
+    --accent-2:#8b7cff;
+    --good:#48d597;
+    --warn:#f5c45d;
+    --danger:#ff7181;
+    --mono:"JetBrains Mono","SFMono-Regular",Consolas,Menlo,monospace;
+    --sans:Inter,Arial,Helvetica,sans-serif;
+  }
+  *{box-sizing:border-box;}
+  body{
+    margin:0; background:var(--bg); color:var(--text);
+    font-family:var(--sans); font-size:12.5px; line-height:1.42;
+  }
+  .page{
+    max-width:1560px; margin:0 auto; padding:16px 18px 18px;
+  }
+
+  .head{
+    display:flex; justify-content:space-between; align-items:flex-end;
+    flex-wrap:wrap; gap:10px;
+    border-bottom:2px solid var(--accent);
+    padding-bottom:10px; margin-bottom:12px;
+  }
+  .head h1{
+    font-size:20px; margin:0 0 3px; letter-spacing:-0.5px;
+  }
+  .head h1 span{color:var(--accent);}
+  .head p{margin:0; color:var(--dim); font-size:11px;}
+  .head .tag{
+    font-family:var(--mono); font-size:10px; color:var(--bg);
+    background:var(--accent); padding:3px 9px; border-radius:4px;
+    font-weight:700; letter-spacing:0.05em; height:fit-content;
+  }
+
+  .board{
+    columns: 6 250px;
+    column-gap: 12px;
+  }
+  @media (max-width: 1500px){ .board{ columns: 5 250px; } }
+  @media (max-width: 1280px){ .board{ columns: 4 250px; } }
+  @media (max-width: 980px){ .board{ columns: 3 250px; } }
+  @media (max-width: 700px){ .board{ columns: 2 250px; } }
+  @media (max-width: 460px){ .board{ columns: 1; } }
+
+  .card{
+    break-inside: avoid;
+    background:var(--panel);
+    border:1px solid var(--line);
+    border-radius:8px;
+    padding:10px 11px;
+    margin:0 0 12px;
+  }
+  .card h2{
+    font-size:10.5px; margin:0 0 7px;
+    text-transform:uppercase; letter-spacing:0.06em;
+    color:var(--accent);
+    display:flex; align-items:center; gap:6px;
+  }
+  .card h2 .n{
+    font-family:var(--mono); font-size:9px; color:var(--bg);
+    background:var(--accent-2); width:16px; height:16px; border-radius:4px;
+    display:inline-flex; align-items:center; justify-content:center;
+    flex-shrink:0;
+  }
+  .card p{margin:0 0 6px; color:var(--text);}
+  .card p.d{color:var(--dim); font-size:10.5px;}
+
+  .card.good h2{color:var(--good);}
+  .card.good h2 .n{background:var(--good); color:#04160e;}
+  .card.warn h2{color:var(--warn);}
+  .card.warn h2 .n{background:var(--warn); color:#1c1300;}
+  .card.danger h2{color:var(--danger);}
+  .card.danger h2 .n{background:var(--danger); color:#1c0508;}
+  .card.accent2 h2{color:var(--accent-2);}
+  .card.accent2 h2 .n{background:var(--accent-2); color:#040414;}
+
+  ul.tight{margin:0; padding-left:14px;}
+  ul.tight li{margin-bottom:3px; color:var(--text); font-size:10.5px;}
+  ul.tight li b{color:var(--accent);}
+  ul.tight.dim li{color:var(--dim);}
+
+  .def{
+    background:var(--panel-2); border-left:3px solid var(--accent-2);
+    border-radius:5px; padding:7px 9px; font-size:10.5px; margin:6px 0;
+  }
+  .def b{color:var(--accent-2);}
+  .def.g{border-left-color:var(--good);}
+  .def.g b{color:var(--good);}
+  .def.w{border-left-color:var(--warn);}
+  .def.w b{color:var(--warn);}
+
+  table.mini{
+    width:100%; border-collapse:collapse; font-size:10px; margin-top:4px;
+  }
+  table.mini th, table.mini td{
+    text-align:left; padding:3px 4px; border-bottom:1px solid var(--line);
+    vertical-align:top;
+  }
+  table.mini th{color:var(--accent-2); font-weight:600;}
+  table.mini td{color:var(--dim);}
+  table.mini td b{color:var(--text); font-weight:600;}
+
+  .chips{display:flex; flex-wrap:wrap; gap:4px;}
+  .chip{
+    font-family:var(--mono); font-size:9px; color:var(--text);
+    background:var(--panel-2); border:1px solid var(--line);
+    padding:3px 6px; border-radius:5px;
+  }
+
+  .flow{font-size:9.5px; color:var(--dim); display:flex; flex-wrap:wrap; gap:4px; align-items:center;}
+  .flow .step{
+    color:var(--text); font-weight:600; background:var(--panel-2);
+    border:1px solid var(--line); padding:2px 5px; border-radius:5px;
+  }
+  .flow .arrow{color:var(--accent);}
+
+  .split{display:grid; grid-template-columns:1fr 1fr; gap:6px; margin-top:6px;}
+  .split .c{
+    background:var(--panel-2); border:1px solid var(--line); border-radius:5px;
+    padding:6px 7px; font-size:10px; color:var(--dim);
+  }
+  .split .c b{color:var(--text); display:block; font-size:10.5px; margin-bottom:2px;}
+  .split .c.hl b{color:var(--accent);}
+  .split .c.hl2 b{color:var(--accent-2);}
+
+  .cap{
+    display:flex; gap:7px; align-items:flex-start; margin-bottom:6px;
+  }
+  .cap .n2{
+    font-family:var(--mono); font-size:9px; color:var(--bg); background:var(--accent);
+    width:16px; height:16px; border-radius:4px; flex:0 0 auto;
+    display:flex; align-items:center; justify-content:center; margin-top:1px;
+  }
+  .cap div b{display:block; font-size:10.5px; color:var(--text);}
+  .cap div span{font-size:9.5px; color:var(--dim);}
+
+  footer{
+    text-align:center; color:var(--dim); font-size:10px;
+    margin-top:10px; padding-top:8px; border-top:1px solid var(--line);
+  }
+
+  @media print{
+    body{background:#fff; color:#111;}
+    .page{padding:6px;}
+    .card{background:#fafafa; border-color:#ccc; break-inside:avoid;}
+    .head{border-color:#111;}
+    .head .tag{background:#111; color:#fff;}
+    .card h2{color:#111;}
+    .card h2 .n{background:#111; color:#fff;}
+  }
+</style>
+</head>
+<body>
+<div class="page">
+
+  <div class="head">
+    <div>
+      <h1>LLM Benchmarking — <span>Cheat Sheet</span></h1>
+      <p>Quick-reference · Model Evals · Benchmarks vs Custom Evals · Zomato Case Study · 8 Core Capabilities</p>
+    </div>
+    <div class="tag">1-PAGE REFERENCE</div>
+  </div>
+
+  <div class="board">
+
+    <div class="card">
+      <h2><span class="n">1</span>Model Eval vs App Eval</h2>
+      <div class="split">
+        <div class="c hl"><b>Model Eval</b>Tests the LLM's raw capabilities</div>
+        <div class="c hl2"><b>App Eval</b>Tests the LLM-powered app (RAG, agent...)</div>
+      </div>
+    </div>
+
+    <div class="card">
+      <h2><span class="n">2</span>Why AI Engineers Need It</h2>
+      <ul class="tight">
+        <li><b>Compare & select</b> the right model</li>
+        <li><b>Track</b> if a new model release is worth migrating to</li>
+        <li><b>Assess safety</b> — hallucination, jailbreaks</li>
+        <li><b>API vs self-host</b> — evidence-based call</li>
+      </ul>
+      <div class="def w" style="margin-top:6px;"><b>Without evals:</b> model selection is guesswork.</div>
+    </div>
+
+    <div class="card accent2">
+      <h2><span class="n">3</span>Definition</h2>
+      <div class="def"><b>Model Eval:</b> systematic measurement of a model's capabilities, behavior, reliability & operational traits, under controlled conditions.</div>
+      <p class="d">No single "LLM IQ" — too many distinct capabilities to reduce to one score.</p>
+    </div>
+
+    <div class="card">
+      <h2><span class="n">4</span>4-Step Evaluation Process</h2>
+      <div class="flow">
+        <span class="step">1. Select capability</span><span class="arrow">→</span><span class="step">2. Bring a test</span><span class="arrow">→</span><span class="step">3. Fixed protocol</span><span class="arrow">→</span><span class="step">4. Score & interpret</span>
+      </div>
+    </div>
+
+    <div class="card">
+      <h2><span class="n">5</span>Benchmark vs Custom Eval</h2>
+      <table class="mini">
+        <tr><th></th><th>Benchmark</th><th>Custom Eval</th></tr>
+        <tr><td><b>What</b></td><td>Standardized, shared test</td><td>Built from your actual task/data</td></tr>
+        <tr><td><b>Goal</b></td><td>General capability compare</td><td>Application-specific suitability</td></tr>
+        <tr><td><b>Answers</b></td><td>"How capable generally?"</td><td>"Best for our workload?"</td></tr>
+        <tr><td><b>Ex.</b></td><td>MMLU, SWE-bench</td><td>Labeled historical app data</td></tr>
+      </table>
+    </div>
+
+    <div class="card warn">
+      <h2><span class="n">6</span>Case Study — Email Router</h2>
+      <p class="d">Route emails into Billing/Technical/Refund. Model A: top-leaderboard, $15/1M tok. Model B: mid-table, $0.50/1M tok.</p>
+    </div>
+
+    <div class="card">
+      <h2><span class="n">7</span>Case Study — Results</h2>
+      <table class="mini">
+        <tr><th></th><th>Model A</th><th>Model B</th></tr>
+        <tr><td><b>Class. acc.</b></td><td>94%</td><td>91%</td></tr>
+        <tr><td><b>Urgency acc.</b></td><td>88%</td><td>87%</td></tr>
+        <tr><td><b>Latency</b></td><td>~4.1s</td><td>~9s</td></tr>
+      </table>
+      <div class="def g" style="margin-top:6px;"><b>Verdict:</b> B nearly matches A at a fraction of cost → better value for this workload, despite losing on public benchmarks.</div>
+    </div>
+
+    <div class="card">
+      <h2><span class="n">8</span>Golden Dataset for Custom Eval</h2>
+      <p class="d">~200–500 historical emails, labeled by target category → evaluate both models on the real task.</p>
+    </div>
+
+    <div class="card accent2">
+      <h2><span class="n">9</span>The 8 Core Capabilities</h2>
+      <div class="cap"><span class="n2">01</span><div><b>Knowledge & Reasoning</b><span>Facts + multistep logic</span></div></div>
+      <div class="cap"><span class="n2">02</span><div><b>Coding & SWE</b><span>Gen, debug, multi-file, tools</span></div></div>
+      <div class="cap"><span class="n2">03</span><div><b>Mathematics</b><span>Symbolic + numerical reasoning</span></div></div>
+      <div class="cap"><span class="n2">04</span><div><b>Long Context</b><span>Effective use of huge inputs</span></div></div>
+      <div class="cap"><span class="n2">05</span><div><b>Vision & Multimodal</b><span>Images, video, cross-modal</span></div></div>
+      <div class="cap"><span class="n2">06</span><div><b>Agentic & Tool Use</b><span>Browsing, APIs, actions</span></div></div>
+      <div class="cap"><span class="n2">07</span><div><b>Safety & Alignment</b><span>Harm resistance, truthfulness</span></div></div>
+      <div class="cap"><span class="n2">08</span><div><b>Instruction Following</b><span>Constraints, format, style</span></div></div>
+    </div>
+
+    <div class="card">
+      <h2><span class="n">10</span>Cap 1 — Knowledge & Reasoning</h2>
+      <p class="d">Factual recall (biology, physics, history) + multistep logical reasoning.</p>
+      <div class="def"><b>Benchmark:</b> MMLU — 57 subjects.</div>
+    </div>
+
+    <div class="card">
+      <h2><span class="n">11</span>Cap 2 — Coding & SWE</h2>
+      <ul class="tight dim">
+        <li>Gen code from NL requirements</li>
+        <li>Write tests, fix from failures</li>
+        <li>Find/fix bugs in existing code</li>
+        <li>Multi-file, long-horizon tasks</li>
+        <li>CLI ops, package install, env setup</li>
+        <li>API/function-call use</li>
+      </ul>
+    </div>
+
+    <div class="card">
+      <h2><span class="n">12</span>Cap 3 — Mathematics</h2>
+      <div class="chips">
+        <span class="chip">Grade-school</span><span class="chip">Competition-level</span>
+        <span class="chip">Undergraduate</span><span class="chip">Research-level</span>
+      </div>
+      <p class="d" style="margin-top:5px;">Relevant to sci-computing, finance, engineering sims.</p>
+    </div>
+
+    <div class="card">
+      <h2><span class="n">13</span>Cap 4 — Long Context</h2>
+      <ul class="tight dim">
+        <li>Retrieve small fact from huge input</li>
+        <li>Find entity details in big doc</li>
+        <li>Summarize very large inputs</li>
+        <li>Hold large codebase context (agent)</li>
+      </ul>
+      <div class="def w" style="margin-top:6px;"><b>Note:</b> stated context window ≠ effective use of it.</div>
+    </div>
+
+    <div class="card">
+      <h2><span class="n">14</span>Cap 5 — Vision & Multimodal</h2>
+      <p class="d">Image + video understanding, cross-modal reasoning.</p>
+      <p class="d" style="margin-top:4px;">Ex: "what can I cook from what's in this fridge photo?"</p>
+    </div>
+
+    <div class="card">
+      <h2><span class="n">15</span>Cap 6 — Agentic & Tool Use</h2>
+      <div class="flow">
+        <span class="step">Goal</span><span class="arrow">→</span><span class="step">LLM Reasoning</span><span class="arrow">→</span><span class="step">Tool Call</span><span class="arrow">→</span><span class="step">Action</span><span class="arrow">→</span><span class="step">Result</span>
+      </div>
+      <p class="d" style="margin-top:5px;">Web browsing, structured calls, APIs, desktop interaction.</p>
+    </div>
+
+    <div class="card">
+      <h2><span class="n">16</span>Cap 7 — Safety & Alignment</h2>
+      <ul class="tight dim">
+        <li>Harmful-content resistance</li>
+        <li>Adversarial-attack resistance</li>
+        <li>Truthfulness vs sycophancy</li>
+        <li>Cybersecurity, crypto, forensics</li>
+      </ul>
+      <div class="def w" style="margin-top:6px;"><b>Why labs care:</b> regulatory + reputational risk.</div>
+    </div>
+
+    <div class="card">
+      <h2><span class="n">17</span>Cap 8 — Instruction Following</h2>
+      <ul class="tight dim">
+        <li>Follows requested format (bullets, etc.)</li>
+        <li>Respects length/word limits</li>
+        <li>Matches requested tone/style</li>
+        <li>Asks clarifying Qs when ambiguous</li>
+      </ul>
+      <div class="def g" style="margin-top:6px;"><b>Impact:</b> directly drives user trust in product.</div>
+    </div>
+
+    <div class="card accent2">
+      <h2><span class="n">18</span>Final Comparison</h2>
+      <table class="mini">
+        <tr><th></th><th>Benchmark</th><th>Custom Eval</th></tr>
+        <tr><td><b>Design</b></td><td>Standardized/shared</td><td>Around your task</td></tr>
+        <tr><td><b>Comparability</b></td><td>High across models</td><td>High in your setup</td></tr>
+        <tr><td><b>Best Q</b></td><td>"How good generally?"</td><td>"Best for our workload?"</td></tr>
+      </table>
+    </div>
+
+    <div class="card">
+      <h2><span class="n">19</span>Quick Facts</h2>
+      <div class="chips">
+        <span class="chip">2 test types</span><span class="chip">4 eval steps</span><span class="chip">8 capabilities</span><span class="chip">MMLU = 57 subjects</span>
+      </div>
+    </div>
+
+    <div class="card good">
+      <h2><span class="n">20</span>Mental Model</h2>
+      <p class="d">Don't ask "which model is strongest?" Ask: "which performs well on <b style="color:var(--text)">what my app needs</b>, within <b style="color:var(--text)">my cost/latency constraints</b>?"</p>
+      <div class="def g" style="margin-top:6px;"><b>Rule:</b> Benchmark = general capability. Custom eval = final decision.</div>
+    </div>
+
+    <div class="card">
+      <h2><span class="n">21</span>Cheat Table</h2>
+      <table class="mini">
+        <tr><td><b>Model Eval</b></td><td>Tests the LLM itself</td></tr>
+        <tr><td><b>App Eval</b></td><td>Tests the full application</td></tr>
+        <tr><td><b>Benchmark</b></td><td>Standardized, cross-model</td></tr>
+        <tr><td><b>Custom Eval</b></td><td>Task-specific, your data</td></tr>
+        <tr><td><b>Fixed protocol</b></td><td>Ensures repeatable comparison</td></tr>
+        <tr><td><b>Long context ≠ window size</b></td><td>Effective use matters, not just size</td></tr>
+        <tr><td><b>Instr. following</b></td><td>Format/length/tone/clarify</td></tr>
+      </table>
+    </div>
+
+  </div>
+
+  <footer>
+    LLM Benchmarking — condensed cheat sheet · prepared from lecture notes
+  </footer>
+
+</div>
+</body>
+</html>

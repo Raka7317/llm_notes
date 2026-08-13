@@ -1,0 +1,443 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>RAG Evaluation Strategy — Cheat Sheet</title>
+<style>
+  :root{
+    --bg:#07111f;
+    --panel:#0d1b2d;
+    --panel-2:#10243a;
+    --line:#203752;
+    --text:#eaf2ff;
+    --dim:#a8bad0;
+    --accent:#5eead4;
+    --accent-2:#60a5fa;
+    --good:#34d399;
+    --warn:#fbbf24;
+    --danger:#fb7185;
+    --mono:"JetBrains Mono","SFMono-Regular",Consolas,Menlo,monospace;
+    --sans:Inter,Arial,Helvetica,sans-serif;
+  }
+  *{box-sizing:border-box;}
+  body{
+    margin:0; background:var(--bg); color:var(--text);
+    font-family:var(--sans); font-size:12.5px; line-height:1.42;
+  }
+  .page{
+    max-width:1580px; margin:0 auto; padding:16px 18px 18px;
+  }
+
+  .head{
+    display:flex; justify-content:space-between; align-items:flex-end;
+    flex-wrap:wrap; gap:10px;
+    border-bottom:2px solid var(--accent);
+    padding-bottom:10px; margin-bottom:12px;
+  }
+  .head h1{
+    font-size:20px; margin:0 0 3px; letter-spacing:-0.5px;
+  }
+  .head h1 span{color:var(--accent);}
+  .head p{margin:0; color:var(--dim); font-size:11px;}
+  .head .tag{
+    font-family:var(--mono); font-size:10px; color:var(--bg);
+    background:var(--accent); padding:3px 9px; border-radius:4px;
+    font-weight:700; letter-spacing:0.05em; height:fit-content;
+  }
+
+  .board{
+    columns: 6 250px;
+    column-gap: 12px;
+  }
+  @media (max-width: 1500px){ .board{ columns: 5 250px; } }
+  @media (max-width: 1280px){ .board{ columns: 4 250px; } }
+  @media (max-width: 980px){ .board{ columns: 3 250px; } }
+  @media (max-width: 700px){ .board{ columns: 2 250px; } }
+  @media (max-width: 460px){ .board{ columns: 1; } }
+
+  .card{
+    break-inside: avoid;
+    background:var(--panel);
+    border:1px solid var(--line);
+    border-radius:8px;
+    padding:10px 11px;
+    margin:0 0 12px;
+  }
+  .card h2{
+    font-size:10.5px; margin:0 0 7px;
+    text-transform:uppercase; letter-spacing:0.06em;
+    color:var(--accent);
+    display:flex; align-items:center; gap:6px;
+  }
+  .card h2 .n{
+    font-family:var(--mono); font-size:9px; color:var(--bg);
+    background:var(--accent-2); width:16px; height:16px; border-radius:4px;
+    display:inline-flex; align-items:center; justify-content:center;
+    flex-shrink:0;
+  }
+  .card p{margin:0 0 6px; color:var(--text);}
+  .card p.d{color:var(--dim); font-size:10.5px;}
+
+  .card.good h2{color:var(--good);}
+  .card.good h2 .n{background:var(--good); color:#032015;}
+  .card.warn h2{color:var(--warn);}
+  .card.warn h2 .n{background:var(--warn); color:#211800;}
+  .card.danger h2{color:var(--danger);}
+  .card.danger h2 .n{background:var(--danger); color:#210509;}
+  .card.accent2 h2{color:var(--accent-2);}
+  .card.accent2 h2 .n{background:var(--accent-2); color:#020814;}
+
+  ul.tight{margin:0; padding-left:14px;}
+  ul.tight li{margin-bottom:3px; color:var(--text); font-size:10.5px;}
+  ul.tight li b{color:var(--accent);}
+  ul.tight.dim li{color:var(--dim);}
+
+  .def{
+    background:var(--panel-2); border-left:3px solid var(--accent-2);
+    border-radius:5px; padding:7px 9px; font-size:10.5px; margin:6px 0;
+  }
+  .def b{color:var(--accent-2);}
+  .def.g{border-left-color:var(--good);}
+  .def.g b{color:var(--good);}
+  .def.w{border-left-color:var(--warn);}
+  .def.w b{color:var(--warn);}
+  .def.d{border-left-color:var(--danger);}
+  .def.d b{color:var(--danger);}
+
+  table.mini{
+    width:100%; border-collapse:collapse; font-size:10px; margin-top:4px;
+  }
+  table.mini th, table.mini td{
+    text-align:left; padding:3px 4px; border-bottom:1px solid var(--line);
+    vertical-align:top;
+  }
+  table.mini th{color:var(--accent-2); font-weight:600;}
+  table.mini td{color:var(--dim);}
+  table.mini td b{color:var(--text); font-weight:600;}
+
+  .chips{display:flex; flex-wrap:wrap; gap:4px;}
+  .chip{
+    font-family:var(--mono); font-size:9px; color:var(--text);
+    background:var(--panel-2); border:1px solid var(--line);
+    padding:3px 6px; border-radius:5px;
+  }
+
+  .flow{font-size:9.5px; color:var(--dim); display:flex; flex-wrap:wrap; gap:4px; align-items:center;}
+  .flow .step{
+    color:var(--text); font-weight:600; background:var(--panel-2);
+    border:1px solid var(--line); padding:2px 5px; border-radius:5px;
+  }
+  .flow .arrow{color:var(--accent);}
+
+  .split{display:grid; grid-template-columns:1fr 1fr; gap:6px; margin-top:6px;}
+  .split .c{
+    background:var(--panel-2); border:1px solid var(--line); border-radius:5px;
+    padding:6px 7px; font-size:10px; color:var(--dim);
+  }
+  .split .c b{color:var(--text); display:block; font-size:10.5px; margin-bottom:2px;}
+  .split .c.hl b{color:var(--accent);}
+  .split .c.hl2 b{color:var(--accent-2);}
+
+  ol.steps{list-style:none; margin:6px 0 0; padding:0; counter-reset:step;}
+  ol.steps li{
+    counter-increment:step; display:flex; gap:6px; padding:3px 0;
+    font-size:10.5px; color:var(--text);
+  }
+  ol.steps li::before{
+    content:counter(step); font-family:var(--mono); font-weight:700;
+    color:var(--bg); background:var(--accent); border-radius:50%;
+    width:14px; height:14px; flex:0 0 auto; font-size:8.5px;
+    display:flex; align-items:center; justify-content:center; margin-top:1px;
+  }
+
+  footer{
+    text-align:center; color:var(--dim); font-size:10px;
+    margin-top:10px; padding-top:8px; border-top:1px solid var(--line);
+  }
+
+  @media print{
+    body{background:#fff; color:#111;}
+    .page{padding:6px;}
+    .card{background:#fafafa; border-color:#ccc; break-inside:avoid;}
+    .head{border-color:#111;}
+    .head .tag{background:#111; color:#fff;}
+    .card h2{color:#111;}
+    .card h2 .n{background:#111; color:#fff;}
+  }
+</style>
+</head>
+<body>
+<div class="page">
+
+  <div class="head">
+    <div>
+      <h1>RAG Evaluation Strategy — <span>Cheat Sheet</span></h1>
+      <p>Quick-reference · Playlist Recap · Component/Pipeline/Application Levels · Eval Suite · Regression · Online Eval</p>
+    </div>
+    <div class="tag">1-PAGE REFERENCE</div>
+  </div>
+
+  <div class="board">
+
+    <div class="card">
+      <h2><span class="n">1</span>Where We Are</h2>
+      <p class="d">Playlist moves from <b>Model Evaluation</b> (benchmarks, custom evals) to <b>Application Evaluation</b> — now the major focus.</p>
+    </div>
+
+    <div class="card">
+      <h2><span class="n">2</span>Model Eval vs App Eval</h2>
+      <table class="mini">
+        <tr><td><b>Model Eval</b></td><td>Evaluates the LLM itself</td></tr>
+        <tr><td><b>Application Eval</b></td><td>Evaluates the LLM-powered app (RAG, agent, etc.)</td></tr>
+      </table>
+    </div>
+
+    <div class="card">
+      <h2><span class="n">3</span>Eval Axes Recap</h2>
+      <ul class="tight">
+        <li><b>Reference-based</b> — expected answer exists</li>
+        <li><b>Reference-free</b> — no reference needed</li>
+        <li><b>Offline</b> — before deployment</li>
+        <li><b>Online</b> — continues after deployment</li>
+      </ul>
+    </div>
+
+    <div class="card">
+      <h2><span class="n">4</span>LLM App Types</h2>
+      <div class="chips">
+        <span class="chip">Chatbot</span><span class="chip">RAG</span><span class="chip">Agents</span>
+        <span class="chip">Multimodal</span><span class="chip">Fixed-schema</span><span class="chip">Image apps</span>
+      </div>
+      <p class="d" style="margin-top:5px;">Course focus: <b>RAG</b> + <b>Agent</b> applications.</p>
+    </div>
+
+    <div class="card">
+      <h2><span class="n">5</span>Case Study</h2>
+      <p class="d"><b>Campus X Doubt Solver</b> — RAG chatbot over lecture transcripts. Goal: keep the app simple, learn to evaluate it properly.</p>
+      <div class="flow">
+        <span class="step">Transcripts</span><span class="arrow">→</span><span class="step">Retrieval</span><span class="arrow">→</span><span class="step">Generation</span><span class="arrow">→</span><span class="step">Answer+Citation</span>
+      </div>
+    </div>
+
+    <div class="card accent2">
+      <h2><span class="n">6</span>3 Levels of RAG Eval</h2>
+      <table class="mini">
+        <tr><td><b>Component</b></td><td>Retriever & generator individually</td></tr>
+        <tr><td><b>Pipeline</b></td><td>Retriever + generator connected (RAG Triad)</td></tr>
+        <tr><td><b>Application</b></td><td>Full user-facing system + safety + ops</td></tr>
+      </table>
+    </div>
+
+    <div class="card">
+      <h2><span class="n">7</span>Build → Eval Flow</h2>
+      <ol class="steps">
+        <li>Build retriever → evaluate it</li>
+        <li>Build generator → evaluate it</li>
+        <li>Connect into RAG pipeline → RAG Triad</li>
+        <li>Evaluate app quality</li>
+        <li>Evaluate app safety</li>
+        <li>Evaluate operational metrics</li>
+      </ol>
+      <div class="def w"><b>Rule:</b> evaluate continuously — never build everything first and test at the end.</div>
+    </div>
+
+    <div class="card">
+      <h2><span class="n">8</span>Retriever Basics</h2>
+      <p class="d">Load docs → chunk → embed → store in vector DB → query → retrieve top chunks.</p>
+    </div>
+
+    <div class="card">
+      <h2><span class="n">9</span>Retriever Metrics</h2>
+      <div class="def"><b>Recall:</b> of all relevant docs, how many were retrieved?</div>
+      <div class="def"><b>Precision:</b> of all retrieved docs, how many were relevant?</div>
+    </div>
+
+    <div class="card">
+      <h2><span class="n">10</span>Generator (Isolated)</h2>
+      <p class="d">Evaluated alone, before connecting to retriever — question + context supplied via a golden dataset.</p>
+    </div>
+
+    <div class="card">
+      <h2><span class="n">11</span>Generator Metrics</h2>
+      <ul class="tight">
+        <li><b>Faithfulness</b> — grounded in context, no hallucination</li>
+        <li><b>Answer Relevance</b> — answers the actual question</li>
+        <li><b>Citation Accuracy</b> — citations point to correct source</li>
+      </ul>
+    </div>
+
+    <div class="card accent2">
+      <h2><span class="n">12</span>RAG Triad</h2>
+      <table class="mini">
+        <tr><th>Pair</th><th>Metric</th></tr>
+        <tr><td>Question + Context</td><td><b>Context Relevance</b></td></tr>
+        <tr><td>Context + Answer</td><td><b>Faithfulness</b></td></tr>
+        <tr><td>Question + Answer</td><td><b>Answer Relevance</b></td></tr>
+      </table>
+      <div class="def g" style="margin-top:6px;"><b>RAG Triad = Context Relevance + Faithfulness + Answer Relevance</b></div>
+    </div>
+
+    <div class="card">
+      <h2><span class="n">13</span>Application — Quality</h2>
+      <ul class="tight">
+        <li><b>Correctness</b> — is it right?</li>
+        <li><b>Completeness</b> — covers every part of the question?</li>
+        <li><b>Style</b> — matches desired tone/format?</li>
+      </ul>
+    </div>
+
+    <div class="card warn">
+      <h2><span class="n">14</span>Application — Safety</h2>
+      <ul class="tight">
+        <li><b>Toxicity</b></li>
+        <li><b>PII Leakage</b></li>
+        <li><b>Jailbreak Resistance</b></li>
+      </ul>
+    </div>
+
+    <div class="card">
+      <h2><span class="n">15</span>Application — Operations</h2>
+      <div class="chips">
+        <span class="chip">Latency</span><span class="chip">Cost per query</span><span class="chip">Token usage</span>
+      </div>
+    </div>
+
+    <div class="card">
+      <h2><span class="n">16</span>What Is an Eval Suite?</h2>
+      <p class="d">The full collection of tests — component + pipeline + application + safety + operations — run from one entry point (<span class="chip">run_evals.py</span>) for a repeatable report.</p>
+    </div>
+
+    <div class="card">
+      <h2><span class="n">17</span>Project Layout</h2>
+      <div class="chips">
+        <span class="chip">src/retriever.py</span><span class="chip">src/generator.py</span><span class="chip">src/rag_pipeline.py</span>
+      </div>
+      <div class="chips" style="margin-top:4px;">
+        <span class="chip">evals/eval_retriever.py</span><span class="chip">evals/eval_generator.py</span><span class="chip">evals/eval_rag_pipeline.py</span>
+      </div>
+      <div class="chips" style="margin-top:4px;">
+        <span class="chip">evals/eval_application.py</span><span class="chip">evals/eval_safety.py</span><span class="chip">evals/eval_operations.py</span>
+      </div>
+    </div>
+
+    <div class="card">
+      <h2><span class="n">18</span>DeepEval Library</h2>
+      <p class="d">Chosen library for this course — Pytest-style syntax, covers RAG + safety metrics, extends to agents/multi-turn/non-LLM/image apps.</p>
+      <div class="def w"><b>Why not Ragas:</b> already covered in advanced RAG course; DeepEval has broader scope.</div>
+    </div>
+
+    <div class="card danger">
+      <h2><span class="n">19</span>Tool-Agnostic Advice</h2>
+      <div class="def d">Learn the <b>concepts</b>, not a specific tool — tools vary by company.</div>
+    </div>
+
+    <div class="card">
+      <h2><span class="n">20</span>Regression Testing</h2>
+      <p class="d">Run the full eval suite on a new version and compare against baseline: did metrics improve, decline, or stay the same? Should it deploy?</p>
+    </div>
+
+    <div class="card accent2">
+      <h2><span class="n">21</span>3 Levels of Regression Testing</h2>
+      <table class="mini">
+        <tr><td><b>Simple</b></td><td>Manually compare new run vs baseline</td></tr>
+        <tr><td><b>Experiment Tracking</b></td><td>Log configs & metrics, compare visually (MLflow, Confident AI, W&B)</td></tr>
+        <tr><td><b>CI/CD</b></td><td>Auto-run evals on push, gate deployment by threshold</td></tr>
+      </table>
+    </div>
+
+    <div class="card">
+      <h2><span class="n">22</span>CI/CD Gating Flow</h2>
+      <div class="flow">
+        <span class="step">Code change</span><span class="arrow">→</span><span class="step">Push</span><span class="arrow">→</span><span class="step">CI runs evals</span><span class="arrow">→</span><span class="step">Compare to baseline</span><span class="arrow">→</span><span class="step">Pass/Fail threshold</span><span class="arrow">→</span><span class="step">Deploy or Block</span>
+      </div>
+    </div>
+
+    <div class="card danger">
+      <h2><span class="n">23</span>Regression Core Idea</h2>
+      <div class="def d"><b>Evaluation = deployment gate.</b> A regression beyond threshold blocks release.</div>
+    </div>
+
+    <div class="card">
+      <h2><span class="n">24</span>Online Evaluation</h2>
+      <p class="d">Monitoring continues after deployment via tracing tools: <b>LangSmith, Langfuse, Confident AI</b>.</p>
+      <div class="chips">
+        <span class="chip">Latency</span><span class="chip">Cost</span><span class="chip">Tokens</span><span class="chip">User feedback</span><span class="chip">Traces</span><span class="chip">Dashboard</span>
+      </div>
+    </div>
+
+    <div class="card">
+      <h2><span class="n">25</span>Online Quality Metrics</h2>
+      <ul class="tight">
+        <li>Faithfulness (on live traffic)</li>
+        <li>Answer relevance (on live traffic)</li>
+        <li>Correctness / quality signals</li>
+      </ul>
+    </div>
+
+    <div class="card warn">
+      <h2><span class="n">26</span>Drift Detection</h2>
+      <div class="def w"><b>Drift:</b> performance changes/degrades over time — e.g. faithfulness dropping over last 24h → investigate.</div>
+    </div>
+
+    <div class="card good">
+      <h2><span class="n">27</span>Self-Improving Loop</h2>
+      <div class="flow">
+        <span class="step">Live interaction</span><span class="arrow">→</span><span class="step">Failure found</span><span class="arrow">→</span><span class="step">Add to offline data</span><span class="arrow">→</span><span class="step">Future eval improves</span>
+      </div>
+    </div>
+
+    <div class="card accent2">
+      <h2><span class="n">28</span>Interview Master Answer</h2>
+      <ol class="steps">
+        <li>Build an Eval Suite</li>
+        <li>Component: Recall, Precision</li>
+        <li>Generator: Faithfulness, Answer Relevance, Citation Accuracy</li>
+        <li>Pipeline: RAG Triad</li>
+        <li>Application: Correctness, Completeness, Style</li>
+        <li>Safety: Toxicity, PII, Jailbreak</li>
+        <li>Ops: Latency, Cost, Tokens</li>
+        <li>Regression vs baseline</li>
+        <li>Experiment tracking / CI-CD gates</li>
+        <li>Deploy only if criteria pass</li>
+        <li>Online eval: traces, feedback, drift</li>
+        <li>Feed failures back into golden dataset</li>
+      </ol>
+    </div>
+
+    <div class="card">
+      <h2><span class="n">29</span>One-Page Revision Table</h2>
+      <table class="mini">
+        <tr><th>Stage</th><th>Key Metrics</th></tr>
+        <tr><td>Retriever</td><td>Recall, Precision</td></tr>
+        <tr><td>Generator</td><td>Faithfulness, Answer Rel., Citation Acc.</td></tr>
+        <tr><td>Pipeline</td><td>RAG Triad</td></tr>
+        <tr><td>App Quality</td><td>Correctness, Completeness, Style</td></tr>
+        <tr><td>App Safety</td><td>Toxicity, PII, Jailbreak</td></tr>
+        <tr><td>Operations</td><td>Latency, Cost, Tokens</td></tr>
+        <tr><td>Regression</td><td>Baseline comparison, tracking, CI/CD</td></tr>
+        <tr><td>Online Eval</td><td>Tracing, feedback, drift</td></tr>
+      </table>
+    </div>
+
+    <div class="card">
+      <h2><span class="n">30</span>Mental Model</h2>
+      <div class="flow">
+        <span class="step">Build</span><span class="arrow">→</span><span class="step">Evaluate</span><span class="arrow">→</span><span class="step">Regress</span><span class="arrow">→</span><span class="step">Deploy</span><span class="arrow">→</span><span class="step">Monitor</span><span class="arrow">→</span><span class="step">Improve</span>
+      </div>
+    </div>
+
+    <div class="card good">
+      <h2><span class="n">31</span>Key Takeaway</h2>
+      <div class="def g"><b>RAG evaluation is a framework, not 3–4 metrics.</b> Component → Pipeline → Application → Safety/Ops → Regression → Deploy → Online → Feedback loop.</div>
+    </div>
+
+  </div>
+
+  <footer>
+    RAG Evaluation Strategy — condensed cheat sheet · prepared from lecture study notes
+  </footer>
+
+</div>
+</body>
+</html>

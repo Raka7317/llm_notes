@@ -1,0 +1,383 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>LLM Evals — Page 03 Cheat Sheet</title>
+<style>
+  :root{
+    --bg:#0b0f14;
+    --panel:#11171f;
+    --panel-2:#161e28;
+    --line:#233040;
+    --text:#e7edf3;
+    --dim:#8ba0b5;
+    --accent:#3ddc97;
+    --accent-2:#5b8def;
+    --warn:#f5a623;
+    --danger:#ff6b6b;
+    --mono:"JetBrains Mono","SFMono-Regular",Consolas,Menlo,monospace;
+    --sans:Inter,Arial,Helvetica,sans-serif;
+  }
+  *{box-sizing:border-box;}
+  body{
+    margin:0; background:var(--bg); color:var(--text);
+    font-family:var(--sans); font-size:14px; line-height:1.5;
+  }
+  .page{
+    max-width:1180px; margin:0 auto; padding:28px 22px 60px;
+  }
+
+  .head{
+    display:flex; justify-content:space-between; align-items:flex-end;
+    flex-wrap:wrap; gap:12px;
+    border-bottom:2px solid var(--accent);
+    padding-bottom:16px; margin-bottom:22px;
+  }
+  .head h1{
+    font-size:26px; margin:0 0 4px; letter-spacing:-0.5px;
+  }
+  .head h1 span{color:var(--accent);}
+  .head p{margin:0; color:var(--dim); font-size:12.5px;}
+  .head .tag{
+    font-family:var(--mono); font-size:11px; color:var(--bg);
+    background:var(--accent); padding:4px 10px; border-radius:4px;
+    font-weight:700; letter-spacing:0.05em; height:fit-content;
+  }
+
+  .board{
+    columns: 3 320px;
+    column-gap: 16px;
+  }
+  @media (max-width: 980px){ .board{ columns: 2 300px; } }
+  @media (max-width: 620px){ .board{ columns: 1; } }
+
+  .card{
+    break-inside: avoid;
+    background:var(--panel);
+    border:1px solid var(--line);
+    border-radius:10px;
+    padding:16px 18px;
+    margin:0 0 16px;
+  }
+  .card h2{
+    font-size:13px; margin:0 0 10px;
+    text-transform:uppercase; letter-spacing:0.08em;
+    color:var(--accent);
+    display:flex; align-items:center; gap:8px;
+  }
+  .card h2 .n{
+    font-family:var(--mono); font-size:11px; color:var(--bg);
+    background:var(--accent-2); width:20px; height:20px; border-radius:4px;
+    display:inline-flex; align-items:center; justify-content:center;
+    flex-shrink:0;
+  }
+  .card p{margin:0 0 8px; color:var(--text);}
+  .card p.d{color:var(--dim); font-size:12.5px;}
+
+  .card.accentwarn h2{color:var(--warn);}
+  .card.accentwarn h2 .n{background:var(--warn); color:#1a1200;}
+  .card.accent2 h2{color:var(--accent-2);}
+  .card.accent2 h2 .n{background:var(--accent-2); color:#02040a;}
+
+  ul.tight{margin:0; padding-left:16px;}
+  ul.tight li{margin-bottom:5px; color:var(--text); font-size:12.5px;}
+  ul.tight li b{color:var(--accent);}
+  ul.tight.dim li{color:var(--dim);}
+
+  .def{
+    background:var(--panel-2); border-left:3px solid var(--accent-2);
+    border-radius:6px; padding:9px 11px; font-size:12.5px; margin:8px 0;
+  }
+  .def b{color:var(--accent-2);}
+
+  table.mini{
+    width:100%; border-collapse:collapse; font-size:12px; margin-top:6px;
+  }
+  table.mini th, table.mini td{
+    text-align:left; padding:5px 6px; border-bottom:1px solid var(--line);
+    vertical-align:top;
+  }
+  table.mini th{color:var(--accent-2); font-weight:600;}
+  table.mini td{color:var(--dim);}
+  table.mini td b{color:var(--text); font-weight:600;}
+
+  .cap-grid{
+    display:grid; grid-template-columns:repeat(4,1fr); gap:6px; margin-top:8px;
+  }
+  .cap{
+    background:var(--panel-2); border:1px solid var(--line); border-radius:5px;
+    padding:6px 5px; text-align:center; font-size:10.5px; color:var(--text);
+  }
+  .cap b{display:block; color:var(--accent-2); font-family:var(--mono); font-size:9.5px;}
+
+  .chips{display:flex; flex-wrap:wrap; gap:6px;}
+  .chip{
+    font-family:var(--mono); font-size:10.5px; color:var(--text);
+    background:var(--panel-2); border:1px solid var(--line);
+    padding:5px 8px; border-radius:5px;
+  }
+  .chip b{color:var(--accent-2); margin-right:4px;}
+
+  .flow{font-size:11.5px; color:var(--dim); display:flex; flex-wrap:wrap; gap:6px; align-items:center;}
+  .flow .step{
+    color:var(--text); font-weight:600; background:var(--panel-2);
+    border:1px solid var(--line); padding:4px 8px; border-radius:5px;
+  }
+  .flow .arrow{color:var(--accent);}
+
+  .split{display:grid; grid-template-columns:1fr 1fr; gap:8px; margin-top:8px;}
+  .split .c{
+    background:var(--panel-2); border:1px solid var(--line); border-radius:6px;
+    padding:8px 9px; font-size:11.5px; color:var(--dim);
+  }
+  .split .c b{color:var(--text); display:block; font-size:12px; margin-bottom:3px;}
+  .split .c.hl b{color:var(--accent);}
+
+  footer{
+    text-align:center; color:var(--dim); font-size:11px;
+    margin-top:26px; padding-top:14px; border-top:1px solid var(--line);
+  }
+
+  @media print{
+    body{background:#fff; color:#111;}
+    .page{padding:8px;}
+    .card{background:#fafafa; border-color:#ccc; break-inside:avoid;}
+    .head{border-color:#111;}
+    .head .tag{background:#111; color:#fff;}
+    .card h2{color:#111;}
+    .card h2 .n{background:#111; color:#fff;}
+  }
+</style>
+</head>
+<body>
+<div class="page">
+
+  <div class="head">
+    <div>
+      <h1>LLM Evals — <span>Cheat Sheet</span></h1>
+      <p>Quick-reference summary · Page 03: LLM Evals — What Exactly Are They?</p>
+    </div>
+    <div class="tag">1-PAGE REFERENCE</div>
+  </div>
+
+  <div class="board">
+
+    <!-- Definition -->
+    <div class="card">
+      <h2><span class="n">1</span>Core Definition</h2>
+      <div class="def"><b>LLM evals:</b> systematic, repeatable tests used to judge an LLM and LLM-powered systems against clear criteria.</div>
+      <p class="d">Applied either to the LLM itself, or to LLM-based applications.</p>
+    </div>
+
+    <!-- Three characteristics -->
+    <div class="card">
+      <h2><span class="n">2</span>Three Core Characteristics</h2>
+      <ul class="tight">
+        <li><b>Systematic</b> — not "vibe testing" 5 random Qs; use proper datasets covering edge cases (e.g. 100 real user chats → dataset).</li>
+        <li><b>Repeatable</b> — same eval setup re-applied after changing prompt/model/retriever/chunking/embeddings/reranker → v1 vs v2 comparison.</li>
+        <li><b>Clear criteria</b> — define "good" explicitly (correct, simple, from course content, safe, no abuse/threats).</li>
+      </ul>
+      <div class="def" style="margin-top:8px;"><b>No criteria</b> = vibe testing. <b>Clear criteria</b> = proper evaluation.</div>
+    </div>
+
+    <!-- Not just a metric -->
+    <div class="card accentwarn">
+      <h2><span class="n">3</span>Eval ≠ Just a Metric</h2>
+      <p class="d">ML mindset: eval = Accuracy / Precision / Recall / F1. Incomplete for LLMs.</p>
+      <div class="def"><b>LLM Eval = the complete testing setup</b>, not one number.</div>
+      <ul class="tight dim">
+        <li>What's being evaluated / which component?</li>
+        <li>What dataset &amp; criteria?</li>
+        <li>Offline or post-deployment?</li>
+        <li>Which tools (e.g. Ragas for RAG)?</li>
+        <li>How are results interpreted?</li>
+      </ul>
+    </div>
+
+    <!-- Practical questions -->
+    <div class="card">
+      <h2><span class="n">4</span>Practical Questions Evals Answer</h2>
+      <ul class="tight">
+        <li><b>Model selection</b> — usable for this task?</li>
+        <li><b>Prod readiness</b> — good enough to ship?</li>
+        <li><b>Prompt opt.</b> — did v2 beat v1?</li>
+        <li><b>RAG groundedness</b> — grounded in context?</li>
+        <li><b>Agent perf.</b> — completing tasks correctly?</li>
+        <li><b>Safety</b> — safe for real users?</li>
+        <li><b>Performance</b> — latency under control?</li>
+      </ul>
+    </div>
+
+    <!-- Two types -->
+    <div class="card accent2">
+      <h2><span class="n">5</span>Two Types of Evals</h2>
+      <div class="flow" style="margin-bottom:8px;">
+        <span class="step">LLM Evaluations</span><span class="arrow">→</span>
+        <span class="step">Model Evals</span>
+        <span class="step">App Evals</span>
+      </div>
+      <p class="d">Model Evals → evaluate the LLM itself. App Evals → evaluate the LLM-based application.</p>
+      <p class="d"><i>Disclaimer: not strict official terms — industry often says "LLM evals" for both, context disambiguates.</i></p>
+    </div>
+
+    <!-- Model evals -->
+    <div class="card">
+      <h2><span class="n">6</span>Model Evals</h2>
+      <div class="def"><b>Def:</b> tests &amp; evaluations of an LLM's capabilities.</div>
+      <p class="d">On every new release: what can it do, how capable, vs. other models, strong/weak benchmarks — documented &amp; published.</p>
+    </div>
+
+    <!-- 8 capabilities -->
+    <div class="card">
+      <h2><span class="n">7</span>8 Capability Categories</h2>
+      <div class="cap-grid">
+        <div class="cap"><b>01</b>Reasoning</div>
+        <div class="cap"><b>02</b>Knowledge</div>
+        <div class="cap"><b>03</b>Math</div>
+        <div class="cap"><b>04</b>Coding</div>
+        <div class="cap"><b>05</b>Instr. Following</div>
+        <div class="cap"><b>06</b>Long-Context</div>
+        <div class="cap"><b>07</b>Multimodal</div>
+        <div class="cap"><b>08</b>Tool Use</div>
+      </div>
+      <p class="d" style="margin-top:8px;">Knowledge ties to <b style="color:var(--text)">cutoff date</b> — info after cutoff isn't in pretrained knowledge.</p>
+    </div>
+
+    <!-- Benchmarks -->
+    <div class="card">
+      <h2><span class="n">8</span>Reference Benchmarks</h2>
+      <table class="mini">
+        <tr><td><b>Knowledge/Reasoning</b></td><td>MMLU</td></tr>
+        <tr><td><b>Math</b></td><td>GSM8K</td></tr>
+        <tr><td><b>Coding/SWE</b></td><td>SWE-bench</td></tr>
+        <tr><td><b>Instr. Following</b></td><td>IFEval</td></tr>
+        <tr><td><b>Long Context</b></td><td>Needle in a Haystack</td></tr>
+        <tr><td><b>Multimodal</b></td><td>MMMU</td></tr>
+      </table>
+      <div class="flow" style="margin-top:8px;">
+        <span class="step">Capability</span><span class="arrow">→</span>
+        <span class="step">Benchmark</span><span class="arrow">→</span>
+        <span class="step">Results</span><span class="arrow">→</span>
+        <span class="step">Comparison</span>
+      </div>
+    </div>
+
+    <!-- AI Engineer + model evals -->
+    <div class="card">
+      <h2><span class="n">9</span>Model-Eval Literacy for Engineers</h2>
+      <p class="d">Frontier-scale benchmarking is done by big labs, not you. Your job:</p>
+      <ul class="tight dim">
+        <li>Know what model eval / benchmarks are</li>
+        <li>Read benchmark results</li>
+        <li>Know model strengths/weaknesses</li>
+        <li>Use it to pick: OpenAI vs Anthropic vs open-source</li>
+      </ul>
+    </div>
+
+    <!-- Application evals -->
+    <div class="card accent2">
+      <h2><span class="n">10</span>Application Evals</h2>
+      <div class="def"><b>Def:</b> assess behavior/performance of an LLM-powered app — at the system level or a specific component.</div>
+      <p class="d">Myth: "LLM = brain → app quality = model quality." False — many components sit around the LLM:</p>
+      <div class="chips">
+        <span class="chip">UI</span>
+        <span class="chip">System prompt</span>
+        <span class="chip">Tools/APIs</span>
+        <span class="chip">Orchestration</span>
+        <span class="chip">Guardrails</span>
+        <span class="chip">Output parsers</span>
+        <span class="chip">Memory/context</span>
+        <span class="chip">Retrieval/embeddings</span>
+        <span class="chip">Vector DB/reranker</span>
+        <span class="chip">Monitoring</span>
+        <span class="chip">Feedback loops</span>
+      </div>
+    </div>
+
+    <!-- Smartphone analogy -->
+    <div class="card">
+      <h2><span class="n">11</span>Smartphone Analogy</h2>
+      <p class="d">A benchmark-topping chip (Snapdragon/MediaTek) ≠ a great phone — camera, OS, battery, display, audio all matter.</p>
+      <div class="flow">
+        <span class="step">Powerful Processor</span><span class="arrow">≠</span>
+        <span class="step">Excellent Phone</span>
+      </div>
+      <div class="flow" style="margin-top:6px;">
+        <span class="step">Powerful LLM</span><span class="arrow">≠</span>
+        <span class="step">Excellent App</span>
+      </div>
+      <p class="d" style="margin-top:6px;">Model eval = labs' job. Evaluating the system built around it = your job.</p>
+    </div>
+
+    <!-- Component vs system -->
+    <div class="card">
+      <h2><span class="n">12</span>Component vs. System Level</h2>
+      <div class="split">
+        <div class="c"><b>Component</b>Retriever, embedding model, reranker, prompt, guardrails, output parser, tool calling, memory.</div>
+        <div class="c hl"><b>System</b>Final response quality, correctness, groundedness, safety, latency, cost, UX.</div>
+      </div>
+    </div>
+
+    <!-- The central question -->
+    <div class="card accentwarn">
+      <h2><span class="n">13</span>The Central Question Flips</h2>
+      <div class="split">
+        <div class="c"><b>Model Eval</b>"Can the model do this?" — reason, code, math, follow instructions, long context, tools.</div>
+        <div class="c hl"><b>App Eval</b>"Will our product/system work correctly?"</div>
+      </div>
+    </div>
+
+    <!-- Worked example -->
+    <div class="card">
+      <h2><span class="n">14</span>Worked Example — Campus X Chatbot</h2>
+      <p class="d"><b style="color:var(--text)">Model eval asks:</b> Can the model reason / follow instructions / do math / long-context / use tools?</p>
+      <p class="d"><b style="color:var(--text)">App eval asks:</b> Correct answer? Right course material used? Grounded? Beginner-friendly? Hallucinated? Safe? Fast? Reliable?</p>
+    </div>
+
+    <!-- Why app evals matter more -->
+    <div class="card">
+      <h2><span class="n">15</span>Why App Evals Matter Most to You</h2>
+      <p class="d">Your job ≠ building the next frontier LLM. It's building RAG systems, chatbots, agents, LLM APIs, doc-QA, assistants — on top of existing models.</p>
+      <div class="def"><b>Model eval</b> tells you model capability. <b>App eval</b> tells you if the product you built actually works.</div>
+    </div>
+
+    <!-- Course focus / rule of thumb -->
+    <div class="card">
+      <h2><span class="n">16</span>Course Focus &amp; Rule of Thumb</h2>
+      <p class="d">Course weight: heavily <b style="color:var(--text)">Application Evals</b>. Model-eval literacy still needed for benchmark reading &amp; model selection.</p>
+      <p class="d">Rule: when future content says "LLM Evaluation," check context — it usually means <i>application</i>-level evaluation.</p>
+    </div>
+
+    <!-- 4-line mental model -->
+    <div class="card accent2">
+      <h2><span class="n">17</span>Four-Line Mental Model</h2>
+      <ol class="tight" style="padding-left:16px; list-style:decimal;">
+        <li>Evals are systematic, repeatable tests against clear criteria.</li>
+        <li>Evals ≠ metrics — they're the complete testing setup.</li>
+        <li>Model Evals → how capable the LLM is.</li>
+        <li>Application Evals → whether the product actually works.</li>
+      </ol>
+    </div>
+
+    <!-- Next -->
+    <div class="card">
+      <h2><span class="n">18</span>What's Next</h2>
+      <div class="flow">
+        <span class="step">Why?</span><span class="arrow">→</span>
+        <span class="step">What?</span><span class="arrow">→</span>
+        <span class="step">Types</span><span class="arrow">→</span>
+        <span class="step">How?</span>
+      </div>
+      <p class="d" style="margin-top:8px;">Next: how evaluations are actually performed — taught from the <b style="color:var(--text)">Application Eval</b> perspective.</p>
+    </div>
+
+  </div>
+
+  <footer>
+    LLM Evals Learning Hub · Cheat Sheet — condensed from Page 03: LLM Evals — What Exactly Are They?
+  </footer>
+
+</div>
+</body>
+</html>

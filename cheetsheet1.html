@@ -1,0 +1,329 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>LLM Evaluation — Cheat Sheet</title>
+<style>
+  :root{
+    --bg:#0b0f14;
+    --panel:#11171f;
+    --panel-2:#161e28;
+    --line:#233040;
+    --text:#e7edf3;
+    --dim:#8ba0b5;
+    --accent:#3ddc97;
+    --accent-2:#5b8def;
+    --warn:#f5a623;
+    --danger:#ff6b6b;
+    --mono:"JetBrains Mono","SFMono-Regular",Consolas,Menlo,monospace;
+    --sans:Inter,Arial,Helvetica,sans-serif;
+  }
+  *{box-sizing:border-box;}
+  body{
+    margin:0; background:var(--bg); color:var(--text);
+    font-family:var(--sans); font-size:14px; line-height:1.5;
+  }
+  .page{
+    max-width:1180px; margin:0 auto; padding:28px 22px 60px;
+  }
+
+  /* header */
+  .head{
+    display:flex; justify-content:space-between; align-items:flex-end;
+    flex-wrap:wrap; gap:12px;
+    border-bottom:2px solid var(--accent);
+    padding-bottom:16px; margin-bottom:22px;
+  }
+  .head h1{
+    font-size:26px; margin:0 0 4px; letter-spacing:-0.5px;
+  }
+  .head h1 span{color:var(--accent);}
+  .head p{margin:0; color:var(--dim); font-size:12.5px;}
+  .head .tag{
+    font-family:var(--mono); font-size:11px; color:var(--bg);
+    background:var(--accent); padding:4px 10px; border-radius:4px;
+    font-weight:700; letter-spacing:0.05em; height:fit-content;
+  }
+
+  /* masonry-ish grid */
+  .board{
+    columns: 3 320px;
+    column-gap: 16px;
+  }
+  @media (max-width: 980px){ .board{ columns: 2 300px; } }
+  @media (max-width: 620px){ .board{ columns: 1; } }
+
+  .card{
+    break-inside: avoid;
+    background:var(--panel);
+    border:1px solid var(--line);
+    border-radius:10px;
+    padding:16px 18px;
+    margin:0 0 16px;
+  }
+  .card h2{
+    font-size:13px; margin:0 0 10px;
+    text-transform:uppercase; letter-spacing:0.08em;
+    color:var(--accent);
+    display:flex; align-items:center; gap:8px;
+  }
+  .card h2 .n{
+    font-family:var(--mono); font-size:11px; color:var(--bg);
+    background:var(--accent-2); width:20px; height:20px; border-radius:4px;
+    display:inline-flex; align-items:center; justify-content:center;
+  }
+  .card p{margin:0 0 8px; color:var(--text);}
+  .card p.d{color:var(--dim); font-size:12.5px;}
+
+  .card.accentwarn h2{color:var(--warn);}
+  .card.accentwarn h2 .n{background:var(--warn); color:#1a1200;}
+  .card.accentdanger h2{color:var(--danger);}
+  .card.accentdanger h2 .n{background:var(--danger); color:#2a0000;}
+
+  ul.tight{margin:0; padding-left:16px;}
+  ul.tight li{margin-bottom:5px; color:var(--text); font-size:12.5px;}
+  ul.tight li b{color:var(--accent);}
+  ul.tight.dim li{color:var(--dim);}
+
+  /* definition strip */
+  .def{
+    background:var(--panel-2); border-left:3px solid var(--accent-2);
+    border-radius:6px; padding:9px 11px; font-size:12.5px; margin:8px 0;
+  }
+  .def b{color:var(--accent-2);}
+
+  /* mini table */
+  table.mini{
+    width:100%; border-collapse:collapse; font-size:12px; margin-top:6px;
+  }
+  table.mini th, table.mini td{
+    text-align:left; padding:5px 6px; border-bottom:1px solid var(--line);
+  }
+  table.mini th{color:var(--accent-2); font-weight:600;}
+  table.mini td{color:var(--dim);}
+  table.mini td b{color:var(--text); font-weight:600;}
+
+  /* case study mini blocks */
+  .case{
+    border:1px solid var(--line); border-radius:6px; padding:9px 10px;
+    margin-bottom:8px; background:var(--panel-2);
+  }
+  .case .t{font-size:12.5px; font-weight:700; color:var(--danger); margin-bottom:2px;}
+  .case p{font-size:12px; color:var(--dim); margin:0 0 4px;}
+  .case .les{font-size:11.5px; color:var(--accent);}
+
+  /* roadmap chips */
+  .chips{display:flex; flex-wrap:wrap; gap:6px;}
+  .chip{
+    font-family:var(--mono); font-size:10.5px; color:var(--text);
+    background:var(--panel-2); border:1px solid var(--line);
+    padding:5px 8px; border-radius:5px;
+  }
+  .chip b{color:var(--accent-2); margin-right:4px;}
+
+  /* mental model flow */
+  .flow{font-size:12px; color:var(--dim);}
+  .flow .step{color:var(--text); font-weight:600;}
+  .flow .arrow{color:var(--accent); margin:0 4px;}
+
+  /* footer */
+  footer{
+    text-align:center; color:var(--dim); font-size:11px;
+    margin-top:26px; padding-top:14px; border-top:1px solid var(--line);
+  }
+
+  /* print styles */
+  @media print{
+    body{background:#fff; color:#111;}
+    .page{padding:8px;}
+    .card{background:#fafafa; border-color:#ccc; break-inside:avoid;}
+    .head{border-color:#111;}
+    .head .tag{background:#111; color:#fff;}
+    .card h2{color:#111;}
+    .card h2 .n{background:#111; color:#fff;}
+    a{color:#111;}
+  }
+</style>
+</head>
+<body>
+<div class="page">
+
+  <div class="head">
+    <div>
+      <h1>LLM Evaluation — <span>Cheat Sheet</span></h1>
+      <p>Quick-reference summary · Page 01: Introduction to LLM Evaluation</p>
+    </div>
+    <div class="tag">1-PAGE REFERENCE</div>
+  </div>
+
+  <div class="board">
+
+    <!-- AI Engineer -->
+    <div class="card">
+      <h2><span class="n">1</span>What Is an AI Engineer?</h2>
+      <div class="def"><b>Def:</b> Builds applications/products on top of foundation models (LLMs), rather than training models from scratch.</div>
+      <p class="d">Core topics: LLM apps, RAG, AI agents, prompt engineering, evaluation, orchestration.</p>
+    </div>
+
+    <!-- What are Evals -->
+    <div class="card">
+      <h2><span class="n">2</span>What Is LLM Evaluation?</h2>
+      <div class="def"><b>Def:</b> Systematic process to measure how well an LLM / LLM app performs against defined expectations.</div>
+      <p class="d">Not just: <i>"Can I build this?"</i><br>Also: <i>"Is it good, safe, reliable & predictable enough to ship?"</i></p>
+    </div>
+
+    <!-- Why important -->
+    <div class="card">
+      <h2><span class="n">3</span>Why It Matters</h2>
+      <p class="d">Default dev loop (risky): build → ask a few Qs → looks good → assume it works → deploy.</p>
+      <ul class="tight">
+        <li><b>Career edge</b> — less commonly studied than app-building, so it's a differentiator.</li>
+        <li><b>Mindset shift</b> — "I built a project" → "Can this serve millions reliably?"</li>
+      </ul>
+    </div>
+
+    <!-- Vibe testing -->
+    <div class="card accentwarn">
+      <h2><span class="n">4</span>Vibe Testing</h2>
+      <div class="def"><b>Def:</b> Judging an LLM app on a handful of prompts using gut feeling, not systematic metrics.</div>
+      <p class="d"><b style="color:var(--text)">Pros:</b> simple, fast, fine for early experiments.</p>
+      <ul class="tight dim">
+        <li>Informal &amp; subjective</li>
+        <li>Not repeatable</li>
+        <li>Different devs → different conclusions</li>
+        <li>Doesn't cover the real input space</li>
+      </ul>
+      <p class="d"><i>OK for prototyping — never for production evidence.</i></p>
+    </div>
+
+    <!-- Case studies -->
+    <div class="card accentdanger">
+      <h2><span class="n">5</span>Real-World Failures</h2>
+      <div class="case">
+        <div class="t">Air Canada Chatbot</div>
+        <p>Gave wrong bereavement-fare policy; airline held legally responsible.</p>
+        <div class="les">Lesson: a chatbot's mistakes are the company's liability.</div>
+      </div>
+      <div class="case">
+        <div class="t">Chevrolet Dealer Bot</div>
+        <p>Jailbroken into "agreeing" to sell a car for $1; went viral.</p>
+        <div class="les">Lesson: test against adversarial, not just normal, inputs.</div>
+      </div>
+      <div class="case">
+        <div class="t">Fabricated Legal Cases</div>
+        <p>Lawyer used unverified LLM output (fake case citations) in court.</p>
+        <div class="les">Lesson: confident output ≠ correct output.</div>
+      </div>
+      <p class="d"><b style="color:var(--danger)">Common thread:</b> systems trusted without evaluation/safeguards.</p>
+    </div>
+
+    <!-- Traditional vs LLM -->
+    <div class="card">
+      <h2><span class="n">6</span>Traditional vs. LLM Testing</h2>
+      <table class="mini">
+        <tr><th></th><th>Traditional SW</th><th>LLM Apps</th></tr>
+        <tr><td><b>Behavior</b></td><td>Deterministic</td><td>Probabilistic</td></tr>
+        <tr><td><b>Same input</b></td><td>Same output</td><td>Output can vary</td></tr>
+        <tr><td><b>Check</b></td><td>Exact match (2+2=4)</td><td>Semantic validity, many valid answers</td></tr>
+      </table>
+      <p class="d" style="margin-top:8px;">⚠ Eval can't rely on exact string matching.</p>
+    </div>
+
+    <!-- Dimensions -->
+    <div class="card">
+      <h2><span class="n">7</span>Evaluation Dimensions</h2>
+      <table class="mini">
+        <tr><td><b>Factuality</b></td><td>Is it factually correct?</td></tr>
+        <tr><td><b>Completeness</b></td><td>Covers all needed info?</td></tr>
+        <tr><td><b>Tonality</b></td><td>Right tone / style?</td></tr>
+        <tr><td><b>Groundedness</b></td><td>Backed by source/context?</td></tr>
+        <tr><td><b>Latency</b></td><td>Response speed</td></tr>
+        <tr><td><b>Cost</b></td><td>$ per response</td></tr>
+      </table>
+      <p class="d" style="margin-top:8px;">Relevant dimensions vary by app — support bot ≠ medical assistant ≠ coding agent.</p>
+    </div>
+
+    <!-- Two core challenges -->
+    <div class="card">
+      <h2><span class="n">8</span>Two Core Challenges</h2>
+      <ul class="tight">
+        <li><b>Non-determinism</b> — same input, different valid outputs; exact-match fails.</li>
+        <li><b>Multi-dimensionality</b> — correct but incomplete / ungrounded / slow / costly / wrong tone.</li>
+      </ul>
+    </div>
+
+    <!-- Roadmap -->
+    <div class="card">
+      <h2><span class="n">9</span>10-Step Learning Roadmap</h2>
+      <div class="chips">
+        <span class="chip"><b>1</b>What are Evals?</span>
+        <span class="chip"><b>2</b>Eval Landscape</span>
+        <span class="chip"><b>3</b>Model Eval</span>
+        <span class="chip"><b>4</b>App Eval</span>
+        <span class="chip"><b>5</b>Eval Pipeline</span>
+        <span class="chip"><b>6</b>RAG Eval</span>
+        <span class="chip"><b>7</b>Agent Eval</span>
+        <span class="chip"><b>8</b>Safety Eval</span>
+        <span class="chip"><b>9</b>Ops Eval</span>
+        <span class="chip"><b>10</b>Prod Monitoring</span>
+      </div>
+    </div>
+
+    <!-- Post-deployment -->
+    <div class="card">
+      <h2><span class="n">10</span>Eval Doesn't End at Deploy</h2>
+      <p class="d">Myth: evaluation = pre-launch only. Reality: continuous production monitoring is required.</p>
+      <ul class="tight">
+        <li><b>Latency</b> — response speed</li>
+        <li><b>TTFT</b> — time to first token</li>
+        <li><b>TPS</b> — tokens per second</li>
+        <li><b>System load</b> — behavior under real traffic</li>
+      </ul>
+    </div>
+
+    <!-- Mental model -->
+    <div class="card">
+      <h2><span class="n">11</span>Mental Model Shift</h2>
+      <div class="flow">
+        <span class="step">"Can I build it?"</span>
+        <span class="arrow">↓</span><br>
+        <span class="step">"Can I prove it behaves correctly & reliably?"</span>
+        <span class="arrow">↓</span><br>
+        <span class="step">"Can it safely serve millions of real users?"</span>
+      </div>
+    </div>
+
+    <!-- Core principle -->
+    <div class="card">
+      <h2><span class="n">12</span>Core Principle</h2>
+      <div class="def" style="text-align:center; font-weight:700; letter-spacing:0.02em;">
+        Build → Evaluate → Improve → Deploy → Monitor → Evaluate Again
+      </div>
+      <p class="d">A permanent loop, not a one-time checkbox.</p>
+    </div>
+
+    <!-- Key takeaways -->
+    <div class="card">
+      <h2><span class="n">13</span>Key Takeaways</h2>
+      <ul class="tight">
+        <li>Building ≠ working reliably — you must evaluate too.</li>
+        <li>Vibe testing ≠ production evidence.</li>
+        <li>LLMs are probabilistic, not deterministic.</li>
+        <li>Evaluation is multidimensional, not just "correctness."</li>
+        <li>Real failures → financial / legal / reputational damage.</li>
+        <li>No universal metric — criteria depend on the app.</li>
+        <li>Evaluation continues after deployment (monitoring).</li>
+        <li>Eval literacy = a real AI engineering skill & edge.</li>
+      </ul>
+    </div>
+
+  </div>
+
+  <footer>
+    LLM Evaluation Learning Hub · Cheat Sheet — condensed from Page 01: Introduction &amp; Roadmap
+  </footer>
+
+</div>
+</body>
+</html>

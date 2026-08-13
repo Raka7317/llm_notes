@@ -1,0 +1,405 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>LLM Eval Methods — Cheat Sheet</title>
+<style>
+  :root{
+    --bg:#0b0f14;
+    --panel:#11171f;
+    --panel-2:#161e28;
+    --line:#233040;
+    --text:#e7edf3;
+    --dim:#8ba0b5;
+    --accent:#3ddc97;
+    --accent-2:#5b8def;
+    --warn:#f5a623;
+    --danger:#ff6b6b;
+    --mono:"JetBrains Mono","SFMono-Regular",Consolas,Menlo,monospace;
+    --sans:Inter,Arial,Helvetica,sans-serif;
+  }
+  *{box-sizing:border-box;}
+  body{
+    margin:0; background:var(--bg); color:var(--text);
+    font-family:var(--sans); font-size:12.5px; line-height:1.42;
+  }
+  .page{
+    max-width:1500px; margin:0 auto; padding:16px 18px 18px;
+  }
+
+  .head{
+    display:flex; justify-content:space-between; align-items:flex-end;
+    flex-wrap:wrap; gap:10px;
+    border-bottom:2px solid var(--accent);
+    padding-bottom:10px; margin-bottom:12px;
+  }
+  .head h1{
+    font-size:20px; margin:0 0 3px; letter-spacing:-0.5px;
+  }
+  .head h1 span{color:var(--accent);}
+  .head p{margin:0; color:var(--dim); font-size:11px;}
+  .head .tag{
+    font-family:var(--mono); font-size:10px; color:var(--bg);
+    background:var(--accent); padding:3px 9px; border-radius:4px;
+    font-weight:700; letter-spacing:0.05em; height:fit-content;
+  }
+
+  .board{
+    columns: 5 260px;
+    column-gap: 12px;
+  }
+  @media (max-width: 1400px){ .board{ columns: 4 260px; } }
+  @media (max-width: 1080px){ .board{ columns: 3 260px; } }
+  @media (max-width: 760px){ .board{ columns: 2 260px; } }
+  @media (max-width: 480px){ .board{ columns: 1; } }
+
+  .card{
+    break-inside: avoid;
+    background:var(--panel);
+    border:1px solid var(--line);
+    border-radius:8px;
+    padding:10px 12px;
+    margin:0 0 12px;
+  }
+  .card h2{
+    font-size:11px; margin:0 0 7px;
+    text-transform:uppercase; letter-spacing:0.06em;
+    color:var(--accent);
+    display:flex; align-items:center; gap:6px;
+  }
+  .card h2 .n{
+    font-family:var(--mono); font-size:9.5px; color:var(--bg);
+    background:var(--accent-2); width:16px; height:16px; border-radius:4px;
+    display:inline-flex; align-items:center; justify-content:center;
+    flex-shrink:0;
+  }
+  .card p{margin:0 0 6px; color:var(--text);}
+  .card p.d{color:var(--dim); font-size:11px;}
+
+  .card.accentwarn h2{color:var(--warn);}
+  .card.accentwarn h2 .n{background:var(--warn); color:#1a1200;}
+  .card.accent2 h2{color:var(--accent-2);}
+  .card.accent2 h2 .n{background:var(--accent-2); color:#02040a;}
+
+  ul.tight{margin:0; padding-left:14px;}
+  ul.tight li{margin-bottom:3px; color:var(--text); font-size:11px;}
+  ul.tight li b{color:var(--accent);}
+  ul.tight.dim li{color:var(--dim);}
+
+  .def{
+    background:var(--panel-2); border-left:3px solid var(--accent-2);
+    border-radius:5px; padding:7px 9px; font-size:11px; margin:6px 0;
+  }
+  .def b{color:var(--accent-2);}
+
+  table.mini{
+    width:100%; border-collapse:collapse; font-size:10.5px; margin-top:4px;
+  }
+  table.mini th, table.mini td{
+    text-align:left; padding:3px 5px; border-bottom:1px solid var(--line);
+    vertical-align:top;
+  }
+  table.mini th{color:var(--accent-2); font-weight:600;}
+  table.mini td{color:var(--dim);}
+  table.mini td b{color:var(--text); font-weight:600;}
+
+  .chips{display:flex; flex-wrap:wrap; gap:4px;}
+  .chip{
+    font-family:var(--mono); font-size:9.5px; color:var(--text);
+    background:var(--panel-2); border:1px solid var(--line);
+    padding:3px 6px; border-radius:5px;
+  }
+  .chip b{color:var(--accent-2); margin-right:3px;}
+
+  .flow{font-size:10px; color:var(--dim); display:flex; flex-wrap:wrap; gap:4px; align-items:center;}
+  .flow .step{
+    color:var(--text); font-weight:600; background:var(--panel-2);
+    border:1px solid var(--line); padding:2px 6px; border-radius:5px;
+  }
+  .flow .arrow{color:var(--accent);}
+
+  .split{display:grid; grid-template-columns:1fr 1fr; gap:6px; margin-top:6px;}
+  .split .c{
+    background:var(--panel-2); border:1px solid var(--line); border-radius:5px;
+    padding:6px 7px; font-size:10.5px; color:var(--dim);
+  }
+  .split .c b{color:var(--text); display:block; font-size:11px; margin-bottom:2px;}
+  .split .c.hl b{color:var(--accent);}
+
+  .formula{
+    font-family:var(--mono); background:var(--panel-2); border:1px solid var(--line);
+    border-radius:6px; padding:7px 9px; font-size:11px; text-align:center; margin:6px 0;
+    color:var(--text);
+  }
+  .formula .res{color:var(--warn);}
+
+  ol.steps{list-style:none; margin:6px 0 0; padding:0; counter-reset:step;}
+  ol.steps li{
+    counter-increment:step; display:flex; gap:6px; padding:3px 0;
+    font-size:10.5px; color:var(--text);
+  }
+  ol.steps li::before{
+    content:counter(step); font-family:var(--mono); font-weight:700;
+    color:var(--bg); background:var(--accent); border-radius:50%;
+    width:14px; height:14px; flex:0 0 auto; font-size:8.5px;
+    display:flex; align-items:center; justify-content:center; margin-top:1px;
+  }
+
+  footer{
+    text-align:center; color:var(--dim); font-size:10px;
+    margin-top:10px; padding-top:8px; border-top:1px solid var(--line);
+  }
+
+  @media print{
+    body{background:#fff; color:#111;}
+    .page{padding:6px;}
+    .card{background:#fafafa; border-color:#ccc; break-inside:avoid;}
+    .head{border-color:#111;}
+    .head .tag{background:#111; color:#fff;}
+    .card h2{color:#111;}
+    .card h2 .n{background:#111; color:#fff;}
+  }
+</style>
+</head>
+<body>
+<div class="page">
+
+  <div class="head">
+    <div>
+      <h1>LLM Evaluation Methods — <span>Cheat Sheet</span></h1>
+      <p>Quick-reference · Programmatic · Human · LLM-as-a-Judge · Reference-Based vs Free · Offline vs Online</p>
+    </div>
+    <div class="tag">1-PAGE REFERENCE</div>
+  </div>
+
+  <div class="board">
+
+    <div class="card">
+      <h2><span class="n">1</span>Core Concept</h2>
+      <div class="def"><b>Eval method:</b> the mechanism that executes the judgment — who/what turns an output into a score.</div>
+      <p class="d">Pipeline = what's checked. Method = who/what checks it: code, human, or judge LLM.</p>
+    </div>
+
+    <div class="card">
+      <h2><span class="n">2</span>The Three Methods</h2>
+      <table class="mini">
+        <tr><th>Method</th><th>Strength</th><th>Weakness</th></tr>
+        <tr><td><b>Programmatic</b></td><td>Fast, cheap, repeatable</td><td>Needs measurable criteria</td></tr>
+        <tr><td><b>Human</b></td><td>Nuanced judgment</td><td>Expensive, slow</td></tr>
+        <tr><td><b>LLM-as-Judge</b></td><td>Scalable + nuance</td><td>Judge must be validated</td></tr>
+      </table>
+    </div>
+
+    <div class="card">
+      <h2><span class="n">3</span>Programmatic — RAG Retriever</h2>
+      <p class="d"><b style="color:var(--text)">Target:</b> retriever · <b style="color:var(--text)">Task:</b> retrieves relevant docs? · <b style="color:var(--text)">Criterion:</b> Recall@K</p>
+      <div class="def"><b>Golden dataset ≠ method:</b> human builds labels (50–100 Qs), scoring stays fully programmatic.</div>
+    </div>
+
+    <div class="card">
+      <h2><span class="n">4</span>Worked Example</h2>
+      <p class="d">Q: "Prereqs for ML course + duration?" Relevant docs: <b style="color:var(--text)">1001, 1003</b>.</p>
+      <p class="d">K=5 returns: <b style="color:var(--text)">1001,1002,1004,1005,1006</b> → 1 of 2 found.</p>
+    </div>
+
+    <div class="card accent2">
+      <h2><span class="n">5</span>Recall@K</h2>
+      <div class="formula">Relevant in Top-K ÷ <span class="res">Total relevant</span></div>
+      <div class="formula">1 ÷ 2 = <span class="res">50%</span></div>
+      <p class="d">Range: 0%–100%. Avg over dataset e.g. 67% Recall@5.</p>
+    </div>
+
+    <div class="card">
+      <h2><span class="n">6</span>Dataset-Level Flow</h2>
+      <ol class="steps">
+        <li>Send question → retriever</li>
+        <li>Get top-K docs</li>
+        <li>Compare vs relevant docs</li>
+        <li>Compute Recall@K</li>
+        <li>Average across all Qs</li>
+      </ol>
+    </div>
+
+    <div class="card">
+      <h2><span class="n">7</span>Improve the Retriever</h2>
+      <div class="chips">
+        <span class="chip">Better embeddings</span>
+        <span class="chip">Query expansion</span>
+        <span class="chip">Raise K</span>
+        <span class="chip">Add reranker</span>
+        <span class="chip">Better chunking</span>
+        <span class="chip">Precision/ranking metrics</span>
+      </div>
+    </div>
+
+    <div class="card">
+      <h2><span class="n">8</span>Human Eval — Helpfulness</h2>
+      <p class="d"><b style="color:var(--text)">Target:</b> whole app · <b style="color:var(--text)">Task:</b> rate helpfulness (accuracy, completeness, tone, usefulness)</p>
+      <div class="def">No single formula captures "helpful" reliably → needs human judgment.</div>
+    </div>
+
+    <div class="card">
+      <h2><span class="n">9</span>Helpfulness Rubric (1–5)</h2>
+      <table class="mini">
+        <tr><td><b>5</b></td><td>Accurate, complete, helpful, right tone</td></tr>
+        <tr><td><b>3</b></td><td>Partially helpful, missing aspects</td></tr>
+        <tr><td><b>1</b></td><td>Not helpful / incorrect</td></tr>
+      </table>
+    </div>
+
+    <div class="card">
+      <h2><span class="n">10</span>Human Eval Flow</h2>
+      <ol class="steps">
+        <li>50–100 question dataset</li>
+        <li>Send to chatbot</li>
+        <li>Collect answer</li>
+        <li>Rate w/ rubric</li>
+        <li>Average → overall score</li>
+      </ol>
+    </div>
+
+    <div class="card">
+      <h2><span class="n">11</span>Types of Human Eval</h2>
+      <ul class="tight">
+        <li><b>Direct Grading</b> — score vs rubric</li>
+        <li><b>Red Teaming</b> — attack to find failures</li>
+        <li><b>A/B Testing</b> — compare live variants</li>
+        <li><b>Golden Dataset</b> — define labels/rubric</li>
+        <li><b>Human-in-Loop</b> — route ambiguous cases</li>
+      </ul>
+    </div>
+
+    <div class="card accentwarn">
+      <h2><span class="n">12</span>Human Eval Trade-offs</h2>
+      <div class="def"><b>Disagreement signal:</b> repeated grader disagreement → rubric is ambiguous.</div>
+      <p class="d">+ High nuance/reliability &nbsp; − Costly &nbsp; − Doesn't scale to millions of outputs</p>
+    </div>
+
+    <div class="card accent2">
+      <h2><span class="n">13</span>LLM-as-a-Judge</h2>
+      <p class="d">One LLM evaluates another's output — combines programmatic scale with human-like nuance.</p>
+      <div class="formula">Output → <span class="res">Judge LLM</span> → Score + Reasoning</div>
+    </div>
+
+    <div class="card">
+      <h2><span class="n">14</span>Case: UPSC Auto-Grading</h2>
+      <p class="d"><b style="color:var(--text)">Target:</b> answer-eval platform · <b style="color:var(--text)">Task:</b> grade like human experts, cheaply, at scale</p>
+    </div>
+
+    <div class="card">
+      <h2><span class="n">15</span>Step 1 — Rubric</h2>
+      <ul class="tight dim">
+        <li>Discusses ethical governance & accountability</li>
+        <li>Explains the link</li>
+        <li>Gives mechanisms</li>
+        <li>Uses examples</li>
+        <li>Balanced conclusion</li>
+      </ul>
+    </div>
+
+    <div class="card">
+      <h2><span class="n">16</span>Step 2 — Golden Dataset</h2>
+      <p class="d">SME scores 50–100 student answers with same rubric → becomes reference/golden labels.</p>
+    </div>
+
+    <div class="card">
+      <h2><span class="n">17</span>Step 3 — Judge Inputs</h2>
+      <div class="chips">
+        <span class="chip">Question</span>
+        <span class="chip">Max marks</span>
+        <span class="chip">Rubric</span>
+        <span class="chip">Student answer</span>
+        <span class="chip">Scoring instructions</span>
+      </div>
+      <p class="d" style="margin-top:6px;">No credit for verbosity/keyword-stuffing; concise justification required.</p>
+    </div>
+
+    <div class="card">
+      <h2><span class="n">18</span>Step 4 — Human vs LLM</h2>
+      <table class="mini">
+        <tr><th>Answer</th><th>Human</th><th>LLM</th></tr>
+        <tr><td>A001</td><td>13</td><td>12</td></tr>
+        <tr><td>A002</td><td>4</td><td>8</td></tr>
+        <tr><td>A003</td><td>8</td><td>8</td></tr>
+      </table>
+    </div>
+
+    <div class="card accentwarn">
+      <h2><span class="n">19</span>MAE — Success Metric</h2>
+      <div class="formula">(1/N) × Σ |<span class="res">Human − LLM</span>|</div>
+      <p class="d">MAE = 2.3 → judge off by ~2.3 marks avg. Goal: MAE → 0.</p>
+    </div>
+
+    <div class="card">
+      <h2><span class="n">20</span>Improve the Judge</h2>
+      <div class="chips">
+        <span class="chip">Stronger judge LLM</span>
+        <span class="chip">Better prompt</span>
+        <span class="chip">Refine rubric</span>
+        <span class="chip">Clearer instructions</span>
+        <span class="chip">Calibration examples</span>
+        <span class="chip">Analyze disagreements</span>
+      </div>
+      <div class="def" style="margin-top:6px;"><b>Loop:</b> evaluate → find gaps → improve → re-evaluate.</div>
+    </div>
+
+    <div class="card accent2">
+      <h2><span class="n">21</span>Reference-Based vs Free</h2>
+      <div class="def"><b>Test:</b> reference/correct answer exists per case? Yes → based. No → free.</div>
+      <div class="split">
+        <div class="c hl"><b>Reference-Based</b>Ground truth per case; compare vs reference. e.g. Recall@K, UPSC scores</div>
+        <div class="c"><b>Reference-Free</b>No per-case answer; judge vs rubric. e.g. Chatbot helpfulness</div>
+      </div>
+    </div>
+
+    <div class="card">
+      <h2><span class="n">22</span>Offline vs Online</h2>
+      <div class="split">
+        <div class="c hl"><b>Offline</b>Before production, fixed dataset, controlled. "Does it work on our eval set?"</div>
+        <div class="c"><b>Online</b>In production, real traffic & feedback. "How's it doing live?"</div>
+      </div>
+    </div>
+
+    <div class="card">
+      <h2><span class="n">23</span>Pick the Method</h2>
+      <div class="flow">
+        <span class="step">Code can measure?</span><span class="arrow">→</span><span class="step">Programmatic</span>
+      </div>
+      <div class="flow" style="margin-top:4px;">
+        <span class="step">Needs nuance?</span><span class="arrow">→</span><span class="step">Human</span>
+      </div>
+      <div class="flow" style="margin-top:4px;">
+        <span class="step">Needs scale + nuance?</span><span class="arrow">→</span><span class="step">LLM-as-Judge</span>
+      </div>
+    </div>
+
+    <div class="card">
+      <h2><span class="n">24</span>Mental Model</h2>
+      <div class="formula" style="font-size:10px;">Pipeline = Target + Task + Criteria + Dataset + Method + Execution + Analysis</div>
+    </div>
+
+    <div class="card">
+      <h2><span class="n">25</span>Cheat Table</h2>
+      <table class="mini">
+        <tr><td><b>Programmatic</b></td><td>Code executes eval</td></tr>
+        <tr><td><b>Human</b></td><td>Human judgment executes</td></tr>
+        <tr><td><b>LLM-Judge</b></td><td>LLM scores output</td></tr>
+        <tr><td><b>Recall@K</b></td><td>Relevant in Top-K ÷ Total</td></tr>
+        <tr><td><b>MAE</b></td><td>Avg |Human − LLM| score</td></tr>
+        <tr><td><b>Ref-Based</b></td><td>Ground truth exists</td></tr>
+        <tr><td><b>Ref-Free</b></td><td>Judge vs rubric only</td></tr>
+        <tr><td><b>Offline</b></td><td>Fixed dataset, pre-prod</td></tr>
+        <tr><td><b>Online</b></td><td>Live production signals</td></tr>
+      </table>
+    </div>
+
+  </div>
+
+  <footer>
+    LLM Evaluation Methods — condensed cheat sheet · prepared from lecture notes
+  </footer>
+
+</div>
+</body>
+</html>

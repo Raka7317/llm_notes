@@ -1,0 +1,480 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Offline vs Online Evaluation — Cheat Sheet</title>
+<style>
+  :root{
+    --bg:#0b0f14;
+    --panel:#11171f;
+    --panel-2:#161e28;
+    --line:#233040;
+    --text:#e7edf3;
+    --dim:#8ba0b5;
+    --accent:#72b7ff;
+    --accent-2:#9b8cff;
+    --good:#61d6a5;
+    --warn:#f3c969;
+    --danger:#ff7d8d;
+    --mono:"JetBrains Mono","SFMono-Regular",Consolas,Menlo,monospace;
+    --sans:Inter,Arial,Helvetica,sans-serif;
+  }
+  *{box-sizing:border-box;}
+  body{
+    margin:0; background:var(--bg); color:var(--text);
+    font-family:var(--sans); font-size:12.3px; line-height:1.4;
+  }
+  .page{
+    max-width:1600px; margin:0 auto; padding:16px 18px 18px;
+  }
+
+  .head{
+    display:flex; justify-content:space-between; align-items:flex-end;
+    flex-wrap:wrap; gap:10px;
+    border-bottom:2px solid var(--accent);
+    padding-bottom:10px; margin-bottom:12px;
+  }
+  .head h1{
+    font-size:19px; margin:0 0 3px; letter-spacing:-0.5px;
+  }
+  .head h1 span{color:var(--accent);}
+  .head p{margin:0; color:var(--dim); font-size:10.5px;}
+  .head .tag{
+    font-family:var(--mono); font-size:10px; color:var(--bg);
+    background:var(--accent); padding:3px 9px; border-radius:4px;
+    font-weight:700; letter-spacing:0.05em; height:fit-content;
+  }
+
+  .board{
+    columns: 7 235px;
+    column-gap: 11px;
+  }
+  @media (max-width: 1650px){ .board{ columns: 6 235px; } }
+  @media (max-width: 1420px){ .board{ columns: 5 235px; } }
+  @media (max-width: 1180px){ .board{ columns: 4 235px; } }
+  @media (max-width: 940px){ .board{ columns: 3 235px; } }
+  @media (max-width: 700px){ .board{ columns: 2 235px; } }
+  @media (max-width: 460px){ .board{ columns: 1; } }
+
+  .card{
+    break-inside: avoid;
+    background:var(--panel);
+    border:1px solid var(--line);
+    border-radius:8px;
+    padding:9px 10px;
+    margin:0 0 11px;
+  }
+  .card h2{
+    font-size:10px; margin:0 0 6px;
+    text-transform:uppercase; letter-spacing:0.05em;
+    color:var(--accent);
+    display:flex; align-items:center; gap:6px;
+  }
+  .card h2 .n{
+    font-family:var(--mono); font-size:8.5px; color:var(--bg);
+    background:var(--accent-2); width:15px; height:15px; border-radius:4px;
+    display:inline-flex; align-items:center; justify-content:center;
+    flex-shrink:0;
+  }
+  .card p{margin:0 0 5px; color:var(--text);}
+  .card p.d{color:var(--dim); font-size:10px;}
+
+  .card.good h2{color:var(--good);}
+  .card.good h2 .n{background:var(--good); color:#04140d;}
+  .card.warn h2{color:var(--warn);}
+  .card.warn h2 .n{background:var(--warn); color:#1a1200;}
+  .card.danger h2{color:var(--danger);}
+  .card.danger h2 .n{background:var(--danger); color:#1a0508;}
+  .card.accent2 h2{color:var(--accent-2);}
+  .card.accent2 h2 .n{background:var(--accent-2); color:#02040a;}
+
+  ul.tight{margin:0; padding-left:13px;}
+  ul.tight li{margin-bottom:2px; color:var(--text); font-size:10px;}
+  ul.tight li b{color:var(--accent);}
+  ul.tight.dim li{color:var(--dim);}
+
+  ol.tight{margin:0; padding-left:13px;}
+  ol.tight li{margin-bottom:2px; color:var(--text); font-size:10px;}
+
+  .def{
+    background:var(--panel-2); border-left:3px solid var(--accent-2);
+    border-radius:5px; padding:6px 8px; font-size:10px; margin:5px 0;
+  }
+  .def b{color:var(--accent-2);}
+  .def.g{border-left-color:var(--good);}
+  .def.g b{color:var(--good);}
+  .def.w{border-left-color:var(--warn);}
+  .def.w b{color:var(--warn);}
+  .def.d{border-left-color:var(--danger);}
+  .def.d b{color:var(--danger);}
+
+  table.mini{
+    width:100%; border-collapse:collapse; font-size:9.5px; margin-top:4px;
+  }
+  table.mini th, table.mini td{
+    text-align:left; padding:3px 4px; border-bottom:1px solid var(--line);
+    vertical-align:top;
+  }
+  table.mini th{color:var(--accent-2); font-weight:600;}
+  table.mini td{color:var(--dim);}
+  table.mini td b{color:var(--text); font-weight:600;}
+
+  .chips{display:flex; flex-wrap:wrap; gap:4px;}
+  .chip{
+    font-family:var(--mono); font-size:8.5px; color:var(--text);
+    background:var(--panel-2); border:1px solid var(--line);
+    padding:3px 5px; border-radius:5px;
+  }
+
+  .flow{font-size:9px; color:var(--dim); display:flex; flex-wrap:wrap; gap:3px; align-items:center;}
+  .flow .step{
+    color:var(--text); font-weight:600; background:var(--panel-2);
+    border:1px solid var(--line); padding:2px 5px; border-radius:5px;
+  }
+  .flow .arrow{color:var(--accent);}
+
+  .split{display:grid; grid-template-columns:1fr 1fr; gap:5px; margin-top:5px;}
+  .split .c{
+    background:var(--panel-2); border:1px solid var(--line); border-radius:5px;
+    padding:5px 6px; font-size:9.5px; color:var(--dim);
+  }
+  .split .c b{color:var(--text); display:block; font-size:10px; margin-bottom:2px;}
+  .split .c.hl b{color:var(--accent);}
+  .split .c.hl2 b{color:var(--accent-2);}
+
+  .code{
+    background:#080b10; border:1px solid var(--line); border-radius:6px;
+    padding:6px 7px; font-family:var(--mono); font-size:8.3px; color:#cdd8e4;
+    line-height:1.35; overflow-x:auto; margin-top:4px;
+  }
+
+  footer{
+    text-align:center; color:var(--dim); font-size:9.5px;
+    margin-top:10px; padding-top:8px; border-top:1px solid var(--line);
+  }
+
+  @media print{
+    body{background:#fff; color:#111;}
+    .page{padding:6px;}
+    .card{background:#fafafa; border-color:#ccc; break-inside:avoid;}
+    .head{border-color:#111;}
+    .head .tag{background:#111; color:#fff;}
+    .card h2{color:#111;}
+    .card h2 .n{background:#111; color:#fff;}
+  }
+</style>
+</head>
+<body>
+<div class="page">
+
+  <div class="head">
+    <div>
+      <h1>Offline vs Online Evaluation — <span>Cheat Sheet</span></h1>
+      <p>Quick-reference · Release Gates · Production Risk · Signals · Logging · Sampling · Platform Config · Self-Improving Loop</p>
+    </div>
+    <div class="tag">1-PAGE REFERENCE</div>
+  </div>
+
+  <div class="board">
+
+    <div class="card">
+      <h2><span class="n">1</span>Offline Evaluation</h2>
+      <div class="def"><b>Def:</b> eval before deployment, on a controlled golden dataset + predefined criteria.</div>
+      <div class="flow">
+        <span class="step">Dataset</span><span class="arrow">→</span><span class="step">App</span><span class="arrow">→</span><span class="step">Evaluator</span><span class="arrow">→</span><span class="step">Score</span><span class="arrow">→</span><span class="step">Release?</span>
+      </div>
+    </div>
+
+    <div class="card">
+      <h2><span class="n">2</span>UPSC Grader Example</h2>
+      <p class="d">Golden dataset + LLM-as-Judge scores compared to human scores, before deployment → classic offline eval.</p>
+    </div>
+
+    <div class="card good">
+      <h2><span class="n">3</span>Benefit: Release Gate</h2>
+      <p class="d">Threshold e.g. <b style="color:var(--text)">95%</b>. Score ≥ threshold → deploy. Below → block / keep old version. Automatable in CI/CD.</p>
+    </div>
+
+    <div class="card good">
+      <h2><span class="n">4</span>Benefit: Version Comparison</h2>
+      <p class="d">Same dataset + same pipeline across versions → fair comparison.</p>
+      <div class="chips">
+        <span class="chip">Models</span><span class="chip">Prompts</span><span class="chip">Rerankers</span>
+        <span class="chip">Vector DBs</span><span class="chip">Architectures</span>
+      </div>
+    </div>
+
+    <div class="card good">
+      <h2><span class="n">5</span>Benefit: Regression Testing</h2>
+      <p class="d">Improving one behavior shouldn't quietly break another.</p>
+      <div class="def g"><b>Ex:</b> kinder tone prompt → refund success drops 90%→80%.</div>
+    </div>
+
+    <div class="card">
+      <h2><span class="n">6</span>Regression Test Matrix</h2>
+      <table class="mini">
+        <tr><th>Change</th><th>Also Check</th></tr>
+        <tr><td>System prompt</td><td>Pricing accuracy, relevance</td></tr>
+        <tr><td>LLM model</td><td>Latency, cost, safety</td></tr>
+        <tr><td>Vector DB</td><td>Answer quality, latency</td></tr>
+        <tr><td>Reranker</td><td>Faithfulness, prior cases</td></tr>
+      </table>
+    </div>
+
+    <div class="card warn">
+      <h2><span class="n">7</span>What Changes in Prod</h2>
+      <ul class="tight">
+        <li><b>Unexpected inputs</b> — never in golden set</li>
+        <li><b>Emergent failures</b> — visible only at scale</li>
+        <li><b>Drift</b> — data/env changes over time</li>
+      </ul>
+    </div>
+
+    <div class="card">
+      <h2><span class="n">8</span>Unexpected Input Examples</h2>
+      <ul class="tight dim">
+        <li>Hindi-English mixed msgs</li>
+        <li>Ambiguous/incomplete Qs</li>
+        <li>Angry msg w/ hidden question</li>
+        <li>Prompt-injection attempts</li>
+        <li>Unanticipated edge cases</li>
+      </ul>
+    </div>
+
+    <div class="card">
+      <h2><span class="n">9</span>Emergent Failures</h2>
+      <p class="d">Course launch → thousands of concurrent users → latency spike never seen offline. Bias patterns visible only across thousands of convos.</p>
+    </div>
+
+    <div class="card danger">
+      <h2><span class="n">10</span>Drift</h2>
+      <p class="d">Real-world data/behavior/env changes; frozen eval set stops representing production.</p>
+      <div class="def d"><b>Risk:</b> stale golden dataset → good offline score, unhappy live users.</div>
+    </div>
+
+    <div class="card accent2">
+      <h2><span class="n">11</span>Online Evaluation</h2>
+      <div class="def"><b>Def:</b> evaluates deployed system on live traffic, continuously — usually <b>no fixed answer key</b>.</div>
+      <p class="d">Core Q: "Is it behaving normally right now?"</p>
+    </div>
+
+    <div class="card">
+      <h2><span class="n">12</span>Offline vs Online</h2>
+      <table class="mini">
+        <tr><th></th><th>Offline</th><th>Online</th></tr>
+        <tr><td><b>When</b></td><td>Pre-deploy</td><td>Post-deploy, continuous</td></tr>
+        <tr><td><b>Data</b></td><td>Fixed golden set</td><td>Live traffic</td></tr>
+        <tr><td><b>Answer key</b></td><td>Usually yes</td><td>Usually no</td></tr>
+        <tr><td><b>Best for</b></td><td>Gate/compare/regress</td><td>Drift/anomaly detect</td></tr>
+        <tr><td><b>Cost</b></td><td>Cheap, repeatable</td><td>Can get expensive</td></tr>
+      </table>
+    </div>
+
+    <div class="card">
+      <h2><span class="n">13</span>Complementary, Not Rivals</h2>
+      <div class="flow">
+        <span class="step">Offline: Correctness</span><span class="arrow">+</span><span class="step">Online: Normality</span>
+      </div>
+      <p class="d" style="margin-top:5px;">Production-grade systems need both — online is not a replacement.</p>
+    </div>
+
+    <div class="card accent2">
+      <h2><span class="n">14</span>Correctness vs Normality</h2>
+      <div class="split">
+        <div class="c hl"><b>Correctness</b>Output right vs a reference. Hard in prod — no per-case human label yet.</div>
+        <div class="c hl2"><b>Normality</b>Does behavior match healthy baseline?</div>
+      </div>
+    </div>
+
+    <div class="card">
+      <h2><span class="n">15</span>Distribution Shift Example</h2>
+      <p class="d">Scores usually 500–700. Week 5 suddenly 800–900 → not proof of error, but a trigger to investigate.</p>
+    </div>
+
+    <div class="card">
+      <h2><span class="n">16</span>Reference-Free Signals</h2>
+      <ul class="tight dim">
+        <li><b style="color:var(--accent)">Faithfulness</b> — answer supported by context?</li>
+        <li><b style="color:var(--accent)">Thumbs-down spike</b> — quality proxy, not proof</li>
+      </ul>
+    </div>
+
+    <div class="card">
+      <h2><span class="n">17</span>Captured Signals</h2>
+      <p class="d">Already available — log directly.</p>
+      <div class="chips">
+        <span class="chip">Thumbs up/down</span><span class="chip">Latency</span><span class="chip">Tokens</span>
+        <span class="chip">Cost</span><span class="chip">Errors</span>
+      </div>
+    </div>
+
+    <div class="card">
+      <h2><span class="n">18</span>Computed Signals</h2>
+      <p class="d">Need an evaluator.</p>
+      <div class="chips">
+        <span class="chip">Faithfulness</span><span class="chip">Relevance</span><span class="chip">Correctness</span>
+        <span class="chip">Hallucination</span><span class="chip">Toxicity</span><span class="chip">Bias</span>
+      </div>
+    </div>
+
+    <div class="card accent2">
+      <h2><span class="n">19</span>Step 1 — Logging</h2>
+      <div class="def"><b>Why first:</b> no recorded conversations → nothing to evaluate later.</div>
+      <table class="mini">
+        <tr><td><b>Identity</b></td><td>Conv/turn/user/session ID, ts</td></tr>
+        <tr><td><b>Input</b></td><td>User message</td></tr>
+        <tr><td><b>RAG</b></td><td>Retrieved context</td></tr>
+        <tr><td><b>Output</b></td><td>Model response</td></tr>
+        <tr><td><b>Ops</b></td><td>Latency, tokens, cost</td></tr>
+        <tr><td><b>Behavior</b></td><td>Feedback, escalation</td></tr>
+      </table>
+    </div>
+
+    <div class="card">
+      <h2><span class="n">20</span>Example Log Record</h2>
+      <div class="code">{<br>&nbsp;"conversation_id": "conv_123",<br>&nbsp;"latency_ms": 2030,<br>&nbsp;"prompt_tokens": 850,<br>&nbsp;"cost": 0.012,<br>&nbsp;"status": "success",<br>&nbsp;"feedback": "thumbs_down"<br>}</div>
+      <p class="d" style="margin-top:4px;">Platform example: <b style="color:var(--text)">LangSmith</b> stores traces w/ inputs, outputs, metadata.</p>
+    </div>
+
+    <div class="card warn">
+      <h2><span class="n">21</span>Logging Properties</h2>
+      <ul class="tight">
+        <li><b>Non-blocking</b> — async, no added latency</li>
+        <li><b>Durable & queryable</b> — retrievable later</li>
+        <li><b>Late signal attach</b> — via conversation ID</li>
+        <li><b>PII handling</b> — mask sensitive data</li>
+      </ul>
+    </div>
+
+    <div class="card">
+      <h2><span class="n">22</span>Dashboarding</h2>
+      <p class="d">Aggregates signals over windows (1h/24h/week). Aggregate trend &gt; single conversation.</p>
+      <div class="flow" style="margin-top:4px;">
+        <span class="step">Log</span><span class="arrow">→</span><span class="step">Dashboard</span><span class="arrow">→</span><span class="step">Alert</span><span class="arrow">→</span><span class="step">Action</span>
+      </div>
+    </div>
+
+    <div class="card">
+      <h2><span class="n">23</span>Traffic Spike Example</h2>
+      <div class="flow">
+        <span class="step">Course launch</span><span class="arrow">→</span><span class="step">Latency ↑</span><span class="arrow">→</span><span class="step">Dashboard flags</span><span class="arrow">→</span><span class="step">Scale resources</span>
+      </div>
+    </div>
+
+    <div class="card">
+      <h2><span class="n">24</span>Alerting</h2>
+      <p class="d">Automates threshold-violation detection since engineers can't watch dashboards 24/7.</p>
+      <div class="chips">
+        <span class="chip">Slack</span><span class="chip">Email</span><span class="chip">PagerDuty-style</span><span class="chip">API</span>
+      </div>
+    </div>
+
+    <div class="card accent2">
+      <h2><span class="n">25</span>Computed Eval: Hallucination</h2>
+      <div class="flow">
+        <span class="step">Trace</span><span class="arrow">→</span><span class="step">Sample</span><span class="arrow">→</span><span class="step">LLM Judge</span><span class="arrow">→</span><span class="step">Score</span><span class="arrow">→</span><span class="step">Dashboard</span><span class="arrow">→</span><span class="step">Alert</span>
+      </div>
+      <p class="d" style="margin-top:4px;">Judge inputs: question, context, answer, rubric.</p>
+    </div>
+
+    <div class="card">
+      <h2><span class="n">26</span>Reference-Based vs Free</h2>
+      <table class="mini">
+        <tr><th>Reference-Based</th><th>Reference-Free</th></tr>
+        <tr><td>Known answer key</td><td>No fixed answer for this case</td></tr>
+        <tr><td>Typical offline setup</td><td>Typical online setup</td></tr>
+        <tr><td>UPSC vs human grading</td><td>Answer supported by context?</td></tr>
+      </table>
+    </div>
+
+    <div class="card warn">
+      <h2><span class="n">27</span>Cost Warning</h2>
+      <div class="def w"><b>Judge cost:</b> running an LLM judge on every production conversation gets expensive fast → sample.</div>
+    </div>
+
+    <div class="card">
+      <h2><span class="n">28</span>Random Sampling</h2>
+      <p class="d">Randomly pick a subset. Simple, but risky conversations may be under-represented.</p>
+    </div>
+
+    <div class="card good">
+      <h2><span class="n">29</span>Stratified Sampling</h2>
+      <p class="d">Sample more from high-risk categories, not uniformly.</p>
+      <div class="chips">
+        <span class="chip">Thumbs-down</span><span class="chip">Abandoned</span><span class="chip">Escalated</span>
+        <span class="chip">Repeated Qs</span><span class="chip">Financial topics</span>
+      </div>
+      <div class="def g" style="margin-top:5px;"><b>Rule:</b> sample for information value, not convenience.</div>
+    </div>
+
+    <div class="card">
+      <h2><span class="n">30</span>Platform — LangSmith</h2>
+      <p class="d">Supports tracing, dashboards, alerts, datasets, offline experiments, online evaluators, judge templates.</p>
+      <div class="chips">
+        <span class="chip">PII Leak</span><span class="chip">Prompt Inj.</span><span class="chip">Toxicity</span>
+        <span class="chip">Bias</span><span class="chip">Hallucination</span><span class="chip">Correctness</span><span class="chip">Agent Eval</span>
+      </div>
+    </div>
+
+    <div class="card">
+      <h2><span class="n">31</span>Same Evaluator, Two Modes</h2>
+      <div class="split">
+        <div class="c hl"><b>On live traces</b>→ Online</div>
+        <div class="c hl2"><b>On dataset/experiment</b>→ Offline</div>
+      </div>
+      <p class="d" style="margin-top:4px;">Evaluator <i>type</i> ≠ mode; the <i>data it runs on</i> decides the mode.</p>
+    </div>
+
+    <div class="card">
+      <h2><span class="n">32</span>Evaluator Config Steps</h2>
+      <ol class="tight">
+        <li>Select application</li>
+        <li>Select evaluator type</li>
+        <li>Pick Judge LLM</li>
+        <li>Configure model/API</li>
+        <li>Define rubric</li>
+        <li>Set output format</li>
+        <li>Run on traces or dataset</li>
+      </ol>
+    </div>
+
+    <div class="card accent2">
+      <h2><span class="n">33</span>Self-Improving Loop</h2>
+      <div class="flow">
+        <span class="step">Dataset</span><span class="arrow">→</span><span class="step">Offline Eval</span><span class="arrow">→</span><span class="step">Release</span><span class="arrow">→</span><span class="step">Prod</span><span class="arrow">→</span><span class="step">Monitor</span><span class="arrow">→</span><span class="step">Failure</span><span class="arrow">→</span><span class="step">Dataset Update</span>
+      </div>
+      <p class="d" style="margin-top:5px;">Real failures get annotated & folded back → next release tested against real + historical cases.</p>
+    </div>
+
+    <div class="card">
+      <h2><span class="n">34</span>Final Mental Model</h2>
+      <div class="flow">
+        <span class="step">Build</span><span class="arrow">→</span><span class="step">Eval</span><span class="arrow">→</span><span class="step">Release</span><span class="arrow">→</span><span class="step">Observe</span><span class="arrow">→</span><span class="step">Detect</span><span class="arrow">→</span><span class="step">Learn</span><span class="arrow">→</span><span class="step">Update</span><span class="arrow">→</span><span class="step">Re-eval</span>
+      </div>
+    </div>
+
+    <div class="card">
+      <h2><span class="n">35</span>Cheat Table</h2>
+      <table class="mini">
+        <tr><td><b>Offline</b></td><td>Pre-deploy, controlled, gate/compare/regress</td></tr>
+        <tr><td><b>Online</b></td><td>Post-deploy, live, drift/anomaly detect</td></tr>
+        <tr><td><b>Drift</b></td><td>Env/data changed vs frozen eval set</td></tr>
+        <tr><td><b>Captured</b></td><td>Logged directly (latency, cost…)</td></tr>
+        <tr><td><b>Computed</b></td><td>Needs evaluator (hallucination…)</td></tr>
+        <tr><td><b>Correctness</b></td><td>Right vs reference</td></tr>
+        <tr><td><b>Normality</b></td><td>Matches healthy baseline</td></tr>
+        <tr><td><b>Stratified sampling</b></td><td>Oversample high-risk convos</td></tr>
+        <tr><td><b>Self-improving loop</b></td><td>Prod failures → dataset → better releases</td></tr>
+      </table>
+    </div>
+
+  </div>
+
+  <footer>
+    Offline vs Online Evaluation — condensed cheat sheet · prepared from lecture notes
+  </footer>
+
+</div>
+</body>
+</html>
